@@ -1,0 +1,145 @@
+---
+title: "Taiwanese Mandarin speech rate vs. rhythm"
+author: "Márton Sóskuthy"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(ggbeeswarm)
+
+d <- read_csv("../data/taiwanese_mandarin_durations.csv") %>%
+  arrange(speaker, file, phone_start) %>%
+  mutate(recording_type = str_extract(file, "[rs]s$")) %>%
+  filter(speaker != "mn_tw_66")
+```
+
+How much do speech rates vary?
+
+```{r}
+d %>%
+  group_by(speaker, recording_type, uttr_id) %>%
+  summarise(speech_rate=speech_rate[1]) %>%
+  ungroup() %>%
+ggplot(aes(x=recording_type, col=recording_type, y=speech_rate)) +
+  facet_wrap(~ speaker) +
+  geom_beeswarm() +
+  scale_y_log10()
+
+d %>%
+  group_by(speaker, recording_type, uttr_id) %>%
+  summarise(speech_rate=speech_rate[1]) %>%
+  ungroup() %>%
+ggplot(aes(x=recording_type, fill=recording_type, y=speech_rate)) +
+  geom_violin() +
+  stat_summary(fun=mean, geom="point", shape=16) +
+  scale_y_log10()
+```
+
+Some data filtering.
+
+```{r}
+# utterance level filtering
+# - at least 5 syllables
+# - log sd based filtering for top end of speech rate
+
+d_uttr <- d %>% 
+  group_by(uttr_id, speaker) %>%
+  summarise(speech_rate=speech_rate[1]) %>%
+  ungroup() %>%
+  group_by(speaker) %>%
+  filter(log(speech_rate) < mean(log(speech_rate)) + 3*sd(log(speech_rate))) %>%
+  ungroup()
+
+d <- d %>%
+  filter(
+    num_syllables_uttr >= 5,
+    uttr_id %in% d_uttr$uttr_id
+  )
+```
+
+Plot speech rates again.
+
+```{r}
+d %>%
+  group_by(speaker, recording_type, uttr_id) %>%
+  summarise(speech_rate=speech_rate[1]) %>%
+  ungroup() %>%
+ggplot(aes(x=recording_type, col=recording_type, y=speech_rate)) +
+  facet_wrap(~ speaker) +
+  geom_beeswarm() +
+  scale_y_log10()
+
+d %>%
+  group_by(speaker, recording_type, uttr_id) %>%
+  summarise(speech_rate=speech_rate[1]) %>%
+  ungroup() %>%
+ggplot(aes(x=recording_type, fill=recording_type, y=speech_rate)) +
+  geom_violin() +
+  stat_summary(fun=mean, geom="point", shape=16) +
+  scale_y_log10()
+```
+
+Right, calculate %V!
+
+```{r}
+d_rhythm <- d %>%
+  group_by(
+    speaker, 
+    sex,
+    age,
+    recording_type,
+    uttr_id
+  ) %>%
+  summarise(
+    speech_rate=num_syllables_uttr[1]/sum(phone_dur),
+    speech_rate_phone=length(phone_dur)/sum(phone_dur),
+    num_words_uttr=num_words_uttr[1],
+    num_syllables_uttr=num_syllables_uttr[1],
+    uttr_start=uttr_start[1],
+    uttr_end=uttr_end[1],
+    uttr_dur=uttr_dur[1],
+    v_prop=sum(phone_dur[segment_type=="vowel"])/sum(phone_dur),
+    v_dur=mean(phone_dur[segment_type=="vowel"]),
+    c_dur=mean(phone_dur[segment_type=="consonant"])
+  ) %>%
+  ungroup()
+```
+
+Exploratory plots!
+
+```{r}
+ggplot(d_rhythm, aes(x=1/speech_rate_phone, y=v_prop*100)) +
+  geom_point() +
+  geom_smooth(method="gam") +
+  ylab("V%") +
+  xlab("average segment duration (1 / speech rate)")
+ggsave("graphs/avg_seg_dur-v_perc.png", width=6, height=4.5, dpi=300)
+
+ggplot(d_rhythm, aes(x=1/speech_rate_phone, y=v_prop*100)) +
+  facet_wrap(~speaker) +
+  geom_point() +
+  geom_smooth(method="gam") +
+  ylab("V%") +
+  xlab("average segment duration (1 / speech rate)")
+ggsave("graphs/avg_seg_dur-v_perc-speaker.png", width=10, height=7.5, dpi=300)
+
+ggplot(d_rhythm, aes(x=1/speech_rate_phone)) +
+  geom_point(aes(y=v_dur), col="orange", alpha=0.3) +
+  geom_point(aes(y=c_dur), col="purple", alpha=0.3) +
+  geom_smooth(aes(y=v_dur), col="darkorange2", method="gam", se=F) +
+  geom_smooth(aes(y=c_dur), col="purple4", method="gam", se=F)
+ggsave("graphs/avg_seg_dur-avg_C+V_dur.png", width=6, height=4.5, dpi=300)
+
+ggplot(d_rhythm, aes(x=1/speech_rate_phone)) +
+  facet_wrap(~speaker) +
+  geom_point(aes(y=v_dur), col="orange", alpha=0.3) +
+  geom_point(aes(y=c_dur), col="purple", alpha=0.3) +
+  geom_smooth(aes(y=v_dur), col="darkorange2", method="gam", se=F) +
+  geom_smooth(aes(y=c_dur), col="purple4", method="gam", se=F)
+ggsave("graphs/avg_seg_dur-avg_C+V_dur-speaker.png", width=10, height=7.5, dpi=300)
+```
