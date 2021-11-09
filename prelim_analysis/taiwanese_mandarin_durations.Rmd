@@ -107,7 +107,8 @@ d_rhythm <- d %>%
     v_dur=mean(phone_dur[segment_type=="vowel"]),
     c_dur=mean(phone_dur[segment_type=="consonant"])
   ) %>%
-  ungroup()
+  ungroup() %>%
+  filter((1/speech_rate_phone) < 0.2)
 ```
 
 Exploratory plots!
