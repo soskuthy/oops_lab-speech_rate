@@ -1,4 +1,4 @@
-main_dir$ = "/Users/YuHsiangLo/Documents/RA/Marci/oops_lab-speech_rate/audio_data/kapampangan"
+main_dir$ = "/Users/soskuthy/Documents/Research/data/xling-corpus/forced_aligned/kapampangan"
 
 Create Strings as directory list... dir_list 'main_dir$'
 dir_list_index = selected()
