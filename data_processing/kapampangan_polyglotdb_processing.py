@@ -47,22 +47,12 @@ with CorpusContext('kapampangan') as c:
 
 # enrichment time! encoding utterances
 pause_labels = ['<SIL>','<sil>','sp','','sil','spn']
+non_speech_labels = pause_labels + ['{', '}', '~', "'", "<unk>"]
+vowels = ['a','i','u','e','o', 'ɪ', 'ʊ']
 
 with CorpusContext('kapampangan') as c:
     c.encode_pauses(pause_labels)
     c.encode_utterances(min_pause_length=0.15)
-
-with CorpusContext('kapampangan') as c:
-    q = c.query_graph(c.utterance)
-    results = q.aggregate(Count().column_name('count'), Average(c.utterance.duration).column_name('average_duration'))
-
-# getting vowels
-with CorpusContext('kapampangan') as c:
-    q = c.query_graph(c.phone)
-    q = q.filter(c.phone.label.regex('[^<s]*[AEOUIiou].*'))
-    q = q.group_by(c.phone.label.column_name('phone'))
-    q = q.aggregate(Count().column_name('count'))
-    vowels = [x['phone'] for x in q]
 
 with CorpusContext('kapampangan') as c:
     c.encode_type_subset('phone', vowels, 'vowel')
@@ -78,7 +68,7 @@ with CorpusContext('kapampangan') as c:
 
 with CorpusContext('kapampangan') as c:
     q = c.query_graph(c.phone)
-    q = q.filter(c.phone.label.in_(pause_labels))
+    q = q.filter(c.phone.label.in_(non_speech_labels))
     q.set_properties(segtype='non-speech')
 
 
@@ -119,7 +109,7 @@ with CorpusContext('kapampangan') as c:
 #        vowel_prototypes_path="/Users/soskuthy/Documents/Research/data/xling-corpus/mandarin_processing/kapampangan_prototypes.csv"
 #    )
 
-speaker_csv_path = '/Users/soskuthy/Documents/Research/data/xling-corpus/forced_aligned/kapampangan_demographic.csv'
+speaker_csv_path = '/Users/soskuthy/Documents/Research/data/xling-corpus/forced_aligned/taiwanese_mandarin_demographic.csv'
 with CorpusContext('kapampangan') as c:
     c.enrich_speakers_from_csv(speaker_csv_path)
 
