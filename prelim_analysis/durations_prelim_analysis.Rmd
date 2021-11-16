@@ -97,7 +97,7 @@ twm_rhythm <- twm %>%
   ) %>%
   summarise(
     speech_rate=num_syllables_uttr[1]/sum(phone_dur[segment_type %in% c("vowel", "consonant")]),
-    speech_rate_phone=length(phone_dur)/sum(phone_dur[segment_type %in% c("vowel", "consonant")]),
+    speech_rate_phone=length(phone_dur[segment_type %in% c("vowel", "consonant")])/sum(phone_dur[segment_type %in% c("vowel", "consonant")]),
     num_words_uttr=num_words_uttr[1],
     num_syllables_uttr=num_syllables_uttr[1],
     uttr_start=uttr_start[1],
@@ -237,7 +237,7 @@ k_rhythm <- k %>%
   ) %>%
   summarise(
     speech_rate=num_syllables_uttr[1]/sum(phone_dur[segment_type %in% c("vowel", "consonant")]),
-    speech_rate_phone=length(phone_dur)/sum(phone_dur[segment_type %in% c("vowel", "consonant")]),
+    speech_rate_phone=length(phone_dur[segment_type %in% c("vowel", "consonant")])/sum(phone_dur[segment_type %in% c("vowel", "consonant")]),
     num_words_uttr=num_words_uttr[1],
     num_syllables_uttr=num_syllables_uttr[1],
     uttr_start=uttr_start[1],
@@ -379,7 +379,7 @@ p_rhythm <- p %>%
   ) %>%
   summarise(
     speech_rate=num_syllables_uttr[1]/sum(phone_dur[segment_type %in% c("vowel", "consonant")]),
-    speech_rate_phone=length(phone_dur)/sum(phone_dur[segment_type %in% c("vowel", "consonant")]),
+    speech_rate_phone=length(phone_dur[segment_type %in% c("vowel", "consonant")])/sum(phone_dur[segment_type %in% c("vowel", "consonant")]),
     num_words_uttr=num_words_uttr[1],
     num_syllables_uttr=num_syllables_uttr[1],
     uttr_start=uttr_start[1],
