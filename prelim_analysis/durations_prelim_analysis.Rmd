@@ -96,14 +96,14 @@ twm_rhythm <- twm %>%
     uttr_id
   ) %>%
   summarise(
-    speech_rate=num_syllables_uttr[1]/sum(phone_dur),
-    speech_rate_phone=length(phone_dur)/sum(phone_dur),
+    speech_rate=num_syllables_uttr[1]/sum(phone_dur[segment_type %in% c("vowel", "consonant")]),
+    speech_rate_phone=length(phone_dur)/sum(phone_dur[segment_type %in% c("vowel", "consonant")]),
     num_words_uttr=num_words_uttr[1],
     num_syllables_uttr=num_syllables_uttr[1],
     uttr_start=uttr_start[1],
     uttr_end=uttr_end[1],
     uttr_dur=uttr_dur[1],
-    v_prop=sum(phone_dur[segment_type=="vowel"])/sum(phone_dur),
+    v_prop=sum(phone_dur[segment_type=="vowel"])/sum(phone_dur[segment_type %in% c("vowel", "consonant")]),
     v_dur=mean(phone_dur[segment_type=="vowel"]),
     c_dur=mean(phone_dur[segment_type=="consonant"])
   ) %>%
@@ -236,14 +236,14 @@ k_rhythm <- k %>%
     uttr_id
   ) %>%
   summarise(
-    speech_rate=num_syllables_uttr[1]/sum(phone_dur),
-    speech_rate_phone=length(phone_dur)/sum(phone_dur),
+    speech_rate=num_syllables_uttr[1]/sum(phone_dur[segment_type %in% c("vowel", "consonant")]),
+    speech_rate_phone=length(phone_dur)/sum(phone_dur[segment_type %in% c("vowel", "consonant")]),
     num_words_uttr=num_words_uttr[1],
     num_syllables_uttr=num_syllables_uttr[1],
     uttr_start=uttr_start[1],
     uttr_end=uttr_end[1],
     uttr_dur=uttr_dur[1],
-    v_prop=sum(phone_dur[segment_type=="vowel"])/sum(phone_dur),
+    v_prop=sum(phone_dur[segment_type=="vowel"])/sum(phone_dur[segment_type %in% c("vowel", "consonant")]),
     v_dur=mean(phone_dur[segment_type=="vowel"]),
     c_dur=mean(phone_dur[segment_type=="consonant"])
   ) %>%
@@ -297,8 +297,7 @@ library(ggbeeswarm)
 
 p <- read_csv("../data/kapampangan_durations.csv") %>%
   arrange(speaker, file, phone_start) %>%
-  mutate(recording_type = str_extract(file, "[rs]s$")) %>%
-  filter(recording_type=="rs")
+  mutate(recording_type = str_extract(file, "[rs]s$"))
 ```
 
 How much do speech rates vary?
@@ -379,14 +378,14 @@ p_rhythm <- p %>%
     uttr_id
   ) %>%
   summarise(
-    speech_rate=num_syllables_uttr[1]/sum(phone_dur),
-    speech_rate_phone=length(phone_dur)/sum(phone_dur),
+    speech_rate=num_syllables_uttr[1]/sum(phone_dur[segment_type %in% c("vowel", "consonant")]),
+    speech_rate_phone=length(phone_dur)/sum(phone_dur[segment_type %in% c("vowel", "consonant")]),
     num_words_uttr=num_words_uttr[1],
     num_syllables_uttr=num_syllables_uttr[1],
     uttr_start=uttr_start[1],
     uttr_end=uttr_end[1],
     uttr_dur=uttr_dur[1],
-    v_prop=sum(phone_dur[segment_type=="vowel"])/sum(phone_dur),
+    v_prop=sum(phone_dur[segment_type=="vowel"])/sum(phone_dur[segment_type %in% c("vowel", "consonant")]),
     v_dur=mean(phone_dur[segment_type=="vowel"]),
     c_dur=mean(phone_dur[segment_type=="consonant"]),
     v_count_prop=length(phone_dur[segment_type=="vowel"])/length(phone_dur)
@@ -429,23 +428,4 @@ ggplot(p_rhythm, aes(x=1/speech_rate_phone)) +
   geom_smooth(aes(y=c_dur), col="purple4", method="gam", se=F) +
   ylab("average duration in s")
 ggsave("graphs/p_avg_seg_dur-avg_C+V_dur-speaker.png", width=10, height=7.5, dpi=300)
-```
-
-Percentage of vowels among all segments (counts, not durations) as a function of speech rate.
-
-```{r}
-ggplot(p_rhythm, aes(y=1/speech_rate_phone, x=v_count_prop*100)) +
-  geom_point() +
-  geom_smooth(method="gam") +
-  xlab("V count %") +
-  ylab("average segment duration (1 / speech rate)")
-ggsave("graphs/p_v_count_perc-avg_seg_dur.png", width=6, height=4.5, dpi=300)
-
-ggplot(p_rhythm, aes(y=1/speech_rate_phone, x=v_count_prop*100)) +
-  facet_wrap(~speaker) +
-  geom_point() +
-  geom_smooth(method="gam") +
-  xlab("V count %") +
-  ylab("average segment duration (1 / speech rate)")
-ggsave("graphs/p_v_count_perc-avg_seg_dur-speaker.png", width=10, height=7.5, dpi=300)
 ```
