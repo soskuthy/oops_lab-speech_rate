@@ -114,7 +114,7 @@ twm_rhythm <- twm %>%
 Exploratory plots!
 
 ```{r}
-ggplot(twm_rhythm, aes(x=1/speech_rate_phone, y=v_prop*100)) +
+ggplot(twm_rhythm, aes(x=1/speech_rate, y=v_prop*100)) +
   geom_point() +
   geom_smooth(method="gam") +
   ylab("V%") +
@@ -137,7 +137,16 @@ ggplot(twm_rhythm, aes(x=1/speech_rate_phone)) +
   ylab("average duration in s")
 ggsave("graphs/twm_avg_seg_dur-avg_C+V_dur.png", width=6, height=4.5, dpi=300)
 
-ggplot(twm_rhythm, aes(x=1/speech_rate_phone)) +
+# ggplot(twm_rhythm, aes(x=c_dur)) +
+#   geom_point(aes(y=v_dur), col="orange", alpha=0.3) +
+#   #geom_point(aes(y=c_dur), col="purple", alpha=0.3) +
+#   geom_smooth(aes(y=v_dur), col="darkorange2", method="gam", se=T) +
+#   geom_abline(slope=1, intercept=0, col="black") +
+#   coord_equal() +
+#   #geom_smooth(aes(y=c_dur), col="purple4", method="gam", se=F) +
+#   ylab("average duration in s")
+
+ggplot(twm_rhythm, aes(x=1/speech_rate)) +
   facet_wrap(~speaker) +
   geom_point(aes(y=v_dur), col="orange", alpha=0.3) +
   geom_point(aes(y=c_dur), col="purple", alpha=0.3) +
@@ -428,4 +437,203 @@ ggplot(p_rhythm, aes(x=1/speech_rate_phone)) +
   geom_smooth(aes(y=c_dur), col="purple4", method="gam", se=F) +
   ylab("average duration in s")
 ggsave("graphs/p_avg_seg_dur-avg_C+V_dur-speaker.png", width=10, height=7.5, dpi=300)
+```
+
+## Buckeye
+
+Note the RDS file -- the original CSV was 200 MB, so too large for GitHub.
+
+```{r}
+library(tidyverse)
+library(ggbeeswarm)
+
+b <- readRDS("../data/buckeye_durations.rds") %>%
+  arrange(speaker, file, phone_start)
+```
+
+How much do speech rates vary?
+
+```{r}
+b %>%
+  group_by(speaker, uttr_id) %>%
+  summarise(speech_rate=speech_rate[1]) %>%
+  ungroup() %>%
+ggplot(aes(x=NA, y=speech_rate)) +
+  facet_wrap(~ speaker) +
+  geom_beeswarm() +
+  scale_y_log10()
+
+b %>%
+  group_by(speaker, uttr_id) %>%
+  summarise(speech_rate=speech_rate[1]) %>%
+  ungroup() %>%
+ggplot(aes(x=NA, y=speech_rate)) +
+  geom_violin() +
+  stat_summary(fun=mean, geom="point", shape=16) +
+  scale_y_log10()
+```
+
+Some data filtering.
+
+```{r}
+# utterance level filtering
+# - at least 5 syllables
+# - log sd based filtering for top end of speech rate
+
+b_uttr <- b %>% 
+  group_by(uttr_id, speaker) %>%
+  summarise(speech_rate=speech_rate[1]) %>%
+  ungroup() %>%
+  group_by(speaker) %>%
+  filter(log(speech_rate) < mean(log(speech_rate)) + 3*sd(log(speech_rate)),
+         log(speech_rate) > mean(log(speech_rate)) - 3*sd(log(speech_rate)),
+         speech_rate > 1) %>%
+  ungroup()
+
+b <- b %>%
+  filter(
+    num_syllables_uttr >= 5,
+    uttr_id %in% b_uttr$uttr_id
+  )
+```
+
+Plot speech rates again.
+
+```{r}
+b %>%
+  group_by(speaker, uttr_id) %>%
+  summarise(speech_rate=speech_rate[1]) %>%
+  ungroup() %>%
+ggplot(aes(x=NA, y=speech_rate)) +
+  facet_wrap(~ speaker) +
+  geom_beeswarm() +
+  scale_y_log10()
+
+b %>%
+  group_by(speaker, uttr_id) %>%
+  summarise(speech_rate=speech_rate[1]) %>%
+  ungroup() %>%
+ggplot(aes(x=NA, y=speech_rate)) +
+  geom_violin() +
+  stat_summary(fun=mean, geom="point", shape=16) +
+  scale_y_log10()
+```
+
+Right, calculate %V! (Note that syllabic consonants are excluded from the calculation of *all* segment-based metrics.)
+
+```{r}
+b_rhythm <- b %>%
+  mutate(segment_type = ifelse(phone %in% c("en","em","el","eng"), "syllabic consonant", segment_type)) %>%
+  group_by(
+    speaker, 
+    uttr_id
+  ) %>%
+  summarise(
+    speech_rate=num_syllables_uttr[1]/sum(phone_dur[segment_type %in% c("vowel", "consonant", "syllabic consonant")]),
+    speech_rate_phone=length(phone_dur[segment_type %in% c("vowel", "consonant")])/sum(phone_dur[segment_type %in% c("vowel", "consonant")]),
+    num_words_uttr=num_words_uttr[1],
+    num_syllables_uttr=num_syllables_uttr[1],
+    uttr_start=uttr_start[1],
+    uttr_end=uttr_end[1],
+    uttr_dur=uttr_dur[1],
+    v_prop=sum(phone_dur[segment_type=="vowel"])/sum(phone_dur[segment_type %in% c("vowel", "consonant")]),
+    v_dur=mean(phone_dur[segment_type=="vowel"]),
+    c_dur=mean(phone_dur[segment_type %in% c("consonant")]),
+    v_count_prop=length(phone_dur[segment_type=="vowel"])/length(phone_dur)
+      ) %>%
+  ungroup() %>%
+  filter((1/speech_rate_phone) < 0.2)
+```
+
+Exploratory plots!
+
+```{r}
+ggplot(b_rhythm, aes(x=1/speech_rate_phone, y=v_prop*100)) +
+  geom_point() +
+  geom_smooth(method="gam") +
+  ylab("V%") +
+  xlab("average segment duration (1 / speech rate)")
+ggsave("graphs/b_avg_seg_dur-v_perc.png", width=6, height=4.5, dpi=300)
+
+ggplot(b_rhythm, aes(x=1/speech_rate_phone, y=v_prop*100)) +
+  facet_wrap(~speaker) +
+  geom_point() +
+  geom_smooth(method="gam") +
+  ylab("V%") +
+  xlab("average segment duration (1 / speech rate)")
+ggsave("graphs/b_avg_seg_dur-v_perc-speaker.png", width=10, height=7.5, dpi=300)
+
+ggplot(b_rhythm, aes(x=1/speech_rate_phone)) +
+  geom_point(aes(y=v_dur), col="orange", alpha=0.3) +
+  geom_point(aes(y=c_dur), col="purple", alpha=0.3) +
+  geom_smooth(aes(y=v_dur), col="darkorange2", method="gam", se=F) +
+  geom_smooth(aes(y=c_dur), col="purple4", method="gam", se=F) +
+  ylab("average duration in s")
+ggsave("graphs/b_avg_seg_dur-avg_C+V_dur.png", width=6, height=4.5, dpi=300)
+
+ggplot(b_rhythm, aes(x=1/speech_rate_phone)) +
+  facet_wrap(~speaker) +
+  geom_point(aes(y=v_dur), col="orange", alpha=0.3) +
+  geom_point(aes(y=c_dur), col="purple", alpha=0.3) +
+  geom_smooth(aes(y=v_dur), col="darkorange2", method="gam", se=F) +
+  geom_smooth(aes(y=c_dur), col="purple4", method="gam", se=F) +
+  ylab("average duration in s")
+ggsave("graphs/b_avg_seg_dur-avg_C+V_dur-speaker.png", width=10, height=7.5, dpi=300)
+```
+
+## Plots for abstract
+
+Make a combined data set: added columns of language + pivoting based on measure. Measures: v_prop, v_dur, c_dur.
+
+```{r}
+twm_rhythm$language <- "twm"
+k_rhythm$language <- "sk"
+p_rhythm$language <- "kp"
+all_uttr <- bind_rows(twm_rhythm, k_rhythm, p_rhythm) %>%
+  mutate(v_prop=v_prop*100) %>%
+  pivot_longer(c(v_prop, v_dur, c_dur),
+               names_to="measure",
+               values_to="value") %>%
+  mutate(measure_type = ifelse(measure=="v_prop", "v_prop", "dur"),
+         measure_type = factor(measure_type, levels=c("v_prop", "dur")),
+         measure = factor(measure, levels=c("v_prop", "v_dur", "c_dur"))
+  )
+```
+
+Make combined plot!
+
+```{r}
+ggplot(all_uttr, aes(x=1/speech_rate_phone, y=value, col=measure)) +
+  facet_grid(measure_type ~ language,
+             scales = "free_y", 
+             labeller = as_labeller(
+               c(v_prop = "%V", dur = "Average V/C duration",
+                 twm="Taiwanese Mandarin", sk="Seoul Korean",
+                 kp="Kapampangan")), 
+             switch = "y") +
+  geom_point(alpha=0.3) +
+  geom_smooth(data=filter(all_uttr, measure=="v_prop"), col="blue", method="gam", se=T) +
+  geom_smooth(data=filter(all_uttr, measure=="v_dur"), col="darkorange2", method="gam", se=F) +
+  geom_smooth(data=filter(all_uttr, measure=="c_dur"), col="purple4", method="gam", se=F) +
+  scale_x_continuous(limits=c(0.035,0.145), 
+                     breaks=seq(0.04,0.14,0.02)) +
+  scale_colour_manual(values=c("black", "orange", "purple"), guide="none") +
+  #scale_y_continuous(breaks=seq(0.04,0.20,0.02)) +
+    # labels for axes
+  xlab("Average segment duration in s (inverse speech rate)") +
+  labs(y=NULL) +
+  #ylab("Average V vs. C duration in s") +
+  # remove clutter
+  theme_minimal() +
+  # some specific formatting...
+  theme(panel.grid = element_blank(),
+        axis.line = element_line(size=0.8),
+        axis.ticks = element_line(size=0.8),
+        axis.text = element_text(size=14, colour="black"),
+        axis.title = element_text(size=16, face="bold"),
+        strip.background.y = element_blank(), 
+        strip.placement = "outside",
+        strip.text=element_text(size=16, face="bold"))
+ggsave("graphs/lsurc_plot.png", width=10, height=6, dpi=300)
+  
 ```
