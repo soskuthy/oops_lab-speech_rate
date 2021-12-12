@@ -96,19 +96,66 @@ twm_rhythm <- twm %>%
     uttr_id
   ) %>%
   summarise(
-    speech_rate=num_syllables_uttr[1]/sum(phone_dur[segment_type %in% c("vowel", "consonant")]),
-    speech_rate_phone=length(phone_dur[segment_type %in% c("vowel", "consonant")])/sum(phone_dur[segment_type %in% c("vowel", "consonant")]),
-    num_words_uttr=num_words_uttr[1],
-    num_syllables_uttr=num_syllables_uttr[1],
-    uttr_start=uttr_start[1],
-    uttr_end=uttr_end[1],
-    uttr_dur=uttr_dur[1],
-    v_prop=sum(phone_dur[segment_type=="vowel"])/sum(phone_dur[segment_type %in% c("vowel", "consonant")]),
+    speech_rate = num_syllables_uttr[1] / sum(phone_dur[segment_type %in% c("vowel", "consonant")]),
+    speech_rate_phone = length(phone_dur[segment_type %in% c("vowel", "consonant")]) / sum(phone_dur[segment_type %in% c("vowel", "consonant")]),
+    num_words_uttr = num_words_uttr[1],
+    num_syllables_uttr = num_syllables_uttr[1],
+    uttr_start = uttr_start[1],
+    uttr_end = uttr_end[1],
+    uttr_dur = uttr_dur[1],
+    v_prop = sum(phone_dur[segment_type=="vowel"]) / sum(phone_dur[segment_type %in% c("vowel", "consonant")]),
     v_dur=mean(phone_dur[segment_type=="vowel"]),
     c_dur=mean(phone_dur[segment_type=="consonant"])
   ) %>%
   ungroup() %>%
   filter((1/speech_rate_phone) < 0.2)
+
+twm_rhythm_c <- twm %>%
+  mutate(
+    c_type = case_when(
+      phone %in% c("p", "b", "t", "d", "k", "g") ~ "stop",
+      phone %in% c("f", "sh", "s", "x", "h") ~ "fricative",
+      phone %in% c("j", "q", "zh", "ch", "z", "c") ~ "affricate",
+      phone %in% c("m", "n", "ng") ~ "nasal",
+      phone %in% c("y", "w", "r") ~ "approximant",
+      phone %in% c("l") ~ "lateral",
+      TRUE ~ "vowel"
+    )
+  ) %>%
+  group_by(
+    speaker, 
+    sex,
+    age,
+    recording_type,
+    uttr_id
+  ) %>%
+  summarise(
+    speech_rate = num_syllables_uttr[1] / sum(phone_dur[segment_type %in% c("vowel", "consonant")]),
+    speech_rate_phone = length(phone_dur[segment_type %in% c("vowel", "consonant")]) / sum(phone_dur[segment_type %in% c("vowel", "consonant")]),
+    num_words_uttr = num_words_uttr[1],
+    num_syllables_uttr = num_syllables_uttr[1],
+    uttr_start = uttr_start[1],
+    uttr_end = uttr_end[1],
+    uttr_dur = uttr_dur[1],
+    v_prop = sum(phone_dur[segment_type=="vowel"]) / sum(phone_dur[segment_type %in% c("vowel", "consonant")]),
+    v_dur=mean(phone_dur[segment_type=="vowel"]),
+    c_dur=mean(phone_dur[segment_type=="consonant"]),
+    stop_dur = mean(phone_dur[c_type == "stop"]),
+    fricative_dur = mean(phone_dur[c_type == "fricative"]),
+    affricate_dur = mean(phone_dur[c_type == "affricate"]),
+    nasal_dur = mean(phone_dur[c_type == "nasal"]),
+    approximant_dur = mean(phone_dur[c_type == "approximant"]),
+    lateral_dur = mean(phone_dur[c_type == "lateral"]),
+  ) %>%
+  ungroup() %>%
+  filter((1/speech_rate_phone) < 0.2)
+
+# stops: p, b, t, d, k, g
+# fricatives: f, sh, s, x, h
+# affricates: j, q, zh, ch, z, c
+# nasals: m, n, ng
+# approximant: w, y, r
+# lateral: l
 ```
 
 Exploratory plots!
@@ -136,6 +183,32 @@ ggplot(twm_rhythm, aes(x=1/speech_rate_phone)) +
   geom_smooth(aes(y=c_dur), col="purple4", method="gam", se=F) +
   ylab("average duration in s")
 ggsave("graphs/twm_avg_seg_dur-avg_C+V_dur.png", width=6, height=4.5, dpi=300)
+
+ggplot(twm_rhythm_c, aes(x = 1/speech_rate_phone)) +
+  geom_point(aes(y = v_dur), col = "gray", alpha = 0.25) +
+  geom_point(aes(y = c_dur), col = "gray", alpha = 0.25) +
+  geom_point(aes(y = stop_dur), col = "red", alpha = 0.25) +
+  geom_point(aes(y = nasal_dur), col = "orange", alpha = 0.25) +
+  geom_point(aes(y = fricative_dur), col = "yellow", alpha = 0.25) +
+  geom_point(aes(y = affricate_dur), col = "green", alpha = 0.25) +
+  geom_point(aes(y = approximant_dur), col="blue", alpha = 0.25) +
+  geom_point(aes(y = lateral_dur), col = "purple", alpha = 0.25) +
+  geom_smooth(aes(y = v_dur), col = "gray2", method = "gam", se = F, linetype = "longdash") +
+  geom_smooth(aes(y = c_dur), col = "gray2", method = "gam", se = F, linetype = "longdash") +
+  geom_smooth(aes(y = stop_dur), col = "red4", method = "gam", se = F) +
+  geom_smooth(aes(y = nasal_dur), col = "darkorange2", method = "gam", se = F) +
+  geom_smooth(aes(y = fricative_dur), col = "yellow4", method = "gam", se = F) +
+  geom_smooth(aes(y = affricate_dur), col = "green4", method = "gam", se = F) +
+  geom_smooth(aes(y = approximant_dur), col = "blue4", method = "gam", se = F) +
+  geom_smooth(aes(y = lateral_dur), col = "purple4", method = "gam", se = F) +
+  coord_cartesian(ylim = c(0, 0.3)) +
+  annotate("text", x = 0.185, y = 0.1275, label = "stop", color = "red4") +
+  annotate("text", x = 0.185, y = 0.16, label = "nasal", color = "darkorange2") +
+  annotate("text", x = 0.185, y = 0.21, label = "fricative", color = "yellow4") +
+  annotate("text", x = 0.185, y = 0.095, label = "affricate", color = "green4") +
+  annotate("text", x = 0.185, y = 0.119, label = "approx", color = "blue4") +
+  annotate("text", x = 0.16, y = 0.09, label = "lateral", color = "purple4") +
+  ylab("average duration in s")
 
 # ggplot(twm_rhythm, aes(x=c_dur)) +
 #   geom_point(aes(y=v_dur), col="orange", alpha=0.3) +
@@ -258,6 +331,46 @@ k_rhythm <- k %>%
   ) %>%
   ungroup() %>%
   filter((1/speech_rate_phone) < 0.2)
+
+k_rhythm_c <- k %>%
+  mutate(
+    c_type = case_when(
+      phone %in% c("B", "Ph", "BB", "p", "D", "Th", "DD", "t", "G", "Kh", "GG", "k") ~ "stop",
+      phone %in% c("S", "SS", "H") ~ "fricative",
+      phone %in% c("J", "CHh", "JJ", "ch", "z", "c") ~ "affricate",
+      phone %in% c("M", "N", "NG") ~ "nasal",
+      phone %in% c("L", "R") ~ "approximant",
+      #phone %in% c("l") ~ "lateral",
+      TRUE ~ "non-fricative"
+    )
+  ) %>%
+  group_by(
+    speaker, 
+    sex,
+    age,
+    recording_type,
+    uttr_id
+  ) %>%
+  summarise(
+    speech_rate = num_syllables_uttr[1] / sum(phone_dur[segment_type %in% c("vowel", "consonant")]),
+    speech_rate_phone = length(phone_dur[segment_type %in% c("vowel", "consonant")]) / sum(phone_dur[segment_type %in% c("vowel", "consonant")]),
+    num_words_uttr = num_words_uttr[1],
+    num_syllables_uttr = num_syllables_uttr[1],
+    uttr_start = uttr_start[1],
+    uttr_end = uttr_end[1],
+    uttr_dur = uttr_dur[1],
+    v_prop = sum(phone_dur[segment_type=="vowel"]) / sum(phone_dur[segment_type %in% c("vowel", "consonant")]),
+    v_dur=mean(phone_dur[segment_type=="vowel"]),
+    c_dur=mean(phone_dur[segment_type=="consonant"]),
+    stop_dur = mean(phone_dur[c_type == "stop"]),
+    fricative_dur = mean(phone_dur[c_type == "fricative"]),
+    affricate_dur = mean(phone_dur[c_type == "affricate"]),
+    nasal_dur = mean(phone_dur[c_type == "nasal"]),
+    approximant_dur = mean(phone_dur[c_type == "approximant"]),
+    #lateral_dur = mean(phone_dur[c_type == "lateral"]),
+  ) %>%
+  ungroup() %>%
+  filter((1/speech_rate_phone) < 0.2)
 ```
 
 Exploratory plots!
@@ -294,6 +407,32 @@ ggplot(k_rhythm, aes(x=1/speech_rate_phone)) +
   geom_smooth(aes(y=c_dur), col="purple4", method="gam", se=F) +
   ylab("average duration in s")
 ggsave("graphs/k_avg_seg_dur-avg_C+V_dur-speaker.png", width=10, height=7.5, dpi=300)
+
+ggplot(k_rhythm_c, aes(x = 1/speech_rate_phone)) +
+  geom_point(aes(y = v_dur), col = "gray", alpha = 0.25) +
+  geom_point(aes(y = c_dur), col = "gray", alpha = 0.25) +
+  geom_point(aes(y = stop_dur), col = "red", alpha = 0.25) +
+  geom_point(aes(y = nasal_dur), col = "orange", alpha = 0.25) +
+  geom_point(aes(y = fricative_dur), col = "yellow", alpha = 0.25) +
+  geom_point(aes(y = affricate_dur), col = "green", alpha = 0.25) +
+  geom_point(aes(y = approximant_dur), col="blue", alpha = 0.25) +
+  #geom_point(aes(y = lateral_dur), col = "purple", alpha = 0.25) +
+  geom_smooth(aes(y = v_dur), col = "gray2", method = "gam", se = F, linetype = "longdash") +
+  geom_smooth(aes(y = c_dur), col = "gray2", method = "gam", se = F, linetype = "longdash") +
+  geom_smooth(aes(y = stop_dur), col = "red4", method = "gam", se = F) +
+  geom_smooth(aes(y = nasal_dur), col = "darkorange2", method = "gam", se = F) +
+  geom_smooth(aes(y = fricative_dur), col = "yellow4", method = "gam", se = F) +
+  geom_smooth(aes(y = affricate_dur), col = "green4", method = "gam", se = F) +
+  geom_smooth(aes(y = approximant_dur), col = "blue4", method = "gam", se = F) +
+  #geom_smooth(aes(y = lateral_dur), col = "purple4", method = "gam", se = F) +
+  coord_cartesian(ylim = c(0, 0.3)) +
+  annotate("text", x = 0.185, y = 0.09, label = "stop", color = "red4") +
+  annotate("text", x = 0.185, y = 0.28, label = "nasal", color = "darkorange2") +
+  annotate("text", x = 0.185, y = 0.095, label = "fricative", color = "yellow4") +
+  annotate("text", x = 0.185, y = 0.11, label = "affricate", color = "green4") +
+  annotate("text", x = 0.185, y = 0.2, label = "approx", color = "blue4") +
+  ylab("average duration in s")
+
 ```
 
 ## Pampango
@@ -401,6 +540,48 @@ p_rhythm <- p %>%
       ) %>%
   ungroup() %>%
   filter((1/speech_rate_phone) < 0.2)
+
+p_rhythm_c <- p %>%
+  mutate(
+    c_type = case_when(
+      phone %in% c("b", "p", "d", "t", "ɡ", "k", "ʔ") ~ "stop",
+      phone %in% c("s", "ʃ", "ʒ", "f", "h") ~ "fricative",
+      #phone %in% c("J", "CHh", "JJ", "ch", "z", "c") ~ "affricate",
+      phone %in% c("m", "n", "ŋ") ~ "nasal",
+      phone %in% c("j", "w") ~ "approximant",
+      phone %in% c("l") ~ "lateral",
+      phone %in% c("r") ~ "trill",
+      TRUE ~ "non-fricative"
+    )
+  ) %>%
+  group_by(
+    speaker, 
+    sex,
+    age,
+    recording_type,
+    uttr_id
+  ) %>%
+  summarise(
+    speech_rate = num_syllables_uttr[1] / sum(phone_dur[segment_type %in% c("vowel", "consonant")]),
+    speech_rate_phone = length(phone_dur[segment_type %in% c("vowel", "consonant")]) / sum(phone_dur[segment_type %in% c("vowel", "consonant")]),
+    num_words_uttr = num_words_uttr[1],
+    num_syllables_uttr = num_syllables_uttr[1],
+    uttr_start = uttr_start[1],
+    uttr_end = uttr_end[1],
+    uttr_dur = uttr_dur[1],
+    v_prop = sum(phone_dur[segment_type=="vowel"]) / sum(phone_dur[segment_type %in% c("vowel", "consonant")]),
+    v_dur=mean(phone_dur[segment_type=="vowel"]),
+    c_dur=mean(phone_dur[segment_type=="consonant"]),
+    stop_dur = mean(phone_dur[c_type == "stop"]),
+    fricative_dur = mean(phone_dur[c_type == "fricative"]),
+    #affricate_dur = mean(phone_dur[c_type == "affricate"]),
+    nasal_dur = mean(phone_dur[c_type == "nasal"]),
+    approximant_dur = mean(phone_dur[c_type == "approximant"]),
+    lateral_dur = mean(phone_dur[c_type == "lateral"]),
+    trill_dur = mean(phone_dur[c_type == "trill"])
+  ) %>%
+  ungroup() %>%
+  filter((1/speech_rate_phone) < 0.2)
 ```
 
 Exploratory plots!
@@ -437,6 +618,31 @@ ggplot(p_rhythm, aes(x=1/speech_rate_phone)) +
   geom_smooth(aes(y=c_dur), col="purple4", method="gam", se=F) +
   ylab("average duration in s")
 ggsave("graphs/p_avg_seg_dur-avg_C+V_dur-speaker.png", width=10, height=7.5, dpi=300)
+
+ggplot(p_rhythm_c, aes(x=1/speech_rate_phone)) +
+  geom_point(aes(y = v_dur), col = "gray", alpha = 0.25) +
+  geom_point(aes(y = c_dur), col = "gray", alpha = 0.25) +
+  geom_point(aes(y = stop_dur), col = "red", alpha = 0.25) +
+  geom_point(aes(y = nasal_dur), col = "orange", alpha = 0.25) +
+  geom_point(aes(y = fricative_dur), col = "yellow", alpha = 0.25) +
+  #geom_point(aes(y = affricate_dur), col = "green", alpha = 0.25) +
+  geom_point(aes(y = approximant_dur), col="blue", alpha = 0.25) +
+  geom_point(aes(y = trill_dur), col = "purple", alpha = 0.25) +
+  geom_smooth(aes(y = v_dur), col = "gray2", method = "gam", se = F, linetype = "longdash") +
+  geom_smooth(aes(y = c_dur), col = "gray2", method = "gam", se = F, linetype = "longdash") +
+  geom_smooth(aes(y = stop_dur), col = "red4", method = "gam", se = F) +
+  geom_smooth(aes(y = nasal_dur), col = "darkorange2", method = "gam", se = F) +
+  geom_smooth(aes(y = fricative_dur), col = "yellow4", method = "gam", se = F) +
+  #geom_smooth(aes(y = affricate_dur), col = "green4", method = "gam", se = F) +
+  geom_smooth(aes(y = approximant_dur), col = "blue4", method = "gam", se = F) +
+  geom_smooth(aes(y = trill_dur), col = "purple4", method = "gam", se = F) +
+  coord_cartesian(ylim = c(0, 0.4)) +
+  annotate("text", x = 0.195, y = 0.09, label = "stop", color = "red4") +
+  annotate("text", x = 0.195, y = 0.25, label = "nasal", color = "darkorange2") +
+  annotate("text", x = 0.195, y = 0.35, label = "fricative", color = "yellow4") +
+  annotate("text", x = 0.185, y = 0.15, label = "approx", color = "blue4") +
+  annotate("text", x = 0.17, y = 0.1, label = "trill", color = "purple4") +
+  ylab("average duration in s")
 ```
 
 ## Buckeye
