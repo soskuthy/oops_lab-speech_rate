@@ -181,18 +181,20 @@ ggplot(twm_rhythm, aes(x=1/speech_rate_phone)) +
   geom_point(aes(y=c_dur), col="purple", alpha=0.3) +
   geom_smooth(aes(y=v_dur), col="darkorange2", method="gam", se=F) +
   geom_smooth(aes(y=c_dur), col="purple4", method="gam", se=F) +
-  ylab("average duration in s")
+  ylab("average duration in s") +
+  scale_x_log10() +
+  scale_y_log10()
 ggsave("graphs/twm_avg_seg_dur-avg_C+V_dur.png", width=6, height=4.5, dpi=300)
 
 ggplot(twm_rhythm_c, aes(x = 1/speech_rate_phone)) +
-  geom_point(aes(y = v_dur), col = "gray", alpha = 0.25) +
-  geom_point(aes(y = c_dur), col = "gray", alpha = 0.25) +
-  geom_point(aes(y = stop_dur), col = "red", alpha = 0.25) +
-  geom_point(aes(y = nasal_dur), col = "orange", alpha = 0.25) +
-  geom_point(aes(y = fricative_dur), col = "yellow", alpha = 0.25) +
-  geom_point(aes(y = affricate_dur), col = "green", alpha = 0.25) +
-  geom_point(aes(y = approximant_dur), col="blue", alpha = 0.25) +
-  geom_point(aes(y = lateral_dur), col = "purple", alpha = 0.25) +
+  geom_point(aes(y = v_dur), col = "gray", alpha = 0.05) +
+  geom_point(aes(y = c_dur), col = "gray", alpha = 0.05) +
+  geom_point(aes(y = stop_dur), col = "red", alpha = 0.05) +
+  geom_point(aes(y = nasal_dur), col = "orange", alpha = 0.05) +
+  geom_point(aes(y = fricative_dur), col = "yellow", alpha = 0.05) +
+  geom_point(aes(y = affricate_dur), col = "green", alpha = 0.05) +
+  geom_point(aes(y = approximant_dur), col="blue", alpha = 0.05) +
+  geom_point(aes(y = lateral_dur), col = "purple", alpha = 0.05) +
   geom_smooth(aes(y = v_dur), col = "gray2", method = "gam", se = F, linetype = "longdash") +
   geom_smooth(aes(y = c_dur), col = "gray2", method = "gam", se = F, linetype = "longdash") +
   geom_smooth(aes(y = stop_dur), col = "red4", method = "gam", se = F) +
@@ -201,7 +203,9 @@ ggplot(twm_rhythm_c, aes(x = 1/speech_rate_phone)) +
   geom_smooth(aes(y = affricate_dur), col = "green4", method = "gam", se = F) +
   geom_smooth(aes(y = approximant_dur), col = "blue4", method = "gam", se = F) +
   geom_smooth(aes(y = lateral_dur), col = "purple4", method = "gam", se = F) +
-  coord_cartesian(ylim = c(0, 0.3)) +
+  #coord_cartesian(ylim = c(0, 0.3)) +
+  scale_x_log10() +
+  scale_y_log10() +
   annotate("text", x = 0.185, y = 0.1275, label = "stop", color = "red4") +
   annotate("text", x = 0.185, y = 0.16, label = "nasal", color = "darkorange2") +
   annotate("text", x = 0.185, y = 0.21, label = "fricative", color = "yellow4") +
@@ -396,6 +400,8 @@ ggplot(k_rhythm, aes(x=1/speech_rate_phone)) +
   geom_point(aes(y=c_dur), col="purple", alpha=0.3) +
   geom_smooth(aes(y=v_dur), col="darkorange2", method="gam", se=F) +
   geom_smooth(aes(y=c_dur), col="purple4", method="gam", se=F) +
+  scale_x_log10() +
+  scale_y_log10() +
   ylab("average duration in s")
 ggsave("graphs/k_avg_seg_dur-avg_C+V_dur.png", width=6, height=4.5, dpi=300)
 
@@ -409,13 +415,13 @@ ggplot(k_rhythm, aes(x=1/speech_rate_phone)) +
 ggsave("graphs/k_avg_seg_dur-avg_C+V_dur-speaker.png", width=10, height=7.5, dpi=300)
 
 ggplot(k_rhythm_c, aes(x = 1/speech_rate_phone)) +
-  geom_point(aes(y = v_dur), col = "gray", alpha = 0.25) +
-  geom_point(aes(y = c_dur), col = "gray", alpha = 0.25) +
-  geom_point(aes(y = stop_dur), col = "red", alpha = 0.25) +
-  geom_point(aes(y = nasal_dur), col = "orange", alpha = 0.25) +
-  geom_point(aes(y = fricative_dur), col = "yellow", alpha = 0.25) +
-  geom_point(aes(y = affricate_dur), col = "green", alpha = 0.25) +
-  geom_point(aes(y = approximant_dur), col="blue", alpha = 0.25) +
+  geom_point(aes(y = v_dur), col = "gray", alpha = 0.05) +
+  geom_point(aes(y = c_dur), col = "gray", alpha = 0.05) +
+  geom_point(aes(y = stop_dur), col = "red", alpha = 0.05) +
+  geom_point(aes(y = nasal_dur), col = "orange", alpha = 0.05) +
+  geom_point(aes(y = fricative_dur), col = "yellow", alpha = 0.05) +
+  geom_point(aes(y = affricate_dur), col = "green", alpha = 0.05) +
+  geom_point(aes(y = approximant_dur), col="blue", alpha = 0.05) +
   #geom_point(aes(y = lateral_dur), col = "purple", alpha = 0.25) +
   geom_smooth(aes(y = v_dur), col = "gray2", method = "gam", se = F, linetype = "longdash") +
   geom_smooth(aes(y = c_dur), col = "gray2", method = "gam", se = F, linetype = "longdash") +
@@ -425,7 +431,9 @@ ggplot(k_rhythm_c, aes(x = 1/speech_rate_phone)) +
   geom_smooth(aes(y = affricate_dur), col = "green4", method = "gam", se = F) +
   geom_smooth(aes(y = approximant_dur), col = "blue4", method = "gam", se = F) +
   #geom_smooth(aes(y = lateral_dur), col = "purple4", method = "gam", se = F) +
-  coord_cartesian(ylim = c(0, 0.3)) +
+  #coord_cartesian(ylim = c(0, 0.3)) +
+  scale_x_log10() +
+  scale_y_log10() +
   annotate("text", x = 0.185, y = 0.09, label = "stop", color = "red4") +
   annotate("text", x = 0.185, y = 0.28, label = "nasal", color = "darkorange2") +
   annotate("text", x = 0.185, y = 0.095, label = "fricative", color = "yellow4") +
@@ -620,14 +628,14 @@ ggplot(p_rhythm, aes(x=1/speech_rate_phone)) +
 ggsave("graphs/p_avg_seg_dur-avg_C+V_dur-speaker.png", width=10, height=7.5, dpi=300)
 
 ggplot(p_rhythm_c, aes(x=1/speech_rate_phone)) +
-  geom_point(aes(y = v_dur), col = "gray", alpha = 0.25) +
-  geom_point(aes(y = c_dur), col = "gray", alpha = 0.25) +
-  geom_point(aes(y = stop_dur), col = "red", alpha = 0.25) +
-  geom_point(aes(y = nasal_dur), col = "orange", alpha = 0.25) +
-  geom_point(aes(y = fricative_dur), col = "yellow", alpha = 0.25) +
+  geom_point(aes(y = v_dur), col = "gray", alpha = 0.05) +
+  geom_point(aes(y = c_dur), col = "gray", alpha = 0.05) +
+  geom_point(aes(y = stop_dur), col = "red", alpha = 0.05) +
+  geom_point(aes(y = nasal_dur), col = "orange", alpha = 0.05) +
+  geom_point(aes(y = fricative_dur), col = "yellow", alpha = 0.05) +
   #geom_point(aes(y = affricate_dur), col = "green", alpha = 0.25) +
-  geom_point(aes(y = approximant_dur), col="blue", alpha = 0.25) +
-  geom_point(aes(y = trill_dur), col = "purple", alpha = 0.25) +
+  geom_point(aes(y = approximant_dur), col="blue", alpha = 0.05) +
+  geom_point(aes(y = trill_dur), col = "purple", alpha = 0.05) +
   geom_smooth(aes(y = v_dur), col = "gray2", method = "gam", se = F, linetype = "longdash") +
   geom_smooth(aes(y = c_dur), col = "gray2", method = "gam", se = F, linetype = "longdash") +
   geom_smooth(aes(y = stop_dur), col = "red4", method = "gam", se = F) +
@@ -636,12 +644,14 @@ ggplot(p_rhythm_c, aes(x=1/speech_rate_phone)) +
   #geom_smooth(aes(y = affricate_dur), col = "green4", method = "gam", se = F) +
   geom_smooth(aes(y = approximant_dur), col = "blue4", method = "gam", se = F) +
   geom_smooth(aes(y = trill_dur), col = "purple4", method = "gam", se = F) +
-  coord_cartesian(ylim = c(0, 0.4)) +
+  #coord_cartesian(ylim = c(0, 0.4)) +
   annotate("text", x = 0.195, y = 0.09, label = "stop", color = "red4") +
   annotate("text", x = 0.195, y = 0.25, label = "nasal", color = "darkorange2") +
   annotate("text", x = 0.195, y = 0.35, label = "fricative", color = "yellow4") +
   annotate("text", x = 0.185, y = 0.15, label = "approx", color = "blue4") +
   annotate("text", x = 0.17, y = 0.1, label = "trill", color = "purple4") +
+  scale_x_log10() +
+  scale_y_log10() +
   ylab("average duration in s")
 ```
 
