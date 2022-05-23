@@ -275,6 +275,8 @@ d_uttr_plot <- d_uttr %>%
 Make combined plot!
 
 ```{r}
+library(ggpubr)
+
 # model predictions
 newdat_cv <- expand.grid(
   log_segment_dur_uttr=seq(
@@ -330,14 +332,14 @@ newdat$segment_dur_uttr <- exp(newdat$log_segment_dur_uttr)
 # plot
 plot_a <- ggplot(filter(d_uttr_plot, measure_type=="perc_v"), aes(x=segment_dur_uttr, y=value)) +
   facet_grid(. ~ language) +
-  geom_point(alpha=0.3) +
+  geom_point(alpha = 0.25) +
   geom_ribbon(data=filter(newdat, 
                           measure_type=="perc_v"),
               aes(ymin=ll,ymax=ul), col=NA, fill="grey",
               alpha=0.5) +
   geom_line(data=filter(newdat, 
                         measure_type=="perc_v"), 
-            col="blue", lwd=1) +
+            col="#B07AA1", lwd=1) +
   scale_x_log10() +
   ylim(0,100) +
   #scale_x_continuous(limits=c(0.035,0.145), 
@@ -346,24 +348,26 @@ plot_a <- ggplot(filter(d_uttr_plot, measure_type=="perc_v"), aes(x=segment_dur_
   # labels for axes
   labs(y="%V", x=NULL) +
   # remove clutter
-  theme_minimal() +
+  theme_minimal(base_size = 8) +
   # some specific formatting...
   theme(panel.grid = element_blank(),
-        axis.line = element_line(size=0.8),
-        axis.ticks = element_line(size=0.8),
-        axis.text = element_text(size=14, colour="black"),
-        axis.title = element_text(size=16, face="bold"),
+        axis.line = element_line(size = 0.5),
+        #axis.ticks = element_line(size=0.8),
+        #axis.text = element_text(size=14, colour="black"),
+        axis.title = element_text(face="bold"),
         axis.line.x = element_blank(),
         axis.ticks.x = element_blank(),
         axis.text.x = element_blank(),
         axis.title.x = element_blank(),
         strip.background.y = element_blank(), 
         strip.placement = "outside",
-        strip.text=element_text(size=16, face="bold"))
+        strip.text = element_text(size = 9, face="bold"))
 
-plot_b <- ggplot(filter(d_uttr_plot, measure_type=="dur"), aes(x=segment_dur_uttr, y=value, col=measure)) +
+plot_b <- ggplot(
+  filter(d_uttr_plot, measure_type == "dur"),
+  aes(x = segment_dur_uttr, y = value, col = measure)) +
   facet_grid(. ~ language) +
-  geom_point(alpha=0.3) +
+  geom_point(alpha = 0.25) +
   geom_ribbon(data=filter(newdat, 
                           measure_type=="dur",
                           segment_type_o=="vowel_dur_uttr"),
@@ -374,44 +378,58 @@ plot_b <- ggplot(filter(d_uttr_plot, measure_type=="dur"), aes(x=segment_dur_utt
                           segment_type_o=="cons_dur_uttr"),
               aes(ymin=ll,ymax=ul), col=NA, fill="grey",
               alpha=0.5) +
-  geom_line(data=filter(newdat, 
-                        measure_type=="dur",
-                        segment_type_o=="vowel_dur_uttr"), 
-            col="darkorange2", lwd=1) +
-  geom_line(data=filter(newdat, 
-                        measure_type=="dur",
-                        segment_type_o=="cons_dur_uttr"), 
-            col="purple4", lwd=1) +
+  #geom_line(data=filter(newdat, 
+  #                      measure_type=="dur",
+  #                      segment_type_o=="vowel_dur_uttr"), 
+  #          col="darkorange2", lwd=1) +
+  #geom_line(data=filter(newdat, 
+  #                      measure_type=="dur",
+  #                      segment_type_o=="cons_dur_uttr"), 
+  #          col="purple4", lwd=1) +
+  geom_textline(aes(x = segment_dur_uttr, y = value),
+                label = "V", size = 3, vjust = 0.2, color = "#F28E2B",
+                linewidth = 0.75,
+                data = filter(newdat, measure_type == "dur", segment_type_o == "vowel_dur_uttr"),
+                inherit.aes = FALSE) +
+  geom_textline(aes(x = segment_dur_uttr, y = value),
+                label = "C", size = 3, vjust = 0.2, color = "#4E79A7",
+                linewidth = 0.75,
+                data = filter(newdat, measure_type == "dur", segment_type_o == "cons_dur_uttr"),
+                inherit.aes = FALSE) +
   scale_x_log10(breaks=c(0.05, 0.07, 0.1, 0.14)) +
   scale_y_log10(breaks=c(0.05, 0.07, 0.1, 0.14)) +
   #scale_x_continuous(limits=c(0.035,0.145), 
   #                   breaks=seq(0.04,0.14,0.02),
   #                   labels=c(".04",".06",".08",".10",".12",".14")) +
-  scale_colour_manual(values=c("orange", "purple"), guide="none") +
+  scale_colour_manual(values=c("#F8C695", "#A6BCD3"), guide = "none") +
   #scale_y_continuous(breaks=seq(0.04,0.20,0.02)) +
     # labels for axes
-  xlab("Average segment duration in s (inverse speech rate)") +
-  labs(y="Average C vs. V duration in s") +
+  xlab("Average segment duration (inverse speech rate)") +
+  labs(y="Average C vs. V duration") +
   #ylab("Average V vs. C duration in s") +
   # remove clutter
-  theme_minimal() +
+  theme_minimal(base_size = 8) +
   # some specific formatting...
   theme(panel.grid = element_blank(),
-        axis.line = element_line(size=0.8),
-        axis.ticks = element_line(size=0.8),
-        axis.text = element_text(size=14, colour="black"),
-        axis.title = element_text(size=16, face="bold"),
+        axis.line = element_line(size = 0.5),
+        #axis.ticks = element_line(size=0.8),
+        #axis.text = element_text(size=14, colour="black"),
+        axis.title = element_text(face = "bold"),
         strip.background = element_blank(),
-        strip.text=element_blank())
+        strip.text = element_blank())
+
 ggarrange(plot_a, plot_b,
           ncol=1, nrow=2,
           align="v")
-ggsave("graphs/labphon_plot.png", width=10, height=6, dpi=300)
+ggsave("graphs/labphon_plot.pdf", width = 6, height = 3, dpi = 300, units = "in")
 ```
 
 Overall prediction plot.
 
 ```{r}
+remotes::install_github("AllanCameron/geomtextpath")
+library(geomtextpath)
+
 # model predictions
 newdat <- expand.grid(
   log_segment_dur_uttr=seq(
@@ -447,29 +465,35 @@ newdat$segment_type <-
   )
 
 # plot
-ggplot(newdat, aes(x=segment_dur_uttr, y=value, col=segment_type)) +
-  geom_ribbon(aes(ymin=avg_dur_ll,ymax=avg_dur_ul, group=segment_type), col=NA, fill="grey",
-              alpha=0.3) +
-  geom_textline(aes(label = segment_type), size = 6, vjust = 0.2,
-                linewidth = 1) +
-  scale_x_log10(breaks=c(0.05, 0.07, 0.1, 0.14)) +
-  scale_y_log10(breaks=c(0.05, 0.07, 0.1, 0.14)) +
-  scale_colour_manual(values=c("purple4", "darkorange2"), guide="none") +
-  xlab("Average segment duration in s\n(inverse speech rate)") +
-  labs(y=NULL) +
+ggplot(newdat, aes(x = segment_dur_uttr, y = value, col = segment_type)) +
+  geom_ribbon(aes(ymin = avg_dur_ll, ymax = avg_dur_ul, group = segment_type), col = NA, fill = "grey", alpha = 0.3) +
+  geom_textline(aes(label = segment_type), size = 3, vjust = 0.2,
+                linewidth = 0.75) +
+  scale_x_log10(breaks = c(0.05, 0.07, 0.1, 0.14)) +
+  scale_y_log10(breaks = c(0.05, 0.07, 0.1, 0.14)) +
+  #scale_colour_manual(values = c("purple4", "darkorange2"), guide = "none") +
+  scale_color_tableau(guide = "none") +
+  labs(tag = "(A)") +
+  #xlab("Average segment duration in s\n(inverse speech rate)") +
+  xlab("Average segment duration\n(inverse speech rate)") +
+  #ylab("Average C vs. V duration") +
   ylab("Average C vs. V duration") +
   # remove clutter
-  theme_minimal() +
+  theme_minimal(base_size = 8) +
   # some specific formatting...
   theme(panel.grid = element_blank(),
-        axis.line = element_line(size=0.8),
-        axis.ticks = element_line(size=0.8),
-        axis.text = element_text(size=14, colour="black"),
-        axis.title = element_text(size=16, face="bold"),
+        plot.tag = element_text(face = "bold"),
+        axis.line = element_line(size = 0.5),
+        #axis.ticks = element_line(size=0.8),
+        #axis.text = element_text(size=14, colour="black"),
+        #axis.title = element_text(size=16, face="bold"),
+        axis.title = element_text(face = "bold"),
         strip.background.y = element_blank(), 
         strip.placement = "outside",
-        strip.text=element_text(size=16, face="bold"))
-ggsave("graphs/labphon_cv_mod_preds.png", width=5, height=5, dpi=300)
+        #strip.text = element_text(size=16, face="bold"),
+        strip.text = element_text(face = "bold")
+    )
+ggsave("graphs/labphon_cv_mod_preds.pdf", width = 2, height = 2.75, dpi = 300, units = "in")
 ```
 
 Overall prediction plot: ctype.
@@ -521,27 +545,33 @@ ggplot(newdat, aes(x=log_segment_dur_uttr, y=value, col=segment_type_f)) +
   facet_wrap(~segment_type_broad) +
   geom_ribbon(aes(ymin=avg_dur_ll,ymax=avg_dur_ul, group=segment_type_f), col=NA, fill="grey",
               alpha=0.3) +
-  geom_textline(aes(label = segment_type), size = 6, vjust = 0.2,
-                linewidth = 1) +
+  geom_textline(aes(label = segment_type), size = 3, vjust = 0.2,
+                linewidth = 0.75) +
   scale_x_continuous(breaks=c(-3.5,-3,-2.5,-2),
                      labels=round(exp(c(-3.5,-3,-2.5,-2)),2)) +
   scale_y_continuous(breaks=c(-3.5,-3,-2.5,-2),
                      labels=round(exp(c(-3.5,-3,-2.5,-2)),2)) +
-  scale_colour_brewer(palette = "Set1", guide='none') +
+  scale_color_tableau(guide = "none") +
+  #scale_colour_brewer(palette = "Set1", guide='none') +
   #scale_colour_manual(values=c("purple4", "darkorange2"), guide="none") +
-  xlab("Overall average segment duration in s (inverse speech rate)") +
-  labs(y=NULL) +
+  labs(tag = "(B)") +
+  xlab("Average segment duration\n(inverse speech rate)") +
   ylab("Average duration per segment type") +
   # remove clutter
-  theme_minimal() +
+  theme_minimal(base_size = 8) +
   # some specific formatting...
-  theme(panel.grid = element_blank(),
-        axis.line = element_line(size=0.8),
-        axis.ticks = element_line(size=0.8),
-        axis.text = element_text(size=14, colour="black"),
-        axis.title = element_text(size=16, face="bold"),
+  theme(
+    plot.tag = element_text(face = "bold"),
+    panel.grid = element_blank(),
+        axis.line = element_line(size = 0.5),
+        #axis.ticks = element_line(size=0.8),
+        #axis.text = element_text(size=14, colour="black"),
+        #axis.title = element_text(size=16, face="bold"),
+        axis.title = element_text(face = "bold"),
         strip.background.y = element_blank(), 
         strip.placement = "outside",
-        strip.text=element_text(size=16, face="bold"))
-ggsave("graphs/labphon_ctype_mod_preds.png", width=7.5, height=4, dpi=300)
+        #strip.text = element_text(size=16, face="bold"),
+        strip.text = element_text(size = 10, face = "bold")
+    )
+ggsave("graphs/labphon_ctype_mod_preds.pdf", width = 4.25, height = 2.75, dpi = 300, units = "in")
 ```
