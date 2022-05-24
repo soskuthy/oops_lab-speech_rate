@@ -147,17 +147,17 @@ d <- d %>%
         phone %in% c("w", "j") ~ "approximant",
       ## Turkish
       language == "Turkish" &
-        phone %in% c('b', 'bː', 'c', 'cː', 'd̪', 'd̪ː', 'k', 'kː', 'p', 't̪', 't̪ː', 'ɟ', 'ɡ') ~ "stop",
+        phone %in% c('b', 'bː', 'c', 'cː', 'd̪', 'd̪','k', 'kː', 'p','t̪', 't̪ː', 'ɟ', 'ɡ') ~ "stop",
       language == "Turkish" &
-        phone %in% c('m', 'mː', 'n̪', 'n̪ː', 'ŋ') ~ "nasal",
+        phone %in% c('m', 'mː', 'n̪', 'n̪ː','ŋ') ~ "nasal",
       language == "Turkish" &
-        phone %in% c('h', 'hː', 's̪', 's̪ː', 'v', 'z̪', 'ç', 'ɫ', 'ɫː', 'ʃ', 'ʒ') ~ "fricative",
+        phone %in% c('f', 'h', 'hː', 's̪', 's̪ː','v', 'z̪','ç','ʃ','ʒ') ~ "fricative",
       language == "Turkish" &
         phone %in% c('dʒ', 'tʃ') ~ "affricate",
       language == "Turkish" &
-        phone %in% c('ɾ', 'ʎ', 'ʎː') ~ "liquid",
+        phone %in% c('ɾ','ɫ', 'ɫː', 'ʎ', 'ʎː') ~ "liquid",
       language == "Turkish" &
-        phone %in% c('j') ~ "approximant",
+        phone %in% c("j") ~ "approximant",
       segment_type == "vowel" ~ "vowel"
     )
   )
