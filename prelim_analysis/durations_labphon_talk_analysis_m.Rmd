@@ -2,6 +2,8 @@
 title: "Taiwanese Mandarin / Korean / Kapampangan / English / Vietnamese articulation rate vs. rhythm"
 author: "Márton Sóskuthy & Roger Lo"
 output: html_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
@@ -15,6 +17,8 @@ library(tidyverse)
 library(ggbeeswarm)
 library(ggpubr)
 library(geomtextpath)
+
+setwd('/home/roger/Documents/RA/oops_lab-speech_rate/prelim_analysis/')
 
 twm <- read_csv("../data/taiwanese_mandarin_durations.csv") %>%
   arrange(speaker, file, phone_start) %>%
@@ -32,8 +36,10 @@ p <- read_csv("../data/kapampangan_durations.csv") %>%
 v <- read_csv("../data/vietnamese_durations.csv") %>%
   arrange(speaker, file, phone_start) %>%
   #select(-sex, -age) %>%
-  mutate(language="Vietnamese",
-         speaker=as.character(speaker))
+  mutate(
+    language = "Vietnamese",
+    speaker = as.character(speaker)
+  )
 s <- read_csv("../data/swahili_durations.csv") %>%
   arrange(speaker, file, phone_start) %>%
   #select(-sex, -age) %>%
@@ -211,7 +217,12 @@ d <- d %>%
     c_type=ifelse(is.na(c_type), "NA", c_type),
     c_type=ifelse(segment_type=="vowel" & (c_type!="high vowel"),  "non-high vowel", c_type)
   )
-  
+
+# check phonemes
+d %>%
+  filter(c_type == "approximant", language == "American English") %>%
+  pull(phone) %>%
+  unique()
 ```
 
 Grouping by utterance, creating predictors.
@@ -250,6 +261,28 @@ d_uttr <- d %>%
 
 Some data filtering.
 
+```{r paper}
+# this part is just to see the number of tokens in each cat
+d_uttr %>% 
+  #nrow()
+  
+  filter(num_syllables_uttr > 5) %>%
+  filter(segment_dur_uttr < 0.25) %>%
+  filter(segment_dur_uttr > 0.04) %>%
+  #nrow()
+  
+  filter(
+    log(segment_dur_uttr) > 
+      mean(log(segment_dur_uttr)) - 
+      3*sd(log(segment_dur_uttr)),
+    log(segment_dur_uttr) < 
+      mean(log(segment_dur_uttr)) +
+      3*sd(log(segment_dur_uttr))
+  ) #%>%
+  #nrow()
+```
+
+Actual filtering
 ```{r}
 d_uttr <- d_uttr %>% 
   filter(num_syllables_uttr > 5) %>%
@@ -263,7 +296,46 @@ d_uttr <- d_uttr %>%
       mean(log(segment_dur_uttr)) +
       3*sd(log(segment_dur_uttr))
   )
+```
 
+Get the frequency of different segment types
+```{r}
+included_uttr <- unique(d_uttr$uttr_id)
+
+d_c_freq <- d %>%
+  dplyr::filter(uttr_id %in% included_uttr) %>%
+  group_by(language, c_type) %>%
+  count() %>%
+  dplyr::filter(c_type != "NA") %>%
+  group_by(language) %>%
+  mutate(
+    prop = n / sum(n)
+  )
+
+d_c_freq %>%
+  mutate(
+    c_type = fct_relevel(c_type,
+    "syllabic C", "stop", "affricate", "fricative", "liquid", "nasal", "approximant", "non-high vowel", "high-vowel"
+    )
+    #"high vowel", "non-high vowel", "approximant", "nasal", "liquid", "fricative", "affricate", "stop", "syllabic C")
+  ) %>%
+  ggplot(aes(x = c_type, y = prop)) +
+  geom_bar(stat = "identity") +
+  facet_wrap(. ~ language) +
+  coord_flip()
+```
+
+Get numbers for paper
+```{r paper}
+# get some numbers for the paper
+d_uttr %>%
+  group_by(language) %>%
+  summarize(
+    N = length(unique(uttr_id)),
+    DUR = sum(uttr_dur)/60/60
+  )
+
+unique(d_uttr$speaker)
 ```
 
 Exploratory plots!
@@ -301,21 +373,27 @@ d_uttr_perc_v$speaker_f <- as.factor(d_uttr_perc_v$speaker)
 d_uttr_perc_v$language_f <- as.factor(d_uttr_perc_v$language)
 d_uttr_perc_v$log_segment_dur_uttr <- log(d_uttr_perc_v$segment_dur_uttr)
 
-perc_v_mod <- bam(perc_v ~ 
-                s(log_segment_dur_uttr, bs="cr") +
-                s(log_segment_dur_uttr, speaker_f, bs="fs", xt=list("cr"), m=1) +
-                s(log_segment_dur_uttr, language_f, bs="fs", m=1, xt=list("cr")),
-              data=d_uttr_perc_v,
-              discrete=T, nthreads=8
-          )
+#range(d_uttr_perc_v$perc_v)
+#range(d_uttr_perc_v$log_segment_dur_uttr)
+#length(unique(d_uttr_perc_v$speaker))
+#length(unique(d_uttr_perc_v$language))
+
+perc_v_mod <- bam(perc_v ~ s(log_segment_dur_uttr, bs = "cr") +
+  s(log_segment_dur_uttr, speaker_f, bs = "fs", xt = list("cr"), m=1) +
+  s(log_segment_dur_uttr, language_f, bs = "fs", m = 1, xt = list("cr")),
+  data = d_uttr_perc_v,
+  discrete = TRUE,
+  nthreads = 8
+)
 summary(perc_v_mod)
+saveRDS(perc_v_mod, "perc_v_mod.rds")
 
 # C/V model - we need to move to long data format!
 d_uttr_cv <- pivot_longer(
   d_uttr,
-  cols=c("vowel_dur_uttr", "cons_dur_uttr"),
-  names_to="segment_type",
-  values_to="avg_dur"
+  cols = c("vowel_dur_uttr", "cons_dur_uttr"),
+  names_to = "segment_type",
+  values_to = "avg_dur"
 )
 
 d_uttr_cv$segment_type_o <- as.ordered(d_uttr_cv$segment_type)
@@ -326,28 +404,30 @@ d_uttr_cv$language_f <- as.factor(d_uttr_cv$language)
 d_uttr_cv$languageSegtype <- interaction(d_uttr_cv$language, d_uttr_cv$segment_type)
 d_uttr_cv$log_segment_dur_uttr <- log(d_uttr_cv$segment_dur_uttr)
 d_uttr_cv$log_avg_dur <- log(d_uttr_cv$avg_dur)
-cv_mod <- bam(log_avg_dur ~ 
-                segment_type_o +
-                s(log_segment_dur_uttr, bs="cr") +
-                s(log_segment_dur_uttr, by=segment_type_o, bs="cr") +
-                #s(segment_dur_uttr, speaker_f, bs="fs", xt=list("cr"), m=1) +
-                s(log_segment_dur_uttr, speakerSegtype, bs="fs", m=1, xt=list("cr")) +
-                #s(segment_dur_uttr, language_f, bs="fs", m=1, xt=list("cr")) +
-                s(log_segment_dur_uttr, languageSegtype, bs="fs", m=1, xt=list("cr")),
-              data=d_uttr_cv,
-              discrete=T, nthreads=8
-          )
+cv_mod <- bam(log_avg_dur ~
+  segment_type_o +
+  s(log_segment_dur_uttr, bs = "cr") +
+  s(log_segment_dur_uttr, by = segment_type_o, bs = "cr") +
+  #s(segment_dur_uttr, speaker_f, bs="fs", xt=list("cr"), m=1) +
+  s(log_segment_dur_uttr, speakerSegtype, bs = "fs", m = 1, xt = list("cr")) +
+  #s(segment_dur_uttr, language_f, bs="fs", m=1, xt=list("cr")) +
+  s(log_segment_dur_uttr, languageSegtype, bs = "fs", m = 1, xt = list("cr")),
+  data = d_uttr_cv,
+  discrete = TRUE,
+  nthreads=8
+)
 summary(cv_mod)
+saveRDS(cv_mod, "cv_mod.rds")
 
 # c_type model
-d_uttr_ctype <- pivot_longer(  
+d_uttr_ctype <- pivot_longer(
   d_uttr,
-  cols=c("nh_v_dur", "h_v_dur",  "stop_dur",
-         "fricative_dur", "affricate_dur",
-         "nasal_dur", "liquid_dur",
-         "approximant_dur"),
-  names_to="segment_type",
-  values_to="avg_dur"
+  cols = c("nh_v_dur", "h_v_dur",  "stop_dur",
+        "fricative_dur", "affricate_dur",
+        "nasal_dur", "liquid_dur",
+        "approximant_dur"),
+  names_to = "segment_type",
+  values_to = "avg_dur"
 )
 
 d_uttr_ctype$segment_type_f <- as.factor(d_uttr_ctype$segment_type)
@@ -357,15 +437,17 @@ d_uttr_ctype$languageSegtype <- interaction(d_uttr_ctype$language_f,
                                             d_uttr_ctype$segment_type_f)
 d_uttr_ctype$log_segment_dur_uttr <- log(d_uttr_ctype$segment_dur_uttr)
 d_uttr_ctype$log_avg_dur <- log(d_uttr_ctype$avg_dur)
-ctype_mod <- bam(log_avg_dur ~ 
-                segment_type_f +
-                s(log_segment_dur_uttr, by=segment_type_f, bs="cr") +
-                s(log_segment_dur_uttr, speaker_f, bs="fs", m=1, xt=list("cr")) +
-                s(log_segment_dur_uttr, languageSegtype, bs="fs", m=1, xt=list("cr")),
-              data=d_uttr_ctype,
-              discrete=T, nthreads=8
-          )
+ctype_mod <- bam(log_avg_dur ~
+  segment_type_f +
+  s(log_segment_dur_uttr, by = segment_type_f, bs = "cr") +
+  s(log_segment_dur_uttr, speaker_f, bs = "fs", m = 1, xt = list("cr")) +
+  s(log_segment_dur_uttr, languageSegtype, bs = "fs", m = 1, xt = list("cr")),
+  data = d_uttr_ctype,
+  discrete = TRUE, nthreads = 8
+)
+
 #summary(ctype_mod)
+saveRDS(ctype_mod, "ctype_mod.rds")
 ```
 
 ## Prediction plots: languages
@@ -388,47 +470,50 @@ Make separate V% and C/V duration plots (9 Ls is too much to combine in one!).
 ```{r}
 # model predictions
 newdat_cv <- expand.grid(
-  log_segment_dur_uttr=seq(
+  log_segment_dur_uttr = seq(
     min(d_uttr_cv$log_segment_dur_uttr),
     max(d_uttr_cv$log_segment_dur_uttr),
-    length.out=100
+    length.out = 100
   ),
   #speaker_f=d_uttr_cv$speaker_f[1],
-  speakerSegtype=d_uttr_cv$speakerSegtype[1],
+  speakerSegtype = d_uttr_cv$speakerSegtype[1],
   #language_f=unique(d_uttr_cv$language_f),
-  languageSegtype=unique(d_uttr_cv$languageSegtype),
-  measure_type="dur"
+  languageSegtype = unique(d_uttr_cv$languageSegtype),
+  measure_type = "dur"
 )
 
-newdat_cv$segment_type_o <- str_extract(newdat_cv$languageSegtype,
-                                        "[^.]*$")
+newdat_cv$segment_type_o <- str_extract(newdat_cv$languageSegtype, "[^.]*$")
 newdat_cv$segment_type_o <- as.ordered(newdat_cv$segment_type_o)
 contrasts(newdat_cv$segment_type_o) <- "contr.treatment"
 
-newdat_cv$language <- str_extract(newdat_cv$languageSegtype,
-                                        "^[^.]*")
+newdat_cv$language <- str_extract(newdat_cv$languageSegtype, "^[^.]*")
 newdat_cv$language_f <- as.factor(newdat_cv$language)
-newdat_cv$speaker_f <- d_uttr_cv$speaker_f[1]
-  
-preds <- predict(cv_mod, 
-                 newdat_cv, 
-                 exclude=c("s(log_segment_dur_uttr,speakerSegtype)",
-                   "s(log_segment_dur_uttr,speaker_f)", "s(log_segment_dur_uttr,speaker_f):segment_type_ovowel_dur_uttr"),
-                 se.fit=T
+newdat_cv$speaker_f <- as.factor(str_extract(newdat_cv$speakerSegtype, "^[^.]*"))
+#newdat_cv$speaker_f <- d_uttr_cv$speaker_f[1]
+
+preds <- predict(cv_mod, newdat_cv,
+  # the following is used when predicting without speakers
+  exclude=c("s(log_segment_dur_uttr,speakerSegtype)",
+            "s(log_segment_dur_uttr,speaker_f)", "s(log_segment_dur_uttr,speaker_f):segment_type_ovowel_dur_uttr"),
+  se.fit = TRUE
 )
 
 newdat_cv$value <- exp(preds$fit)
 newdat_cv$ul <- exp(preds$fit + preds$se.fit * 1.96)
 newdat_cv$ll <- exp(preds$fit - preds$se.fit * 1.96)
 
-newdat_perc_v <- filter(newdat_cv, segment_type_o=="cons_dur_uttr")
+newdat_cv$segment_dur_uttr <- exp(newdat_cv$log_segment_dur_uttr)
+```
+
+Predictions for V percentage
+```{r}
+newdat_perc_v <- filter(newdat_cv, segment_type_o == "cons_dur_uttr")
 newdat_perc_v$measure_type <- "perc_v"
 newdat_perc_v$speaker_f <- d_uttr_perc_v$speaker_f[1]
 
-preds <- predict(perc_v_mod, 
-                 newdat_perc_v, 
+preds <- predict(perc_v_mod, newdat_perc_v,
                  exclude=c("s(log_segment_dur_uttr,speaker_f)"),
-                 se.fit=T
+                 se.fit = TRUE
 )
 
 newdat_perc_v$value <- preds$fit
@@ -437,6 +522,97 @@ newdat_perc_v$ll <- preds$fit - preds$se.fit * 1.96
 
 newdat <- bind_rows(newdat_cv, newdat_perc_v)
 newdat$segment_dur_uttr <- exp(newdat$log_segment_dur_uttr)
+```
+
+Predictions that include random effects
+```{r}
+# new dataframe that includes participants
+newdat_cv <- expand_grid(
+  log_segment_dur_uttr = seq(
+    min(d_uttr_cv$log_segment_dur_uttr),
+    max(d_uttr_cv$log_segment_dur_uttr),
+    length.out = 100
+  ),
+  d_uttr_cv %>%
+      select(speakerSegtype, languageSegtype) %>%
+      unique(),
+  measure_type = "dur"
+)
+
+preds <- predict(cv_mod, newdat_cv, se.fit = TRUE)
+
+newdat_cv$value <- exp(preds$fit)
+newdat_cv$ul <- exp(preds$fit + preds$se.fit * 1.96)
+newdat_cv$ll <- exp(preds$fit - preds$se.fit * 1.96)
+
+newdat_cv$segment_dur_uttr <- exp(newdat_cv$log_segment_dur_uttr)
+newdat_cv %>% write_csv("newdat_cv.csv")
+
+LANG = "Amharic"
+d_uttr_plot %>%
+  filter(measure_type == "dur", language == LANG) %>%
+  ggplot(data = ., aes(x = segment_dur_uttr, y = value, col = measure)) +
+  facet_wrap(. ~ speaker_f) +
+  geom_point(alpha = 0.1) +
+  geom_ribbon(data = filter(newdat_cv,
+                            measure_type == "dur",
+                            segment_type_o == "vowel_dur_uttr",
+                            language == LANG),
+              aes(ymin = ll, ymax = ul), col = NA, fill = "grey",
+              alpha = 0.5) +
+  geom_ribbon(data = filter(newdat_cv,
+                            measure_type == "dur",
+                            segment_type_o == "cons_dur_uttr",
+                            language == LANG),
+              aes(ymin = ll, ymax = ul), col = NA, fill = "grey",
+              alpha = 0.5) +
+  geom_line(data = filter(newdat_cv,
+                          measure_type == "dur",
+                          segment_type_o == "vowel_dur_uttr",
+                          language == LANG),
+            col = "darkorange1", lwd = 1) +
+  geom_line(data = filter(newdat_cv,
+                          measure_type == "dur",
+                          segment_type_o == "cons_dur_uttr",
+                          language == LANG),
+            col = "purple4", lwd = 1) +
+  scale_x_log10(breaks = c(0.05, 0.07, 0.1, 0.14)) +
+  scale_y_log10(breaks = c(0.05, 0.07, 0.1, 0.14),
+                limits = c(0.03, 0.19)) +
+  #scale_x_continuous(limits=c(0.035,0.145), 
+  #                   breaks=seq(0.04,0.14,0.02),
+  #                   labels=c(".04",".06",".08",".10",".12",".14")) +
+  scale_colour_manual(values = c("orange", "purple"), guide = "none") +
+  #scale_y_continuous(breaks=seq(0.04,0.20,0.02)) +
+    # labels for axes
+  xlab("Average segment duration in s (inverse speech rate)") +
+  labs(y = "Average C vs. V duration in s") +
+  #ylab("Average V vs. C duration in s") +
+  # remove clutter
+  theme_minimal()
+```
+
+```{r}
+newdat_perc_v <- filter(newdat_cv, segment_type_o == "cons_dur_uttr")
+newdat_perc_v$measure_type <- "perc_v"
+
+preds <- predict(perc_v_mod, newdat_perc_v, se.fit = TRUE)
+
+newdat_perc_v$value <- preds$fit
+newdat_perc_v$ul <- preds$fit + preds$se.fit * 1.96
+newdat_perc_v$ll <- preds$fit - preds$se.fit * 1.96
+
+newdat_perc_v %>% write_csv("newdat_perc_v.csv")
+
+newdat <- bind_rows(newdat_cv, newdat_perc_v)
+newdat$segment_dur_uttr <- exp(newdat$log_segment_dur_uttr)
+
+newdat_perc_v %>%
+  filter(language == "Turkish") %>%
+  ggplot(aes(x = log_segment_dur_uttr, y = value), data = .) +
+  geom_ribbon(aes(ymin = ll, ymax = ul), alpha = 0.25) +
+  geom_line() +
+  facet_wrap(. ~ speaker_f)
 ```
 
 We now obtain a measure of effect strength: the difference in the log-log derivative at the median speech rate / language. Based on model predictions!
@@ -560,6 +736,38 @@ ggplot(filter(d_uttr_plot, measure_type=="perc_v"), aes(x=segment_dur_uttr, y=va
         strip.text=element_text(size=16, face="bold"))
 ggsave("graphs_labphon/percentage_v.png", width=10, height=6, dpi=300)
 
+ggplot(filter(d_uttr_plot, measure_type == "perc_v"),
+       aes(x = segment_dur_uttr, y = value)) +
+  facet_wrap(. ~ language, ncol = 3) +
+  geom_point(alpha = 0.3) +
+  geom_ribbon(data = filter(newdat, measure_type=="perc_v"),
+              aes(ymin = ll,ymax = ul), col = NA, fill = "grey",
+              alpha = 0.5) +
+  geom_line(data = filter(newdat, measure_type == "perc_v"), 
+            col = "blue", lwd = 1) +
+  scale_x_log10(breaks = c(0.05, 0.07, 0.1, 0.14)) +
+  ylim(0,100) +
+  #scale_x_continuous(limits=c(0.035,0.145), 
+  #                   breaks=seq(0.04,0.14,0.02),
+  #                   labels=c(".04",".06",".08",".10",".12",".14")) +
+  # labels for axes
+  labs(y = "%V", x = "Average segment duration in s (inverse speech rate)") +
+  # remove clutter
+  theme_minimal() +
+  # some specific formatting...
+  theme(panel.grid = element_blank(),
+        axis.line = element_line(size = 0.5),
+        axis.ticks = element_line(size = 0.5),
+        axis.text = element_text(size = 8, colour = "black"),
+        axis.title = element_text(size = 10, face = "bold"),
+        strip.background.y = element_blank(), 
+        strip.placement = "outside",
+        strip.text = element_text(size = 10, face = "bold"))
+
+ggsave("graphs_labphon/percentage_v.pdf", width = 150, height = 150, dpi = 300, units = "mm")
+ggsave("graphs_labphon/percentage_v.tiff", width = 150, height = 150, dpi = 300, units = "mm")
+
+
 ggplot(filter(d_uttr_plot, measure_type=="dur"), aes(x=segment_dur_uttr, y=value, col=measure)) +
   facet_wrap(. ~ language, ncol=3) +
   geom_point(alpha=0.1) +
@@ -610,6 +818,59 @@ ggplot(filter(d_uttr_plot, measure_type=="dur"), aes(x=segment_dur_uttr, y=value
 #          ncol=1, nrow=2,
 #          align="v")
 ggsave("graphs_labphon/cv.png", width=9, height=9, dpi=300)
+
+ggplot(filter(d_uttr_plot, measure_type=="dur"), aes(x=segment_dur_uttr, y=value, col=measure)) +
+  facet_wrap(. ~ language, ncol=3) +
+  geom_point(alpha=0.1) +
+  geom_ribbon(data=filter(newdat,
+                          measure_type=="dur",
+                          segment_type_o=="vowel_dur_uttr"),
+              aes(ymin=ll,ymax=ul), col=NA, fill="grey",
+              alpha=0.5) +
+  geom_ribbon(data=filter(newdat,
+                          measure_type=="dur",
+                          segment_type_o=="cons_dur_uttr"),
+              aes(ymin=ll,ymax=ul), col=NA, fill="grey",
+              alpha=0.5) +
+  geom_line(data=filter(newdat,
+                        measure_type=="dur",
+                        segment_type_o=="vowel_dur_uttr"),
+            col="darkorange1", lwd=1) +
+  geom_line(data=filter(newdat,
+                        measure_type=="dur",
+                        segment_type_o=="cons_dur_uttr"),
+            col="purple4", lwd=1) +
+  #geom_text(data=eff_sizes, aes(label = paste0("Δβ = ", round(eff_size,2))),
+  #          col="black", size=5) +
+  geom_text(data=eff_sizes, aes(label = paste0("\u0394\u03b2 = ",round(eff_size,2))),
+            col="black", size = 3) +
+  scale_x_log10(breaks=c(0.05, 0.07, 0.1, 0.14)) +
+  scale_y_log10(breaks=c(0.05, 0.07, 0.1, 0.14),
+                limits=c(0.03,0.19)) +
+  #scale_x_continuous(limits=c(0.035,0.145), 
+  #                   breaks=seq(0.04,0.14,0.02),
+  #                   labels=c(".04",".06",".08",".10",".12",".14")) +
+  scale_colour_manual(values=c("orange", "purple"), guide="none") +
+  #scale_y_continuous(breaks=seq(0.04,0.20,0.02)) +
+    # labels for axes
+  xlab("Average segment duration in s (inverse speech rate)") +
+  labs(y="Average C vs. V duration in s") +
+  #ylab("Average V vs. C duration in s") +
+  # remove clutter
+  theme_minimal() +
+  # some specific formatting...
+  theme(panel.grid = element_blank(),
+        axis.line = element_line(size = 0.5),
+        axis.ticks = element_line(size = 0.5),
+        axis.text = element_text(size = 8, colour = "black"),
+        axis.title = element_text(size = 10, face = "bold"),
+        strip.background.y = element_blank(), 
+        strip.placement = "outside",
+        strip.text = element_text(size = 10, face = "bold"))
+
+ggsave("graphs_labphon/cv.pdf", width = 150, height = 150, dpi = 300, units = "mm",
+       device = cairo_pdf)
+ggsave("graphs_labphon/cv.tiff", width = 150, height = 150, dpi = 300, units = "mm")
 ```
 
 ## Prediction plot: overall
@@ -675,6 +936,31 @@ ggplot(newdat, aes(x=segment_dur_uttr, y=value, col=segment_type)) +
         strip.placement = "outside",
         strip.text=element_text(size=16, face="bold"))
 ggsave("graphs_labphon/labphon_cv_mod_preds.png", width=5, height=5, dpi=300)
+
+ggplot(newdat, aes(x=segment_dur_uttr, y=value, col=segment_type)) +
+  geom_ribbon(aes(ymin=avg_dur_ll,ymax=avg_dur_ul, group=segment_type), col=NA, fill="grey",
+              alpha=0.3) +
+  geom_textline(aes(label = segment_type), size = 5, vjust = 0.2,
+                linewidth = 1) +
+  scale_x_log10(breaks=c(0.05, 0.07, 0.1, 0.14)) +
+  scale_y_log10(breaks=c(0.05, 0.07, 0.1, 0.14)) +
+  scale_colour_manual(values=c("purple4", "darkorange2"), guide="none") +
+  xlab("Average segment duration in s\n(inverse speech rate)") +
+  ylab("Average C vs. V duration") +
+  # remove clutter
+  theme_minimal() +
+  # some specific formatting...
+  theme(panel.grid = element_blank(),
+        axis.line = element_line(size = 0.5),
+        axis.ticks = element_line(size = 0.5),
+        axis.text = element_text(size = 8, colour = "black"),
+        axis.title = element_text(size = 10, face = "bold"),
+        strip.background.y = element_blank(), 
+        strip.placement = "outside",
+        strip.text = element_text(size = 10, face = "bold"))
+
+ggsave("graphs_labphon/labphon_cv_mod_preds.pdf", width = 75, height = 75, dpi = 300, units = "mm")
+ggsave("graphs_labphon/labphon_cv_mod_preds.tiff", width = 75, height = 75, dpi = 300, units = "mm")
 ```
 
 ## Prediction plot: ctype
@@ -722,6 +1008,161 @@ newdat$segment_type_broad <-
 newdat$segment_type_broad <- 
   factor(newdat$segment_type_broad,
          levels=c("vocalic", "continuant + nasal", "non-continuant"))
+
+newdat_ctype$segment_type <- str_extract(newdat_ctype$segment_type_f, "^[^_]*")
+newdat_ctype$segment_type <- recode(
+  newdat_ctype$segment_type,
+  approximant="glide",
+  nh="non-high vowel",
+  h="high vowel",
+)
+newdat_ctype$segment_type_broad <- 
+  case_when(
+    newdat_ctype$segment_type %in% c("non-high vowel", "high vowel", "glide") ~ "vocalic",
+    newdat_ctype$segment_type %in% c("liquid", "nasal", "fricative") ~ "continuant + nasal",
+    newdat_ctype$segment_type %in% c("affricate", "stop") ~ "non-continuant",
+  )
+newdat_ctype$segment_type_broad <- 
+  factor(newdat_ctype$segment_type_broad,
+         levels=c("vocalic", "continuant + nasal", "non-continuant"))
+
+
+
+
+newdat_ctype %>%
+mutate(language = str_extract(languageSegtype, "^[^.]*")) %>%
+ggplot(aes(x = log_segment_dur_uttr, y = value, col = segment_type_f)) +
+  facet_wrap(. ~ language) +
+  geom_ribbon(aes(ymin=avg_dur_ll,ymax=avg_dur_ul, group=segment_type_f), col=NA, fill="grey",
+              alpha=0.3) +
+  geom_textline(aes(label = segment_type), size = 3, vjust = 0.2,
+                linewidth = 1) +
+  scale_x_continuous(breaks=c(-3.5,-3,-2.5,-2),
+                    labels=round(exp(c(-3.5,-3,-2.5,-2)),2)) +
+  scale_y_continuous(breaks=c(-3.5,-3,-2.5,-2),
+                    labels=round(exp(c(-3.5,-3,-2.5,-2)),2)) +
+  scale_colour_brewer(palette = "Set1", guide='none') +
+  scale_colour_manual(values=c("purple4", "darkorange2"), guide="none") +
+  xlab("Overall average segment duration in s (inverse speech rate)") +
+  ylab("Average duration per segment type") +
+  # remove clutter
+  theme_minimal() +
+  # some specific formatting...
+  theme(panel.grid = element_blank(),
+        axis.line = element_line(size = 0.5),
+        axis.ticks = element_line(size = 0.5),
+        axis.text = element_text(size = 8, colour = "black"),
+        axis.title = element_text(size = 10, face = "bold"),
+        strip.background.y = element_blank(), 
+        strip.placement = "outside",
+        strip.text = element_text(size = 10, face = "bold"))
+
+```
+
+Predictions including random effects
+```{r}
+# new data for c types, including speakers
+newdat_ctype <- expand_grid(
+  log_segment_dur_uttr = seq(
+    min(d_uttr_ctype$log_segment_dur_uttr),
+    max(d_uttr_ctype$log_segment_dur_uttr),
+    length.out = 100
+  ),
+  d_uttr_ctype %>%
+      select(speaker_f, languageSegtype, segment_type_f) %>%
+      unique()
+)
+
+preds <- predict(ctype_mod, newdat_ctype, se.fit = TRUE)
+
+#Warning message:
+#In predict.gam(object, newdata = newdata, type = "newdata", se.fit = se.fit,  :
+#  factor levels Georgian.approximant_dur, Seoul Korean.approximant_dur not in original fit
+
+newdat_ctype <- newdat_ctype %>%
+  dplyr::filter(
+    languageSegtype != "Georgian.approximant_dur",
+    languageSegtype != "Seoul Korean.approximant_dur"
+  )
+
+newdat_ctype$value <- preds$fit
+newdat_ctype$avg_dur_ul <- preds$fit + preds$se.fit * 1.96
+newdat_ctype$avg_dur_ll <- preds$fit - preds$se.fit * 1.96
+newdat_ctype$segment_dur_uttr <- exp(newdat_ctype$log_segment_dur_uttr)
+
+newdat$segment_type <- str_extract(newdat$segment_type_f, "^[^_]*")
+newdat$segment_type <- recode(
+  newdat$segment_type,
+  approximant="glide",
+  nh="non-high vowel",
+  h="high vowel",
+)
+newdat$segment_type_broad <- 
+  case_when(
+    newdat$segment_type %in% c("non-high vowel", "high vowel", "glide") ~ "vocalic",
+    newdat$segment_type %in% c("liquid", "nasal", "fricative") ~ "continuant + nasal",
+    newdat$segment_type %in% c("affricate", "stop") ~ "non-continuant",
+  )
+newdat$segment_type_broad <- 
+  factor(newdat$segment_type_broad,
+         levels=c("vocalic", "continuant + nasal", "non-continuant"))
+
+
+newdat_ctype$segment_type <- str_extract(newdat_ctype$segment_type_f, "^[^_]*")
+newdat_ctype$segment_type <- recode(
+  newdat_ctype$segment_type,
+  approximant="glide",
+  nh="non-high vowel",
+  h="high vowel",
+)
+newdat_ctype$segment_type_broad <- 
+  case_when(
+    newdat_ctype$segment_type %in% c("non-high vowel", "high vowel", "glide") ~ "vocalic",
+    newdat_ctype$segment_type %in% c("liquid", "nasal", "fricative") ~ "continuant + nasal",
+    newdat_ctype$segment_type %in% c("affricate", "stop") ~ "non-continuant",
+  )
+newdat_ctype$segment_type_broad <- 
+  factor(newdat_ctype$segment_type_broad,
+         levels=c("vocalic", "continuant + nasal", "non-continuant"))
+
+newdat_ctype %>% write_csv("newdat_ctype.csv")
+
+speakers <- newdat_ctype %>%
+  mutate(language = str_extract(languageSegtype, "^[^.]*")) %>%
+  group_by(language) %>%
+  sample_n(1) %>%
+  pull(speaker_f)
+
+
+newdat_ctype <- read_csv("./newdat_ctype.csv")
+newdat_ctype %>%
+mutate(language = str_extract(languageSegtype, "^[^.]*")) %>%
+filter(speaker_f %in% speakers) %>%
+ggplot(aes(x = log_segment_dur_uttr, y = value, col = segment_type_f)) +
+  facet_wrap(. ~ language) +
+  geom_ribbon(aes(ymin=avg_dur_ll,ymax=avg_dur_ul, group=segment_type_f), col=NA, fill="grey",
+              alpha=0.3) +
+  geom_textline(aes(label = segment_type), size = 3, vjust = 0.2,
+                linewidth = 1) +
+  #scale_x_continuous(breaks=c(-3.5,-3,-2.5,-2),
+  #                   labels=round(exp(c(-3.5,-3,-2.5,-2)),2)) +
+  #scale_y_continuous(breaks=c(-3.5,-3,-2.5,-2),
+  #                   labels=round(exp(c(-3.5,-3,-2.5,-2)),2)) +
+  #scale_colour_brewer(palette = "Set1", guide='none') +
+  #scale_colour_manual(values=c("purple4", "darkorange2"), guide="none") +
+  xlab("Overall average segment duration in s (inverse speech rate)") +
+  ylab("Average duration per segment type") +
+  # remove clutter
+  theme_minimal() +
+  # some specific formatting...
+  theme(panel.grid = element_blank(),
+        axis.line = element_line(size = 0.5),
+        axis.ticks = element_line(size = 0.5),
+        axis.text = element_text(size = 8, colour = "black"),
+        axis.title = element_text(size = 10, face = "bold"),
+        strip.background.y = element_blank(), 
+        strip.placement = "outside",
+        strip.text = element_text(size = 10, face = "bold"))
 ```
 
 Here, looking at the average slope between the 10th to 90th percentiles of data would be helpful.
@@ -786,7 +1227,7 @@ Direct label the plot with these figures?
 
 ```{r}
 newdat <- left_join(newdat, ctype_eff_sizes, by="segment_type_f")
-newdat$segment_type_eff = paste0(newdat$segment_type, ", β = ", round(newdat$eff_size, 2))
+newdat$segment_type_eff = paste0(newdat$segment_type, ", \u03b2 = ", round(newdat$eff_size, 2))
 
 ggplot(newdat, aes(x=log_segment_dur_uttr, y=value, col=segment_type_f)) +
   facet_wrap(~segment_type_broad) +
@@ -815,6 +1256,35 @@ ggplot(newdat, aes(x=log_segment_dur_uttr, y=value, col=segment_type_f)) +
         strip.placement = "outside",
         strip.text=element_text(size=16, face="bold"))
 ggsave("graphs_labphon/labphon_ctype_mod_preds.png", width=7.5, height=4, dpi=300)
+
+ggplot(newdat, aes(x=log_segment_dur_uttr, y=value, col=segment_type_f)) +
+  facet_wrap(~segment_type_broad) +
+  geom_ribbon(aes(ymin=avg_dur_ll,ymax=avg_dur_ul, group=segment_type_f), col=NA, fill="grey",
+              alpha=0.3) +
+  geom_textline(aes(label = segment_type_eff), size = 3, vjust = 0.2,
+                linewidth = 1) +
+  scale_x_continuous(breaks=c(-3.5,-3,-2.5,-2),
+                     labels=round(exp(c(-3.5,-3,-2.5,-2)),2)) +
+  scale_y_continuous(breaks=c(-3.5,-3,-2.5,-2),
+                     labels=round(exp(c(-3.5,-3,-2.5,-2)),2)) +
+  scale_colour_brewer(palette = "Set1", guide='none') +
+  #scale_colour_manual(values=c("purple4", "darkorange2"), guide="none") +
+  xlab("Overall average segment duration in s (inverse speech rate)") +
+  ylab("Average duration per segment type") +
+  # remove clutter
+  theme_minimal() +
+  # some specific formatting...
+  theme(panel.grid = element_blank(),
+        axis.line = element_line(size = 0.5),
+        axis.ticks = element_line(size = 0.5),
+        axis.text = element_text(size = 8, colour = "black"),
+        axis.title = element_text(size = 10, face = "bold"),
+        strip.background.y = element_blank(), 
+        strip.placement = "outside",
+        strip.text = element_text(size = 10, face = "bold"))
+
+ggsave("graphs_labphon/labphon_ctype_mod_preds.pdf", width = 150, height = 75, dpi = 300, units = "mm", device = cairo_pdf)
+ggsave("graphs_labphon/labphon_ctype_mod_preds.tiff", width = 150, height = 75, dpi = 300, units = "mm")
 ```
 
 ## Turkish only
