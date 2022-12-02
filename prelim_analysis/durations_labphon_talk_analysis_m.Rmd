@@ -20,40 +20,48 @@ twm <- read_csv("../data/taiwanese_mandarin_durations.csv") %>%
   arrange(speaker, file, phone_start) %>%
   filter(speaker != "mn_tw_66") %>%
   select(-sex, -age) %>%
-  mutate(language="Taiwan Mandarin")
+  mutate(language="Taiwan Mandarin",
+         folder="taiwanese_mandarin")
 k <- read_csv("../data/korean_durations.csv") %>%
   arrange(speaker, file, phone_start) %>%
   select(-sex, -age) %>%
-  mutate(language="Seoul Korean")
+  mutate(language="Seoul Korean",
+         folder="korean")
 p <- read_csv("../data/kapampangan_durations.csv") %>%
   arrange(speaker, file, phone_start) %>%
   select(-sex, -age) %>%
-  mutate(language="Kapampangan")
+  mutate(language="Kapampangan",
+         folder="kapampangan")
 v <- read_csv("../data/vietnamese_durations.csv") %>%
   arrange(speaker, file, phone_start) %>%
   #select(-sex, -age) %>%
   mutate(language="Vietnamese",
-         speaker=as.character(speaker))
+         speaker=as.character(speaker),
+         folder="vietnamese")
 s <- read_csv("../data/swahili_durations.csv") %>%
   arrange(speaker, file, phone_start) %>%
   #select(-sex, -age) %>%
   mutate(language="Swahili",
-         speaker=as.character(speaker))
+         speaker=as.character(speaker),
+         folder="swahili")
 tu <- read_csv("../data/turkish_durations.csv") %>%
   arrange(speaker, file, phone_start) %>%
   #select(-sex, -age) %>%
   mutate(language="Turkish",
-         speaker=as.character(speaker))
+         speaker=as.character(speaker),
+         folder="turkish")
 a <- read_csv("../data/amharic_durations.csv") %>%
   arrange(speaker, file, phone_start) %>%
   #select(-sex, -age) %>%
   mutate(language="Amharic",
-         speaker=as.character(speaker))
+         speaker=as.character(speaker),
+         folder="amharic")
 g <- read_csv("../data/georgian_durations.csv") %>%
   arrange(speaker, file, phone_start) %>%
   #select(-sex, -age) %>%
   mutate(language="Georgian",
-         speaker=as.character(speaker))
+         speaker=as.character(speaker),
+         folder="georgian")
 b <- readRDS("../data/buckeye_durations.rds") %>%
   arrange(speaker, file, phone_start) %>%
   mutate(language="American English",
@@ -217,6 +225,13 @@ d <- d %>%
 Grouping by utterance, creating predictors.
 
 ```{r}
+# for checking
+
+d_check <- d %>%
+  filter(segment_type %in% c("consonant", "vowel"),
+         phone_dur > 0)
+
+# for analysis
 d_uttr <- d %>%
   filter(segment_type %in% c("consonant", "vowel"),
          phone_dur > 0) %>%
@@ -264,6 +279,29 @@ d_uttr <- d_uttr %>%
       3*sd(log(segment_dur_uttr))
   )
 
+set.seed(321)
+d_check_final <- filter(d_check, uttr_id %in% d_uttr$uttr_id) %>%
+  filter(!(language %in% c("Kapampangan"))) %>%
+  mutate(phone_id=paste(language,file,phone_start),
+         word_id=paste(language,file,word_start)) %>%
+  group_by(word_id) %>%
+  mutate(word_trs = paste0(phone, collapse="")) %>%
+  ungroup() %>%
+  group_by(language, speaker) %>%
+  filter(phone_id %in% c(
+    sample(phone_id[segment_type=="vowel"], 10, replace=F),
+    sample(phone_id[segment_type=="consonant"], 10, replace=F)
+  )) %>%
+  ungroup() %>%
+  mutate(phone_alignment=NA,
+         phone_quality=NA,
+         comment=NA) %>%
+  select(language, folder, speaker, file, 
+         word, word_trs, word_start, word_end, 
+         phone, segment_type, phone_start, phone_end,
+         phone_alignment, phone_quality, comment)
+
+write_csv(d_check_final, "spot_checking_calibration_full.csv")
 ```
 
 Exploratory plots!
@@ -308,7 +346,7 @@ perc_v_mod <- bam(perc_v ~
               data=d_uttr_perc_v,
               discrete=T, nthreads=8
           )
-summary(perc_v_mod)
+#summary(perc_v_mod)
 
 # C/V model - we need to move to long data format!
 d_uttr_cv <- pivot_longer(
@@ -337,7 +375,7 @@ cv_mod <- bam(log_avg_dur ~
               data=d_uttr_cv,
               discrete=T, nthreads=8
           )
-summary(cv_mod)
+#summary(cv_mod)
 
 # c_type model
 d_uttr_ctype <- pivot_longer(  
@@ -545,20 +583,20 @@ ggplot(filter(d_uttr_plot, measure_type=="perc_v"), aes(x=segment_dur_uttr, y=va
   #                   breaks=seq(0.04,0.14,0.02),
   #                   labels=c(".04",".06",".08",".10",".12",".14")) +
   # labels for axes
-  xlab("Average segment duration in s (inverse speech rate)") +
-  labs(y="%V", x=NULL) +
+  #xlab("Average segment duration in s (inverse speech rate)") +
+  labs(y="%V", x="Average segment duration in s (inverse speech rate)") +
   # remove clutter
   theme_minimal() +
   # some specific formatting...
   theme(panel.grid = element_blank(),
         axis.line = element_line(size=0.8),
         axis.ticks = element_line(size=0.8),
-        axis.text = element_text(size=14, colour="black"),
-        axis.title = element_text(size=16, face="bold"),
+        axis.text = element_text(size=16, colour="black"),
+        axis.title = element_text(size=18, face="bold"),
         strip.background.y = element_blank(), 
         strip.placement = "outside",
-        strip.text=element_text(size=16, face="bold"))
-ggsave("graphs_labphon/percentage_v.png", width=10, height=6, dpi=300)
+        strip.text=element_text(size=18, face="bold"))
+ggsave("graphs_labphon/percentage_v.png", width=9, height=9, dpi=300)
 
 ggplot(filter(d_uttr_plot, measure_type=="dur"), aes(x=segment_dur_uttr, y=value, col=measure)) +
   facet_wrap(. ~ language, ncol=3) +
@@ -601,11 +639,11 @@ ggplot(filter(d_uttr_plot, measure_type=="dur"), aes(x=segment_dur_uttr, y=value
   theme(panel.grid = element_blank(),
         axis.line = element_line(size=0.8),
         axis.ticks = element_line(size=0.8),
-        axis.text = element_text(size=14, colour="black"),
-        axis.title = element_text(size=16, face="bold"),
+        axis.text = element_text(size=16, colour="black"),
+        axis.title = element_text(size=18, face="bold"),
         strip.background.y = element_blank(), 
         strip.placement = "outside",
-        strip.text=element_text(size=16, face="bold"))
+        strip.text=element_text(size=18, face="bold"))
 #ggarrange(plot_a, plot_b,
 #          ncol=1, nrow=2,
 #          align="v")
