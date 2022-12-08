@@ -1,0 +1,991 @@
+---
+title: "Taiwanese Mandarin / Korean / Kapampangan / English / Vietnamese articulation rate vs. rhythm"
+author: "Márton Sóskuthy & Roger Lo"
+output: html_document
+---
+
+Shared data processing pipeline for the four Ls.
+
+```{r}
+library(tidyverse)
+library(ggbeeswarm)
+library(ggpubr)
+library(geomtextpath)
+
+twm <- read_csv("../data/taiwanese_mandarin_durations.csv") %>%
+  arrange(speaker, file, phone_start) %>%
+  filter(speaker != "mn_tw_66") %>%
+  select(-sex, -age) %>%
+  mutate(language="Taiwan Mandarin",
+         folder="taiwanese_mandarin")
+k <- read_csv("../data/korean_durations.csv") %>%
+  arrange(speaker, file, phone_start) %>%
+  select(-sex, -age) %>%
+  mutate(language="Seoul Korean",
+         folder="korean")
+p <- read_csv("../data/kapampangan_durations.csv") %>%
+  arrange(speaker, file, phone_start) %>%
+  select(-sex, -age) %>%
+  mutate(language="Kapampangan",
+         folder="kapampangan")
+v <- read_csv("../data/vietnamese_durations.csv") %>%
+  arrange(speaker, file, phone_start) %>%
+  #select(-sex, -age) %>%
+  mutate(language="Vietnamese",
+         speaker=as.character(speaker),
+         folder="vietnamese")
+s <- read_csv("../data/swahili_durations.csv") %>%
+  arrange(speaker, file, phone_start) %>%
+  #select(-sex, -age) %>%
+  mutate(language="Swahili",
+         speaker=as.character(speaker),
+         folder="swahili")
+tu <- read_csv("../data/turkish_durations.csv") %>%
+  arrange(speaker, file, phone_start) %>%
+  #select(-sex, -age) %>%
+  mutate(language="Turkish",
+         speaker=as.character(speaker),
+         folder="turkish")
+a <- read_csv("../data/amharic_durations.csv") %>%
+  arrange(speaker, file, phone_start) %>%
+  #select(-sex, -age) %>%
+  mutate(language="Amharic",
+         speaker=as.character(speaker),
+         folder="amharic")
+g <- read_csv("../data/georgian_durations.csv") %>%
+  arrange(speaker, file, phone_start) %>%
+  #select(-sex, -age) %>%
+  mutate(language="Georgian",
+         speaker=as.character(speaker),
+         folder="georgian")
+b <- readRDS("../data/buckeye_durations.rds") %>%
+  arrange(speaker, file, phone_start) %>%
+  mutate(language="American English",
+    segment_type=case_when(
+      phone %in% c("{E_TRANS}", "{B_TRANS}", "id", "no", "hhn", "an") ~ "non-speech",
+      phone %in% c("a", "e", "ih l", "ah r", "i", "ah l", "ah ix", "uw ix", "ah n") ~ "vowel",
+      TRUE ~ segment_type
+    )
+  )
+
+d <- bind_rows(twm, k, p, b, v, s, tu, a, g)
+```
+
+Coding consonant type.
+
+```{r}
+d <- d %>%
+  mutate(
+    c_type = case_when(
+      ## Taiwan Mandarin
+      language == "Taiwan Mandarin" & 
+        phone %in% c("p", "b", "t", "d", "k", "g") ~ "stop",
+      language == "Taiwan Mandarin" & 
+        phone %in% c("f", "sh", "s", "x", "h") ~ "fricative",
+      language == "Taiwan Mandarin" & 
+        phone %in% c("j", "q", "zh", "ch", "z", "c") ~ "affricate",
+      language == "Taiwan Mandarin" & 
+        phone %in% c("m", "n", "ng") ~ "nasal",
+      language == "Taiwan Mandarin" & 
+        phone %in% c("y", "w", "ue") ~ "approximant",
+      language == "Taiwan Mandarin" & 
+        phone %in% c("l", "r") ~ "liquid",
+      language == "Taiwan Mandarin" & 
+        phone %in% c("i","ii","v","u") ~ "high vowel",
+      ## Korean
+      language == "Seoul Korean" & 
+        phone %in% c("B", "Ph", "BB", "p", "D", "Th", "DD", "t", "G", "Kh", "GG", "k") ~ "stop",
+      language == "Seoul Korean" & 
+        phone %in% c("S", "SS", "H") ~ "fricative",
+      language == "Seoul Korean" & 
+        phone %in% c("J", "CHh", "JJ") ~ "affricate",
+      language == "Seoul Korean" & 
+        phone %in% c("M", "N", "NG") ~ "nasal",
+      language == "Seoul Korean" & 
+        phone %in% c("L", "R") ~ "liquid",
+      language == "Seoul Korean" & 
+        phone %in% c("I","U","EU","UE","iU","euI") ~ "high vowel",
+      ## Kapampangan
+      language == "Kapampangan" & 
+        phone %in% c("b", "p", "d", "t", "ɡ", "k", "ʔ", "q", "c") ~ "stop",
+      language == "Kapampangan" & 
+        phone %in% c("s", "ʃ", "f", "h", "v", "x") ~ "fricative",
+      language == "Kapampangan" & 
+        phone %in% c("tʃ", "dʒ") ~ "affricate",
+      language == "Kapampangan" & 
+        phone %in% c("m", "n", "ŋ") ~ "nasal",
+      language == "Kapampangan" & 
+        phone %in% c("j", "w") ~ "approximant",
+      language == "Kapampangan" & 
+        phone %in% c("l", "r") ~ "liquid",
+      language == "Kapampangan" & 
+        phone %in% c("i", "ɪ", "u", "ʊ") ~ "high vowel",
+      ## American English
+      language == "American English" &
+        phone %in% c("p", "b", "t", "d", "k", "g", "dx", "q", "tq") ~ "stop",
+      language == "American English" &
+        phone %in% c("m", "n", "ng", "nx") ~ "nasal",
+      language == "American English" &
+        phone %in% c("f", "v", "th", "dh", "s", "z", "sh", "zh", "hh", "h", "x") ~ "fricative",
+      language == "American English" &
+        phone %in% c("ch", "jh", "j") ~ "affricate",
+      language == "American English" &
+        phone %in% c("r", "l") ~ "liquid",
+      language == "American English" &
+        phone %in% c("w", "y") ~ "approximant",
+      language == "American English" &
+        phone %in% c("em", "en", "el", "eng") ~ "syllabic C",
+      language == "American English" & 
+        phone %in% c("ih", "iy", "uw", "ihn", "uhn", "iyn", "uwn") ~ "high vowel",
+      ## Vietnamese
+      language == "Vietnamese" &
+        phone %in% c("p", "t", "c", "k", "tʰ", "ɓ", "ɗ", "ʔ") ~ "stop",
+      language == "Vietnamese" &
+        phone %in% c("m", "n", "ɲ", "ŋ") ~ "nasal",
+      language == "Vietnamese" &
+        phone %in% c("f", "v", "s", "z", "x", "ɣ", "h") ~ "fricative",
+      language == "Vietnamese" &
+        phone %in% c("tɕ") ~ "affricate",
+      language == "Vietnamese" &
+        phone %in% c("l") ~ "liquid",
+      language == "Vietnamese" &
+        phone %in% c("w", "j") ~ "approximant",
+      language == "Vietnamese" & 
+        phone %in% (unique(filter(v, segment_type=="vowel")$phone) %>% str_subset("^[iɨu][^ə]")) ~ "high vowel",
+      ## Swahili
+      language == "Swahili" &
+        phone %in% c('b', 'd', 'k', 'p', 't', 'ɓ', 'ɗ', 'ɠ', 'ɡ', 'ʄ') ~ "stop",
+      language == "Swahili" &
+        phone %in% c('m', 'n', 'ŋ', 'ɱ', 'ɲ') ~ "nasal",
+      language == "Swahili" &
+        phone %in% c('f', 'h', 's', 'v', 'z', 'ð', 'ɣ', 'ʃ', 'θ') ~ "fricative",
+      language == "Swahili" &
+        phone %in% c('dʒ', 'tʃ') ~ "affricate",
+      language == "Swahili" &
+        phone %in% c("l", "ɾ") ~ "liquid",
+      language == "Swahili" &
+        phone %in% c("w", "j") ~ "approximant",
+      language == "Swahili" & 
+        phone %in% c("i","u","iː","uː") ~ "high vowel",
+      ## Turkish
+      language == "Turkish" &
+        phone %in% c('b', 'bː', 'c', 'cː', 'd̪', 'd̪ː','k', 'kː', 'p','t̪', 't̪ː', 'ɟ', 'ɡ') ~ "stop",
+      language == "Turkish" &
+        phone %in% c('m', 'mː', 'n̪', 'n̪ː','ŋ') ~ "nasal",
+      language == "Turkish" &
+        phone %in% c('f', 'h', 'hː', 's̪', 's̪ː','v', 'z̪','ç','ʃ','ʒ') ~ "fricative",
+      language == "Turkish" &
+        phone %in% c('dʒ', 'tʃ') ~ "affricate",
+      language == "Turkish" &
+        phone %in% c('ɾ','ɫ', 'ɫː', 'ʎ', 'ʎː') ~ "liquid",
+      language == "Turkish" &
+        phone %in% c("j") ~ "approximant",
+      language == "Turkish" & 
+        phone %in% c("i","ɯ","u","y","iː","ɯː","uː","yː","ɨ","ʏ") ~ "high vowel",
+      ## Georgian
+      language == "Georgian" &
+        phone %in% c('b', 'd', 'kʰ', 'kʼ', 'pʰ', 'pʼ', 'qʼ', 'tʰ', 'tʼ', 'ɡ') ~ "stop",
+      language == "Georgian" &
+        phone %in% c('m', 'n') ~ "nasal",
+      language == "Georgian" &
+        phone %in% c('h', 's', 'v', 'x', 'z', 'ɣ', 'ʃ', 'ʒ') ~ "fricative",
+      language == "Georgian" &
+        phone %in% c('dz', 'dʒ', 'ts', 'tsʼ', 'tʃ', 'tʃʼ') ~ "affricate",
+      language == "Georgian" &
+        phone %in% c('ɾ', 'l') ~ "liquid",
+      language == "Georgian" &
+        phone %in% c('i', 'u') ~ "high vowel",
+      ## Amharic
+      language == "Amharic" &
+        phone %in% c('p', 'pʷ', 'pʼ', 'pʷʼ', 'b', 'pʷ', 't', 'tʷ', 'tʼ', 'tʷʼ', 'd', 'dʷ', 'k', 'kʷ', 'kʼ', 'kʷʼ', 'ɡ', 'ɡʷ', 'ʔ') ~ "stop",
+      language == "Amharic" &
+        phone %in% c('m', 'mʷ', 'n', 'nʷ', 'ɲ', 'ɲʷ') ~ "nasal",
+      language == "Amharic" &
+        phone %in% c('v', 'vʷ', 'f', 'fʷ', 's', 'sʷ', 'sʼ', 'sʷʼ', 'z', 'zʷ', 'ʃ', 'ʃʷ', 'ʒ', 'ʒʷ', 'h', 'hʷ') ~ "fricative",
+      language == "Amharic" &
+        phone %in% c('t͡ʃ', 't͡ʃʷ', 't͡ʃʼ', 't͡ʃʷʼ', 'd͡ʒ', 'd͡ʒʷ') ~ "affricate",
+      language == "Amharic" &
+        phone %in% c('r', 'rʷ', 'l', 'lʷ') ~ "liquid",
+      language == "Amharic" &
+        phone %in% c('w', 'j') ~ "approximant",
+      language == "Amharic" &
+        phone %in% c('i', 'u', "ɨ") ~ "high vowel"#,
+      #segment_type == "vowel" &  ~ "vowel"
+    ),
+    c_type=ifelse(is.na(c_type), "NA", c_type),
+    c_type=ifelse(segment_type=="vowel" & (c_type!="high vowel"),  "non-high vowel", c_type)
+  )
+
+# check phonemes
+d %>%
+  filter(c_type == "approximant", language == "American English") %>%
+  pull(phone) %>%
+  unique()
+```
+
+Grouping by utterance, creating predictors.
+
+```{r}
+# for analysis - segment level
+d_seg <- d %>%
+  filter(segment_type %in% c("consonant", "vowel"),
+         phone_dur > 0) %>%
+  group_by(
+    language,
+    speaker,
+    uttr_id
+  ) %>%
+  mutate(
+    # duration of segmental material only
+    uttr_dur = sum(phone_dur),
+    num_syllables_uttr = sum(segment_type=="vowel" | c_type=="syllabic C"),
+    num_segments_uttr = n(),
+    segment_dur_uttr = uttr_dur / num_segments_uttr,
+    syllable_dur_uttr = uttr_dur / num_syllables_uttr,
+    ) %>%
+  ungroup()
+
+```
+
+Actual filtering
+
+```{r}
+d_seg %>%
+  ggplot(aes(x=phone_dur)) +
+  facet_wrap(~language) +
+  geom_density(bw=0.04) +
+  scale_x_log10()
+
+d_seg %>%
+  mutate(phone_dur_round = round(phone_dur, 2)) %>%
+  group_by(language, phone_dur_round) %>%
+  summarise(count=n()) %>%
+  ungroup()
+
+d_seg <- d_seg %>% 
+  filter(num_syllables_uttr > 5) %>%
+  filter(segment_dur_uttr < 0.25) %>%
+  filter(segment_dur_uttr > 0.04) %>%
+  filter(
+    log(segment_dur_uttr) > 
+      mean(log(segment_dur_uttr)) - 
+      3*sd(log(segment_dur_uttr)),
+    log(segment_dur_uttr) < 
+      mean(log(segment_dur_uttr)) +
+      3*sd(log(segment_dur_uttr))
+  ) %>%
+  filter(phone_dur > 0.02,
+         phone_dur < 0.4)
+
+# recreating speech rate measures / getting rid of
+# utterances with too little data left
+
+d_seg %>%
+  group_by(language, speaker, uttr_id) %>%
+  mutate(num_segments_uttr=n()) %>%
+  ungroup() %>%
+  ggplot(aes(x=num_segments_uttr)) +
+  facet_wrap(~language) +
+  geom_histogram() +
+  scale_x_log10()
+
+d_seg %>%
+  group_by(language, speaker, uttr_id) %>%
+  mutate(num_segments_uttr=n()) %>%
+  ungroup() %>%
+  pull(num_segments_uttr) %>%
+  `<`(10) %>%
+  sum()
+
+d_seg <- d_seg %>%
+  group_by(language, speaker, uttr_id) %>%
+  mutate(
+    uttr_dur = sum(phone_dur),
+    num_segments_uttr = n(),
+    segment_dur_uttr = uttr_dur / num_segments_uttr
+  ) %>%
+  ungroup() %>%
+  filter(num_segments_uttr >= 10)
+  
+```
+
+## Importing spot-checking results
+
+Looking at Olivia's checking results
+
+```{r}
+df_check <- read_csv("../data/spot_checking.csv") %>%
+  rename_with(tolower)
+
+df_check <- df_check %>%
+  group_by(language, speaker) %>%
+  summarize(prop_correct = mean(phone_alignment=="OK")) %>%
+  ungroup()
+
+df_check %>%
+  ggplot(aes(x = language, y = prop_correct, color = language)) +
+  ggbeeswarm::geom_beeswarm() +
+  #geom_jitter(width = 0.1) +
+  coord_flip()
+```
+
+Transformation for weights in regression.
+
+```{r}
+transf <- function (x) {
+  1 / (1 + exp(-(x-0.6)*15))
+}
+x <- seq(0,1,0.01)
+
+plot(x, transf(x), ylim=c(0,1))
+
+df_check <- mutate(df_check, weight=transf(prop_correct))
+```
+
+Merging into main data sets.
+
+```{r}
+d_uttr <- d_uttr %>%
+  left_join(df_check, by=c("speaker","language"))
+
+d_uttr <- d_uttr %>%
+  mutate(
+    weight = case_when(
+      language == "American English" ~ transf(1),
+      TRUE ~ weight
+    )
+  )
+
+d_seg <- d_seg %>%
+  left_join(df_check, by=c("speaker","language"))
+
+d_seg <- d_seg %>%
+  mutate(
+    weight = case_when(
+      language == "American English" ~ transf(1),
+      TRUE ~ weight
+    )
+  )
+```
+
+## Segment frequencies
+
+Get the frequency of different segment types
+
+```{r}
+included_uttr <- unique(d_uttr$uttr_id)
+
+d_c_freq <- d %>%
+  dplyr::filter(uttr_id %in% included_uttr) %>%
+  group_by(language, c_type) %>%
+  count() %>%
+  dplyr::filter(c_type != "NA") %>%
+  group_by(language) %>%
+  mutate(
+    prop = n / sum(n)
+  )
+
+d_c_freq %>%
+  mutate(
+    c_type = fct_relevel(c_type,
+    "syllabic C", "stop", "affricate", "fricative", "liquid", "nasal", "approximant", "non-high vowel", "high-vowel"
+    )
+    #"high vowel", "non-high vowel", "approximant", "nasal", "liquid", "fricative", "affricate", "stop", "syllabic C")
+  ) %>%
+  ggplot(aes(x = c_type, y = prop)) +
+  geom_bar(stat = "identity") +
+  facet_wrap(. ~ language) +
+  coord_flip()
+```
+
+Get numbers for paper
+
+```{r paper}
+# get some numbers for the paper
+d_uttr %>%
+  group_by(language) %>%
+  summarize(
+    N = length(unique(uttr_id)),
+    DUR = sum(uttr_dur)/60/60
+  )
+
+unique(d_uttr$speaker)
+```
+
+# Main analysis
+
+Exploratory plots!
+
+```{r}
+ggplot(d_uttr, aes(x=segment_dur_uttr)) +
+  facet_wrap(~language) +
+  geom_point(aes(y=vowel_dur_uttr), col="orange", alpha=0.3) +
+  geom_point(aes(y=cons_dur_uttr), col="purple", alpha=0.3) +
+  geom_smooth(aes(y=vowel_dur_uttr), col="darkorange2", method="gam", se=F) +
+  geom_smooth(aes(y=cons_dur_uttr), col="purple4", method="gam", se=F) +
+  ylab("average duration in s") +
+  scale_x_log10() +
+  scale_y_log10()
+```
+
+GAMMs!
+
+```{r}
+library(mgcv)
+library(itsadug)
+
+d_seg <- d_seg %>%
+  filter(language != "Kapampangan")
+
+d_seg$segment_type_o <- as.ordered(d_seg$segment_type)
+contrasts(d_seg$segment_type_o) <- "contr.treatment"
+
+d_seg$speaker_f <- as.factor(d_seg$speaker)
+d_seg$speakerSegtype <- interaction(d_seg$speaker, d_seg$segment_type)
+
+d_seg$language_f <- as.factor(d_seg$language)
+d_seg$languageSegtype <- interaction(d_seg$language, d_seg$segment_type)
+
+d_seg$log_segment_dur_uttr <- log(d_seg$segment_dur_uttr)
+d_seg$log_dur <- log(d_seg$phone_dur)
+
+d_seg$c_type_f <- as.factor(d_seg$c_type)
+
+# model 1: no control for quality
+
+cv_mod_baseline <- bam(phone_dur ~
+  segment_type_o +
+  s(segment_dur_uttr, bs = "cr") +
+  s(segment_dur_uttr, by = segment_type_o, bs = "cr") +
+  #s(segment_dur_uttr, c_type_f, bs = "fs", m = 1, xt = list("cr")) +
+  s(segment_dur_uttr, speakerSegtype, bs = "fs", m = 1, xt = list("cr")) +
+  s(segment_dur_uttr, languageSegtype, bs = "fs", m = 1, xt = list("cr")),
+  data = d_seg,
+  #weights=d_seg$weight / mean(d_seg$weight),
+  discrete = TRUE,
+  nthreads=8
+)
+saveRDS(cv_mod_baseline, "cv_mod_baseline.rds")
+
+# model 2: weighted regression based on olivia's ratings
+
+cv_mod_weighted <- bam(phone_dur ~
+  segment_type_o +
+  s(segment_dur_uttr, bs = "cr") +
+  s(segment_dur_uttr, by = segment_type_o, bs = "cr") +
+  #s(segment_dur_uttr, c_type_f, bs = "fs", m = 1, xt = list("cr")) +
+  s(segment_dur_uttr, speakerSegtype, bs = "fs", m = 1, xt = list("cr")) +
+  s(segment_dur_uttr, languageSegtype, bs = "fs", m = 1, xt = list("cr")),
+  data = d_seg,
+  weights=d_seg$weight / mean(d_seg$weight),
+  discrete = TRUE,
+  nthreads=8
+)
+saveRDS(cv_mod_weighted, "cv_mod_weighted.rds")
+
+# model 3: weighted + control for segment type
+
+cv_mod_full <- bam(phone_dur ~
+  segment_type_o +
+  s(segment_dur_uttr, bs = "cr") +
+  s(segment_dur_uttr, by = segment_type_o, bs = "cr") +
+  s(segment_dur_uttr, c_type_f, bs = "fs", m = 1, xt = list("cr")) +
+  s(segment_dur_uttr, speakerSegtype, bs = "fs", m = 1, xt = list("cr")) +
+  s(segment_dur_uttr, languageSegtype, bs = "fs", m = 1, xt = list("cr")),
+  data = d_seg,
+  weights=d_seg$weight / mean(d_seg$weight),
+  discrete = TRUE,
+  nthreads=8
+)
+saveRDS(cv_mod_full, "cv_mod_full.rds")
+```
+
+## Prediction plots: languages
+
+```{r}
+# d_uttr_plot <- d_uttr %>%
+#   pivot_longer(c(vowel_dur_uttr, cons_dur_uttr),
+#                names_to="measure",
+#                values_to="value")
+
+d_uttr_plot <- d_seg %>%
+  group_by(language, speaker, uttr_id) %>%
+  summarise(
+    # duration of segmental material only
+    uttr_dur = sum(phone_dur),
+    num_syllables_uttr = sum(segment_type=="vowel" | c_type=="syllabic C"),
+    num_segments_uttr = n(),
+    segment_dur_uttr = uttr_dur / num_segments_uttr,
+    syllable_dur_uttr = uttr_dur / num_syllables_uttr,
+    vowel_dur_uttr = mean(phone_dur[segment_type=="vowel"]),
+    cons_dur_uttr = mean(phone_dur[segment_type=="consonant"]),
+  ) %>%
+  ungroup() %>%
+  pivot_longer(c(vowel_dur_uttr, cons_dur_uttr),
+               names_to="measure",
+               values_to="value")
+
+```
+
+Make C/V duration plots.
+
+```{r}
+# model predictions
+newdat_cv <- expand.grid(
+  segment_dur_uttr = seq(
+    min(d_seg$segment_dur_uttr),
+    max(d_seg$segment_dur_uttr),
+    length.out = 100
+  ),
+  c_type_f=d_seg$c_type_f[1],
+  speakerSegtype = d_seg$speakerSegtype[1],
+  #language_f=unique(d_uttr_cv$language_f),
+  languageSegtype = unique(d_seg$languageSegtype)
+)
+
+newdat_cv$segment_type_o <- str_extract(newdat_cv$languageSegtype, "[^.]*$")
+newdat_cv$segment_type_o <- as.ordered(newdat_cv$segment_type_o)
+contrasts(newdat_cv$segment_type_o) <- "contr.treatment"
+
+newdat_cv$language <- str_extract(newdat_cv$languageSegtype, "^[^.]*")
+newdat_cv$language_f <- as.factor(newdat_cv$language)
+newdat_cv$speaker_f <- as.factor(str_extract(newdat_cv$speakerSegtype, "^[^.]*"))
+#newdat_cv$speaker_f <- d_uttr_cv$speaker_f[1]
+
+preds_baseline <- predict(cv_mod_baseline, newdat_cv,
+  # the following is used when predicting without speakers
+  exclude=c("s(segment_dur_uttr,speakerSegtype)",
+            "s(segment_dur_uttr,speaker_f)",
+            "s(segment_dur_uttr,speaker_f):segment_type_ovowel_dur_uttr",
+            "s(segment_dur_uttr,c_type_f)"),
+  se.fit = TRUE
+)
+preds_weighted <- predict(cv_mod_weighted, newdat_cv,
+  # the following is used when predicting without speakers
+  exclude=c("s(segment_dur_uttr,speakerSegtype)",
+            "s(segment_dur_uttr,speaker_f)",
+            "s(segment_dur_uttr,speaker_f):segment_type_ovowel_dur_uttr",
+            "s(segment_dur_uttr,c_type_f)"),
+  se.fit = TRUE
+)
+preds_full <- predict(cv_mod_full, newdat_cv,
+  # the following is used when predicting without speakers
+  exclude=c("s(segment_dur_uttr,speakerSegtype)",
+            "s(segment_dur_uttr,speaker_f)",
+            "s(segment_dur_uttr,speaker_f):segment_type_ovowel_dur_uttr",
+            "s(segment_dur_uttr,c_type_f)"),
+  se.fit = TRUE
+)
+
+# baseline
+
+newdat_cv_baseline <- newdat_cv
+
+newdat_cv_baseline$dur <- preds_baseline$fit
+newdat_cv_baseline$ul <- preds_baseline$fit + preds_baseline$se.fit * 1.96
+newdat_cv_baseline$ll <- preds_baseline$fit - preds_baseline$se.fit * 1.96
+
+newdat_cv_baseline$model <- "cv_mod_baseline"
+
+# weighted
+
+newdat_cv_weighted <- newdat_cv
+
+newdat_cv_weighted$dur <- preds_weighted$fit
+newdat_cv_weighted$ul <- preds_weighted$fit + preds_weighted$se.fit * 1.96
+newdat_cv_weighted$ll <- preds_weighted$fit - preds_weighted$se.fit * 1.96
+
+newdat_cv_weighted$model <- "cv_mod_weighted"
+
+# full
+
+newdat_cv_full <- newdat_cv
+
+newdat_cv_full$dur <- preds_full$fit
+newdat_cv_full$ul <- preds_full$fit + preds_full$se.fit * 1.96
+newdat_cv_full$ll <- preds_full$fit - preds_full$se.fit * 1.96
+
+newdat_cv_full$model <- "cv_mod_full"
+
+newdat_all <- bind_rows(
+  newdat_cv_baseline,
+  newdat_cv_weighted,
+  newdat_cv_full
+)
+```
+
+
+Plot!
+
+```{r}
+
+d_uttr_plot %>%
+  ggplot(data = ., aes(x = segment_dur_uttr, y = value, col = measure)) +
+  facet_wrap(. ~ language) +
+  geom_point(alpha = 0.1, pch=16) +
+  #geom_ribbon(data = filter(newdat_cv_all,
+  #                          model == "dur",
+  #                          segment_type_o == "vowel_dur_uttr"),
+  #            aes(ymin = ll, ymax = ul), col = NA, fill = "grey",
+  #            alpha = 0.5) +
+  #geom_ribbon(data = filter(newdat_cv,
+  #                          measure_type == "dur",
+  #                          segment_type_o == "cons_dur_uttr"),
+   #           aes(ymin = ll, ymax = ul), col = NA, fill = "grey",
+   #           alpha = 0.5) +
+  geom_line(data = filter(newdat_all,
+                          segment_type_o == "vowel"),
+            aes(lty=model, y=dur),
+            col = "darkorange1", lwd = 1) +
+  geom_line(data = filter(newdat_all,
+                          segment_type_o == "consonant"),
+            aes(lty=model, y=dur),
+            col = "purple4", lwd = 1) +
+  scale_x_log10(breaks = c(0.05, 0.07, 0.1, 0.14)) +
+  scale_y_log10(breaks = c(0.05, 0.07, 0.1, 0.14),
+                limits = c(0.03, 0.19)) +
+  #scale_x_continuous(limits=c(0.035,0.145), 
+  #                   breaks=seq(0.04,0.14,0.02),
+  #                   labels=c(".04",".06",".08",".10",".12",".14")) +
+  scale_colour_manual(values = c("purple", "orange"), guide = "none") +
+  #scale_y_continuous(breaks=seq(0.04,0.20,0.02)) +
+    # labels for axes
+  xlab("Average segment duration in s (inverse speech rate)") +
+  labs(y = "Average C vs. V duration in s") +
+  #ylab("Average V vs. C duration in s") +
+  # remove clutter
+  theme_minimal()
+```
+
+We now obtain a measure of effect strength: the difference in the log-log derivative at the median speech rate / language. Based on model predictions!
+
+```{r}
+eff_sizes <- list()
+
+# model predictions
+newdat_deriv <- expand.grid(
+  speakerSegtype=d_seg$speakerSegtype[1],
+  languageSegtype=unique(d_seg$languageSegtype),
+  measure_type="dur",
+  c_type_f=d_seg$c_type_f[1]
+)
+
+newdat_deriv$segment_type_o <- str_extract(newdat_deriv$languageSegtype,
+                                        "[^.]*$")
+newdat_deriv$segment_type_o <- as.ordered(newdat_deriv$segment_type_o)
+contrasts(newdat_deriv$segment_type_o) <- "contr.treatment"
+
+newdat_deriv$language <- str_extract(newdat_deriv$languageSegtype,
+                                        "^[^.]*")
+newdat_deriv$language_f <- as.factor(newdat_deriv$language)
+newdat_deriv$speaker_f <- d_uttr_cv$speaker_f[1]
+
+language_med_durs <- d_seg %>%
+  group_by(language) %>%
+  summarise(segment_dur_uttr=median(segment_dur_uttr)) %>%
+  ungroup()
+
+newdat_deriv <- left_join(
+  newdat_deriv,
+  language_med_durs,
+  by="language"
+)
+
+
+eps <- 0.001
+
+newdat_deriv_1 <- newdat_deriv %>%
+  mutate(segment_dur_uttr = exp(log(segment_dur_uttr) - (eps/2)))
+newdat_deriv_2 <- newdat_deriv %>%
+  mutate(segment_dur_uttr = exp(log(segment_dur_uttr) + (eps/2)))
+
+mods <- c("cv_mod_baseline", "cv_mod_weighted", "cv_mod_full")
+for (m in mods) {
+X0 <- predict(get(m), 
+              newdat_deriv_1,
+              exclude=c(
+                "s(segment_dur_uttr,speakerSegtype)",
+                "s(segment_dur_uttr,speaker_f)",
+                "s(segment_dur_uttr,speaker_f):segment_type_ovowel_dur_uttr",
+                "s(segment_dur_uttr,c_type_f)"
+              )
+) %>% log()
+X1 <- predict(get(m), 
+              newdat_deriv_2,
+              exclude=c(
+                "s(segment_dur_uttr,speakerSegtype)",
+                "s(segment_dur_uttr,speaker_f)",
+                "s(segment_dur_uttr,speaker_f):segment_type_ovowel_dur_uttr",
+                "s(segment_dur_uttr,c_type_f)"
+              )
+) %>% log()
+
+# finite difference approximation of first derivative
+# the design matrix
+first_deriv <- (X1 - X0) / eps
+#first_deriv <- Xp %*% coef(get(m))
+
+newdat_deriv$derivative <- first_deriv
+newdat_deriv$model <- m
+
+eff_sizes[[m]] <- newdat_deriv %>%
+  dplyr::select(language, segment_type_o, segment_dur_uttr, model, derivative) %>%
+  group_by(language, segment_dur_uttr, model) %>%
+  summarise(eff_size = derivative[segment_type_o=="vowel"] - derivative[segment_type_o=="consonant"]) %>%
+  ungroup() %>%
+  arrange(desc(eff_size))
+}
+
+eff_sizes_df <- bind_rows(eff_sizes)
+eff_sizes_df
+```
+
+We now order by effect size & show this number in the plot.
+
+```{r}
+for (m in mods) {
+  
+  eff_sizes_m <- eff_sizes[[m]]
+  eff_sizes_m$language <- factor(eff_sizes_m$language, levels=eff_sizes_m$language)
+  eff_sizes_m$segment_dur_uttr <- 0.05
+  eff_sizes_m$value <- 0.13
+  
+  newdat_m <- filter(newdat_all, model==m)
+  newdat_m$language <- factor(newdat_m$language, levels=eff_sizes_m$language)
+  
+  plot_dat <- d_uttr_plot
+  plot_dat$language <- factor(plot_dat$language, levels=eff_sizes_m$language)
+  
+  plot_dat %>%
+    ggplot(data = ., aes(x = segment_dur_uttr, y = value, col = measure)) +
+    facet_wrap(. ~ language) +
+    geom_point(alpha = 0.1, pch=16) +
+    #geom_ribbon(data = filter(newdat_cv_all,
+    #                          model == "dur",
+    #                          segment_type_o == "vowel_dur_uttr"),
+    #            aes(ymin = ll, ymax = ul), col = NA, fill = "grey",
+    #            alpha = 0.5) +
+    #geom_ribbon(data = filter(newdat_cv,
+    #                          measure_type == "dur",
+    #                          segment_type_o == "cons_dur_uttr"),
+    #            aes(ymin = ll, ymax = ul), col = NA, fill = "grey",
+    #            alpha = 0.5) +
+    geom_line(data = filter(newdat_m,
+                            segment_type_o == "vowel"),
+              aes(lty=model, y=dur),
+              col = "darkorange1", lwd = 1) +
+    geom_line(data = filter(newdat_m,
+                            segment_type_o == "consonant"),
+              aes(lty=model, y=dur),
+              col = "purple4", lwd = 1) +
+    geom_text(data=eff_sizes_m, 
+              aes(label=paste0("Δβ = ", round(eff_size,2))),
+              col="black", size=5) +
+    scale_x_log10(breaks = c(0.05, 0.07, 0.1, 0.14)) +
+    scale_y_log10(breaks = c(0.05, 0.07, 0.1, 0.14),
+                  limits = c(0.03, 0.19)) +
+    scale_colour_manual(values = c("purple", "orange"), guide = "none") +
+    xlab("Average segment duration in s (inverse speech rate)") +
+    labs(y = "Average C vs. V duration in s") +
+    theme_minimal() +
+    theme(panel.grid = element_blank(),
+        axis.line = element_line(size=0.8),
+        axis.ticks = element_line(size=0.8),
+        axis.text = element_text(size=16, colour="black"),
+        axis.title = element_text(size=18, face="bold"),
+        strip.background.y = element_blank(), 
+        strip.placement = "outside",
+        strip.text=element_text(size=18, face="bold"))
+  ggsave(paste0("graphs_icphs/", m, ".png"), width=9, height=9, dpi=300)
+}
+```
+
+## Recovering consonant type effect from full model
+
+```{r}
+# model predictions
+newdat_ctype <- expand.grid(
+  segment_dur_uttr = seq(
+    min(d_seg$segment_dur_uttr),
+    max(d_seg$segment_dur_uttr),
+    length.out = 100
+  ),
+  c_type_f=unique(d_seg$c_type_f),
+  speakerSegtype = d_seg$speakerSegtype[1], # will be set to 0
+  languageSegtype = unique(d_seg$languageSegtype) # will be set to 0
+) %>% filter(c_type_f != "syllabic C")
+
+newdat_ctype$segment_type_o <- ifelse(
+  newdat_ctype$c_type_f %in% c("non-high vowel", "high vowel"),
+  "vowel",
+  "consonant"
+  )
+newdat_ctype$segment_type_o <- as.ordered(newdat_ctype$segment_type_o)
+contrasts(newdat_ctype$segment_type_o) <- "contr.treatment"
+
+preds_ctype <- predict(cv_mod_full, newdat_ctype,
+  # the following is used when predicting without speakers
+  exclude=c("s(segment_dur_uttr,speakerSegtype)",
+            "s(segment_dur_uttr,speaker_f)",
+            "s(segment_dur_uttr,speaker_f):segment_type_ovowel_dur_uttr",
+            "s(segment_dur_uttr,languageSegtype)"),
+  se.fit = TRUE
+)
+
+newdat_ctype$dur <- preds_ctype$fit
+newdat_ctype$ul <- preds_ctype$fit + preds_ctype$se.fit * 1.96
+newdat_ctype$ll <- preds_ctype$fit - preds_ctype$se.fit * 1.96
+
+newdat_ctype$segment_type_broad <- 
+  case_when(
+    newdat_ctype$c_type_f %in% c("non-high vowel", "high vowel", "approximant") ~ "vocalic",
+    newdat_ctype$c_type_f %in% c("liquid", "nasal", "fricative") ~ "continuant + nasal",
+    newdat_ctype$c_type_f %in% c("affricate", "stop") ~ "non-continuant",
+  )
+newdat_ctype$segment_type_broad <- 
+  factor(newdat_ctype$segment_type_broad,
+         levels=c("vocalic", "continuant + nasal", "non-continuant"))
+```
+
+
+Plot!
+
+```{r}
+ggplot(newdat_ctype, aes(x=segment_dur_uttr, y=dur, col=c_type_f)) +
+  facet_wrap(~segment_type_broad) +
+  geom_ribbon(aes(ymin=ll,ymax=ul, group=c_type_f), col=NA, fill="grey",
+              alpha=0.3) +
+  geom_textline(aes(label = c_type_f), size = 5, vjust = 0.2,
+                linewidth = 1) +
+  scale_x_continuous(breaks=c(-3.5,-3,-2.5,-2),
+                     labels=round(exp(c(-3.5,-3,-2.5,-2)),2)) +
+  scale_y_continuous(breaks=c(-3.5,-3,-2.5,-2),
+                     labels=round(exp(c(-3.5,-3,-2.5,-2)),2)) +
+  scale_colour_brewer(palette = "Set1", guide='none') +
+  #scale_colour_manual(values=c("purple4", "darkorange2"), guide="none") +
+  xlab("Overall average segment duration in s (inverse speech rate)") +
+  labs(y=NULL) +
+  ylab("Average duration per segment type") +
+  # remove clutter
+  theme_minimal() +
+  # some specific formatting...
+  theme(panel.grid = element_blank(),
+        axis.line = element_line(size=0.8),
+        axis.ticks = element_line(size=0.8),
+        axis.text = element_text(size=14, colour="black"),
+        axis.title = element_text(size=16, face="bold"),
+        strip.background.y = element_blank(), 
+        strip.placement = "outside",
+        strip.text=element_text(size=16, face="bold"))
+#ggsave("graphs_icphs/ctype_mod_preds.png", width=7.5, height=4, dpi=300)
+
+```
+
+The results here are a little odd... Some model tweaking might help:
+
+(1) Try removing syllabic C's from the data, which are sparse and could be driving high edf
+(2) Try bs="sz"? Fixed effect smooths that represent a deviation from main effect, with main effect "forced to do as much of the work as possible"
+
+## Inter-subject variation
+
+Three different dummy data sets, one for each model. We only want to calculate derivative at L-specific median value for each speaker.
+
+```{r}
+# model predictions
+newdat_ind_deriv <- d_seg %>%
+  dplyr::select(speakerSegtype, speaker, languageSegtype, language) %>%
+  unique() %>%
+  arrange(language, speakerSegtype) %>%
+  mutate(c_type_f=d_seg$c_type_f[1],
+         segment_type_o=str_extract(languageSegtype, "[^.]*$") %>% as.ordered()
+         )
+
+contrasts(newdat_ind_deriv$segment_type_o) <- "contr.treatment"
+
+ind_med_durs <- d_seg %>%
+  group_by(language, speaker) %>%
+  summarise(segment_dur_uttr=median(segment_dur_uttr)) %>%
+  ungroup()
+
+newdat_ind_deriv <- left_join(
+  newdat_ind_deriv,
+  ind_med_durs,
+  by=c("language", "speaker")
+)
+
+
+eps <- 0.001
+
+newdat_ind_deriv_1 <- newdat_ind_deriv %>%
+  mutate(segment_dur_uttr = exp(log(segment_dur_uttr) - (eps/2)))
+newdat_ind_deriv_2 <- newdat_ind_deriv %>%
+  mutate(segment_dur_uttr = exp(log(segment_dur_uttr) + (eps/2)))
+
+mods <- c("cv_mod_baseline", "cv_mod_weighted", "cv_mod_full")
+ind_eff_sizes <- list()
+
+for (m in mods) {
+X0 <- predict(get(m), 
+              newdat_ind_deriv_1,
+              exclude=c(
+                "s(segment_dur_uttr,c_type_f)"
+              )
+) %>% log()
+X1 <- predict(get(m), 
+              newdat_ind_deriv_2,
+              exclude=c(
+                "s(segment_dur_uttr,c_type_f)"
+              )
+) %>% log()
+
+# finite difference approximation of first derivative
+# the design matrix
+first_deriv <- (X1 - X0) / eps
+#first_deriv <- Xp %*% coef(get(m))
+
+newdat_ind_deriv$derivative <- first_deriv
+newdat_ind_deriv$model <- m
+
+ind_eff_sizes[[m]] <- newdat_ind_deriv %>%
+  dplyr::select(language, speaker, segment_type_o, segment_dur_uttr, model, derivative) %>%
+  group_by(language, speaker, segment_dur_uttr, model) %>%
+  summarise(eff_size = derivative[segment_type_o=="vowel"] - derivative[segment_type_o=="consonant"]) %>%
+  ungroup() %>%
+  arrange(desc(eff_size))
+}
+
+ind_eff_sizes_df <- bind_rows(ind_eff_sizes)
+#eff_sizes_df
+```
+
+Plot histograms (or density plots?) of by-speaker deviations by language across three model types.
+
+```{r}
+ind_eff_sizes_df$model <- factor(ind_eff_sizes_df$model,
+                                 levels=c(
+                                   "cv_mod_baseline",
+                                   "cv_mod_weighted",
+                                   "cv_mod_full"
+                                  )
+                                 )
+
+ind_eff_sizes_df %>%
+  ggplot(aes(x=eff_size, col=model, lty=model)) +
+  #facet_wrap(~language) +
+  geom_density()
+
+ind_eff_sizes_df %>%
+  ggplot(aes(x=eff_size, col=model, lty=model)) +
+  facet_wrap(~language) +
+  geom_density()
+
+ind_eff_sizes_df %>%
+  group_by(model) %>%
+  summarise(eff_sd = sd(eff_size)) %>%
+  ungroup()
+
+ind_eff_sizes_df %>%
+  group_by(language, model) %>%
+  summarise(eff_sd = sd(eff_size)) %>%
+  ungroup()
+```

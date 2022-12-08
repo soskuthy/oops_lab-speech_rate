@@ -2,13 +2,7 @@
 title: "Taiwanese Mandarin / Korean / Kapampangan / English / Vietnamese articulation rate vs. rhythm"
 author: "Márton Sóskuthy & Roger Lo"
 output: html_document
-editor_options: 
-  chunk_output_type: console
 ---
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
 
 Shared data processing pipeline for the four Ls.
 
@@ -17,8 +11,6 @@ library(tidyverse)
 library(ggbeeswarm)
 library(ggpubr)
 library(geomtextpath)
-
-setwd('/home/roger/Documents/RA/oops_lab-speech_rate/prelim_analysis/')
 
 twm <- read_csv("../data/taiwanese_mandarin_durations.csv") %>%
   arrange(speaker, file, phone_start) %>%
