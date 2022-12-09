@@ -2,6 +2,8 @@
 title: "Taiwanese Mandarin / Korean / Kapampangan / English / Vietnamese articulation rate vs. rhythm"
 author: "Márton Sóskuthy & Roger Lo"
 output: html_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 Shared data processing pipeline for the four Ls.
@@ -340,6 +342,58 @@ x <- seq(0,1,0.01)
 plot(x, transf(x), ylim=c(0,1))
 
 df_check <- mutate(df_check, weight=transf(prop_correct))
+```
+
+```{r}
+# for checking
+
+d_check <- d %>%
+  filter(segment_type %in% c("consonant", "vowel"),
+         phone_dur > 0)
+
+# for analysis
+d_uttr <- d %>%
+  filter(segment_type %in% c("consonant", "vowel"),
+         phone_dur > 0) %>%
+  group_by(
+    language,
+    speaker,
+    uttr_id
+  ) %>%
+  summarise(
+    # duration of segmental material only
+    uttr_dur = sum(phone_dur),
+    num_syllables_uttr = sum(segment_type=="vowel" | c_type=="syllabic C"),
+    num_segments_uttr = n(),
+    segment_dur_uttr = uttr_dur / num_segments_uttr,
+    syllable_dur_uttr = uttr_dur / num_syllables_uttr,
+    vowel_dur_uttr = mean(phone_dur[segment_type=="vowel"]),
+    cons_dur_uttr = mean(phone_dur[segment_type=="consonant"]),
+    nh_v_dur = mean(phone_dur[c_type=="non-high vowel"]),
+    h_v_dur = mean(phone_dur[c_type=="high vowel"]),
+    stop_dur = mean(phone_dur[c_type == "stop"]),
+    fricative_dur = mean(phone_dur[c_type == "fricative"]),
+    affricate_dur = mean(phone_dur[c_type == "affricate"]),
+    nasal_dur = mean(phone_dur[c_type == "nasal"]),
+    approximant_dur = mean(phone_dur[c_type == "approximant"]),
+    liquid_dur = mean(phone_dur[c_type == "liquid"]),
+    syllabic_c_dur = mean(phone_dur[c_type == "syllabic C"]),
+    perc_v = 100 * sum(phone_dur[segment_type=="vowel"]) / uttr_dur
+  ) %>%
+  ungroup()
+
+d_uttr <- d_uttr %>% 
+  filter(num_syllables_uttr > 5) %>%
+  filter(segment_dur_uttr < 0.25) %>%
+  filter(segment_dur_uttr > 0.04) %>%
+  filter(
+    log(segment_dur_uttr) > 
+      mean(log(segment_dur_uttr)) - 
+      3*sd(log(segment_dur_uttr)),
+    log(segment_dur_uttr) < 
+      mean(log(segment_dur_uttr)) +
+      3*sd(log(segment_dur_uttr))
+  )
 ```
 
 Merging into main data sets.
