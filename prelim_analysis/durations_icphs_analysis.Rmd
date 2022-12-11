@@ -664,6 +664,8 @@ newdat_all <- bind_rows(
   newdat_cv_weighted,
   newdat_cv_full
 )
+
+newdat_all %>% write_csv("./newdat_all.csv")
 ```
 
 
@@ -715,10 +717,10 @@ eff_sizes <- list()
 
 # model predictions
 newdat_deriv <- expand.grid(
-  speakerSegtype=d_seg$speakerSegtype[1],
-  languageSegtype=unique(d_seg$languageSegtype),
-  measure_type="dur",
-  c_type_f=d_seg$c_type_f[1]
+  speakerSegtype = d_seg$speakerSegtype[1],
+  languageSegtype = unique(d_seg$languageSegtype),
+  measure_type = "dur",
+  c_type_f = d_seg$c_type_f[1]
 )
 
 newdat_deriv$segment_type_o <- str_extract(newdat_deriv$languageSegtype,
@@ -729,19 +731,18 @@ contrasts(newdat_deriv$segment_type_o) <- "contr.treatment"
 newdat_deriv$language <- str_extract(newdat_deriv$languageSegtype,
                                         "^[^.]*")
 newdat_deriv$language_f <- as.factor(newdat_deriv$language)
-newdat_deriv$speaker_f <- d_uttr_cv$speaker_f[1]
+newdat_deriv$speaker_f <- newdat_cv$speaker_f[1]
 
 language_med_durs <- d_seg %>%
   group_by(language) %>%
-  summarise(segment_dur_uttr=median(segment_dur_uttr)) %>%
+  summarise(segment_dur_uttr = median(segment_dur_uttr)) %>%
   ungroup()
 
 newdat_deriv <- left_join(
   newdat_deriv,
   language_med_durs,
-  by="language"
+  by = "language"
 )
-
 
 eps <- 0.001
 
@@ -788,7 +789,7 @@ eff_sizes[[m]] <- newdat_deriv %>%
 }
 
 eff_sizes_df <- bind_rows(eff_sizes)
-eff_sizes_df
+eff_sizes_df %>% write_csv("eff_sizes_df.csv")
 ```
 
 We now order by effect size & show this number in the plot.
