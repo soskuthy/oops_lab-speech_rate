@@ -14,6 +14,8 @@ library(ggbeeswarm)
 library(ggpubr)
 library(geomtextpath)
 
+setwd("Documents/RA/oops_lab-speech_rate/prelim_analysis/")
+
 twm <- read_csv("../data/taiwanese_mandarin_durations.csv") %>%
   arrange(speaker, file, phone_start) %>%
   filter(speaker != "mn_tw_66") %>%
@@ -513,7 +515,7 @@ cv_mod_baseline <- bam(phone_dur ~
 )
 saveRDS(cv_mod_baseline, "cv_mod_baseline.rds")
 cv_mod_baseline <- readRDS("cv_mod_baseline.rds")
-unique(d_seg$segment_type_o)
+summary(cv_mod_baseline)
 
 # model 2: weighted regression based on olivia's ratings
 
@@ -530,6 +532,7 @@ cv_mod_weighted <- bam(phone_dur ~
   nthreads = 8
 )
 saveRDS(cv_mod_weighted, "cv_mod_weighted.rds")
+cv_mod_weighted <- readRDS("cv_mod_weighted.rds")
 
 # model 3: weighted + control for segment type
 
@@ -546,6 +549,7 @@ cv_mod_full <- bam(phone_dur ~
   nthreads = 8
 )
 saveRDS(cv_mod_full, "cv_mod_full.rds")
+cv_mod_full <- readRDS("cv_mod_full.rds")
 ```
 
 ## Prediction plots: languages
@@ -666,7 +670,6 @@ newdat_all <- bind_rows(
 Plot!
 
 ```{r}
-
 d_uttr_plot %>%
   ggplot(data = ., aes(x = segment_dur_uttr, y = value, col = measure)) +
   facet_wrap(. ~ language) +
