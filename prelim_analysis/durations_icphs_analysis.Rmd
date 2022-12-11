@@ -214,8 +214,8 @@ d <- d %>%
         phone %in% c('i', 'u', "ɨ") ~ "high vowel"#,
       #segment_type == "vowel" &  ~ "vowel"
     ),
-    c_type=ifelse(is.na(c_type), "NA", c_type),
-    c_type=ifelse(segment_type=="vowel" & (c_type!="high vowel"),  "non-high vowel", c_type)
+    c_type = ifelse(is.na(c_type), "NA", c_type),
+    c_type = ifelse(segment_type == "vowel" & (c_type != "high vowel"),  "non-high vowel", c_type)
   )
 
 # check phonemes
@@ -240,28 +240,27 @@ d_seg <- d %>%
   mutate(
     # duration of segmental material only
     uttr_dur = sum(phone_dur),
-    num_syllables_uttr = sum(segment_type=="vowel" | c_type=="syllabic C"),
+    num_syllables_uttr = sum(segment_type == "vowel" | c_type == "syllabic C"),
     num_segments_uttr = n(),
     segment_dur_uttr = uttr_dur / num_segments_uttr,
     syllable_dur_uttr = uttr_dur / num_syllables_uttr,
     ) %>%
   ungroup()
-
 ```
 
 Actual filtering
 
 ```{r}
 d_seg %>%
-  ggplot(aes(x=phone_dur)) +
+  ggplot(aes(x = phone_dur)) +
   facet_wrap(~language) +
-  geom_density(bw=0.04) +
+  geom_density(bw = 0.04) +
   scale_x_log10()
 
 d_seg %>%
   mutate(phone_dur_round = round(phone_dur, 2)) %>%
   group_by(language, phone_dur_round) %>%
-  summarise(count=n()) %>%
+  summarise(count = n()) %>%
   ungroup()
 
 d_seg <- d_seg %>% 
@@ -284,16 +283,16 @@ d_seg <- d_seg %>%
 
 d_seg %>%
   group_by(language, speaker, uttr_id) %>%
-  mutate(num_segments_uttr=n()) %>%
+  mutate(num_segments_uttr = n()) %>%
   ungroup() %>%
-  ggplot(aes(x=num_segments_uttr)) +
+  ggplot(aes(x = num_segments_uttr)) +
   facet_wrap(~language) +
   geom_histogram() +
   scale_x_log10()
 
 d_seg %>%
   group_by(language, speaker, uttr_id) %>%
-  mutate(num_segments_uttr=n()) %>%
+  mutate(num_segments_uttr = n()) %>%
   ungroup() %>%
   pull(num_segments_uttr) %>%
   `<`(10) %>%
@@ -308,7 +307,6 @@ d_seg <- d_seg %>%
   ) %>%
   ungroup() %>%
   filter(num_segments_uttr >= 10)
-  
 ```
 
 ## Importing spot-checking results
@@ -321,7 +319,7 @@ df_check <- read_csv("../data/spot_checking.csv") %>%
 
 df_check <- df_check %>%
   group_by(language, speaker) %>%
-  summarize(prop_correct = mean(phone_alignment=="OK")) %>%
+  summarize(prop_correct = mean(phone_alignment == "OK")) %>%
   ungroup()
 
 df_check %>%
@@ -335,42 +333,36 @@ Transformation for weights in regression.
 
 ```{r}
 transf <- function (x) {
-  1 / (1 + exp(-(x-0.6)*15))
+  1 / (1 + exp(-(x - 0.6) * 15))
 }
-x <- seq(0,1,0.01)
+x <- seq(0, 1, 0.01)
 
-plot(x, transf(x), ylim=c(0,1))
+plot(x, transf(x), ylim = c(0, 1))
 
-df_check <- mutate(df_check, weight=transf(prop_correct))
+df_check <- mutate(df_check, weight = transf(prop_correct))
 ```
 
 ```{r}
 # for checking
-
 d_check <- d %>%
   filter(segment_type %in% c("consonant", "vowel"),
          phone_dur > 0)
 
 # for analysis
 d_uttr <- d %>%
-  filter(segment_type %in% c("consonant", "vowel"),
-         phone_dur > 0) %>%
-  group_by(
-    language,
-    speaker,
-    uttr_id
-  ) %>%
+  filter(segment_type %in% c("consonant", "vowel"), phone_dur > 0) %>%
+  group_by(language, speaker, uttr_id) %>%
   summarise(
     # duration of segmental material only
     uttr_dur = sum(phone_dur),
-    num_syllables_uttr = sum(segment_type=="vowel" | c_type=="syllabic C"),
+    num_syllables_uttr = sum(segment_type == "vowel" | c_type == "syllabic C"),
     num_segments_uttr = n(),
     segment_dur_uttr = uttr_dur / num_segments_uttr,
     syllable_dur_uttr = uttr_dur / num_syllables_uttr,
-    vowel_dur_uttr = mean(phone_dur[segment_type=="vowel"]),
-    cons_dur_uttr = mean(phone_dur[segment_type=="consonant"]),
-    nh_v_dur = mean(phone_dur[c_type=="non-high vowel"]),
-    h_v_dur = mean(phone_dur[c_type=="high vowel"]),
+    vowel_dur_uttr = mean(phone_dur[segment_type == "vowel"]),
+    cons_dur_uttr = mean(phone_dur[segment_type == "consonant"]),
+    nh_v_dur = mean(phone_dur[c_type == "non-high vowel"]),
+    h_v_dur = mean(phone_dur[c_type == "high vowel"]),
     stop_dur = mean(phone_dur[c_type == "stop"]),
     fricative_dur = mean(phone_dur[c_type == "fricative"]),
     affricate_dur = mean(phone_dur[c_type == "affricate"]),
@@ -378,7 +370,7 @@ d_uttr <- d %>%
     approximant_dur = mean(phone_dur[c_type == "approximant"]),
     liquid_dur = mean(phone_dur[c_type == "liquid"]),
     syllabic_c_dur = mean(phone_dur[c_type == "syllabic C"]),
-    perc_v = 100 * sum(phone_dur[segment_type=="vowel"]) / uttr_dur
+    perc_v = 100 * sum(phone_dur[segment_type == "vowel"]) / uttr_dur
   ) %>%
   ungroup()
 
@@ -400,7 +392,7 @@ Merging into main data sets.
 
 ```{r}
 d_uttr <- d_uttr %>%
-  left_join(df_check, by=c("speaker","language"))
+  left_join(df_check, by = c("speaker", "language"))
 
 d_uttr <- d_uttr %>%
   mutate(
@@ -411,7 +403,7 @@ d_uttr <- d_uttr %>%
   )
 
 d_seg <- d_seg %>%
-  left_join(df_check, by=c("speaker","language"))
+  left_join(df_check, by = c("speaker", "language"))
 
 d_seg <- d_seg %>%
   mutate(
@@ -517,9 +509,11 @@ cv_mod_baseline <- bam(phone_dur ~
   data = d_seg,
   #weights=d_seg$weight / mean(d_seg$weight),
   discrete = TRUE,
-  nthreads=8
+  nthreads = 8
 )
 saveRDS(cv_mod_baseline, "cv_mod_baseline.rds")
+cv_mod_baseline <- readRDS("cv_mod_baseline.rds")
+unique(d_seg$segment_type_o)
 
 # model 2: weighted regression based on olivia's ratings
 
@@ -531,9 +525,9 @@ cv_mod_weighted <- bam(phone_dur ~
   s(segment_dur_uttr, speakerSegtype, bs = "fs", m = 1, xt = list("cr")) +
   s(segment_dur_uttr, languageSegtype, bs = "fs", m = 1, xt = list("cr")),
   data = d_seg,
-  weights=d_seg$weight / mean(d_seg$weight),
+  weights = d_seg$weight / mean(d_seg$weight),
   discrete = TRUE,
-  nthreads=8
+  nthreads = 8
 )
 saveRDS(cv_mod_weighted, "cv_mod_weighted.rds")
 
@@ -547,9 +541,9 @@ cv_mod_full <- bam(phone_dur ~
   s(segment_dur_uttr, speakerSegtype, bs = "fs", m = 1, xt = list("cr")) +
   s(segment_dur_uttr, languageSegtype, bs = "fs", m = 1, xt = list("cr")),
   data = d_seg,
-  weights=d_seg$weight / mean(d_seg$weight),
+  weights = d_seg$weight / mean(d_seg$weight),
   discrete = TRUE,
-  nthreads=8
+  nthreads = 8
 )
 saveRDS(cv_mod_full, "cv_mod_full.rds")
 ```
@@ -785,7 +779,7 @@ newdat_deriv$model <- m
 eff_sizes[[m]] <- newdat_deriv %>%
   dplyr::select(language, segment_type_o, segment_dur_uttr, model, derivative) %>%
   group_by(language, segment_dur_uttr, model) %>%
-  summarise(eff_size = derivative[segment_type_o=="vowel"] - derivative[segment_type_o=="consonant"]) %>%
+  summarise(eff_size = derivative[segment_type_o == "vowel"] - derivative[segment_type_o == "consonant"]) %>%
   ungroup() %>%
   arrange(desc(eff_size))
 }
