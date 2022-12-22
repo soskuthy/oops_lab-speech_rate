@@ -14,6 +14,7 @@ library(ggbeeswarm)
 library(ggpubr)
 library(geomtextpath)
 
+# need to change to the correct one when running the analysis
 setwd("Documents/RA/oops_lab-speech_rate/prelim_analysis/")
 
 twm <- read_csv("../data/taiwanese_mandarin_durations.csv") %>%
@@ -219,12 +220,6 @@ d <- d %>%
     c_type = ifelse(is.na(c_type), "NA", c_type),
     c_type = ifelse(segment_type == "vowel" & (c_type != "high vowel"),  "non-high vowel", c_type)
   )
-
-# check phonemes
-d %>%
-  filter(c_type == "approximant", language == "American English") %>%
-  pull(phone) %>%
-  unique()
 ```
 
 Grouping by utterance, creating predictors.
@@ -250,9 +245,10 @@ d_seg <- d %>%
   ungroup()
 ```
 
-Actual filtering
+Filtering
 
 ```{r}
+# visualization to decide on proper threshold
 d_seg %>%
   ggplot(aes(x = phone_dur)) +
   facet_wrap(~language) +
@@ -309,48 +305,7 @@ d_seg <- d_seg %>%
   ) %>%
   ungroup() %>%
   filter(num_segments_uttr >= 10)
-```
 
-## Importing spot-checking results
-
-Looking at Olivia's checking results
-
-```{r}
-df_check <- read_csv("../data/spot_checking.csv") %>%
-  rename_with(tolower)
-
-df_check <- df_check %>%
-  group_by(language, speaker) %>%
-  summarize(prop_correct = mean(phone_alignment == "OK")) %>%
-  ungroup()
-
-df_check %>%
-  ggplot(aes(x = language, y = prop_correct, color = language)) +
-  ggbeeswarm::geom_beeswarm() +
-  #geom_jitter(width = 0.1) +
-  coord_flip()
-```
-
-Transformation for weights in regression.
-
-```{r}
-transf <- function (x) {
-  1 / (1 + exp(-(x - 0.6) * 15))
-}
-x <- seq(0, 1, 0.01)
-
-plot(x, transf(x), ylim = c(0, 1))
-
-df_check <- mutate(df_check, weight = transf(prop_correct))
-```
-
-```{r}
-# for checking
-d_check <- d %>%
-  filter(segment_type %in% c("consonant", "vowel"),
-         phone_dur > 0)
-
-# for analysis
 d_uttr <- d %>%
   filter(segment_type %in% c("consonant", "vowel"), phone_dur > 0) %>%
   group_by(language, speaker, uttr_id) %>%
@@ -388,6 +343,40 @@ d_uttr <- d_uttr %>%
       mean(log(segment_dur_uttr)) +
       3*sd(log(segment_dur_uttr))
   )
+```
+
+## Importing spot-checking results
+
+Looking at Olivia's checking results
+
+```{r}
+df_check <- read_csv("../data/spot_checking.csv") %>%
+  rename_with(tolower)
+
+df_check <- df_check %>%
+  group_by(language, speaker) %>%
+  summarize(prop_correct = mean(phone_alignment == "OK")) %>%
+  ungroup()
+```
+
+Transformation for weights in regression.
+
+```{r}
+transf <- function (x) {
+  1 / (1 + exp(-(x - 0.6) * 15))
+}
+x <- seq(0, 1, 0.01)
+
+plot(x, transf(x), ylim = c(0, 1))
+
+df_check <- mutate(df_check, weight = transf(prop_correct))
+
+df_logit <- data.frame(X = x, Y = transf(x))
+
+transf <- function (x) {
+  1 / (1 + exp(-(x - 0.6) * 15))
+}
+x <- seq(0, 1, 0.01)
 ```
 
 Merging into main data sets.
@@ -432,21 +421,9 @@ d_c_freq <- d %>%
   mutate(
     prop = n / sum(n)
   )
-
-d_c_freq %>%
-  mutate(
-    c_type = fct_relevel(c_type,
-    "syllabic C", "stop", "affricate", "fricative", "liquid", "nasal", "approximant", "non-high vowel", "high-vowel"
-    )
-    #"high vowel", "non-high vowel", "approximant", "nasal", "liquid", "fricative", "affricate", "stop", "syllabic C")
-  ) %>%
-  ggplot(aes(x = c_type, y = prop)) +
-  geom_bar(stat = "identity") +
-  facet_wrap(. ~ language) +
-  coord_flip()
 ```
 
-Get numbers for paper
+Get utterance information for paper
 
 ```{r paper}
 # get some numbers for the paper
@@ -456,8 +433,6 @@ d_uttr %>%
     N = length(unique(uttr_id)),
     DUR = sum(uttr_dur)/60/60
   )
-
-unique(d_uttr$speaker)
 ```
 
 # Main analysis
@@ -533,6 +508,7 @@ cv_mod_weighted <- bam(phone_dur ~
 )
 saveRDS(cv_mod_weighted, "cv_mod_weighted.rds")
 cv_mod_weighted <- readRDS("cv_mod_weighted.rds")
+summary(cv_mod_weighted)
 
 # model 3: weighted + control for segment type
 
@@ -550,6 +526,7 @@ cv_mod_full <- bam(phone_dur ~
 )
 saveRDS(cv_mod_full, "cv_mod_full.rds")
 cv_mod_full <- readRDS("cv_mod_full.rds")
+summary(cv_mod_full)
 ```
 
 ## Prediction plots: languages
@@ -612,6 +589,7 @@ preds_baseline <- predict(cv_mod_baseline, newdat_cv,
             "s(segment_dur_uttr,c_type_f)"),
   se.fit = TRUE
 )
+
 preds_weighted <- predict(cv_mod_weighted, newdat_cv,
   # the following is used when predicting without speakers
   exclude=c("s(segment_dur_uttr,speakerSegtype)",
@@ -620,6 +598,7 @@ preds_weighted <- predict(cv_mod_weighted, newdat_cv,
             "s(segment_dur_uttr,c_type_f)"),
   se.fit = TRUE
 )
+
 preds_full <- predict(cv_mod_full, newdat_cv,
   # the following is used when predicting without speakers
   exclude=c("s(segment_dur_uttr,speakerSegtype)",
@@ -666,8 +645,8 @@ newdat_all <- bind_rows(
 )
 
 newdat_all %>% write_csv("./newdat_all.csv")
+newdat_all <- read_csv("./newdat_all.csv")
 ```
-
 
 Plot!
 
@@ -790,6 +769,7 @@ eff_sizes[[m]] <- newdat_deriv %>%
 
 eff_sizes_df <- bind_rows(eff_sizes)
 eff_sizes_df %>% write_csv("eff_sizes_df.csv")
+eff_sizes_df <- read_csv("./eff_sizes_df.csv")
 ```
 
 We now order by effect size & show this number in the plot.
@@ -898,7 +878,6 @@ newdat_ctype$segment_type_broad <-
   factor(newdat_ctype$segment_type_broad,
          levels=c("vocalic", "continuant + nasal", "non-continuant"))
 ```
-
 
 Plot!
 
@@ -1040,4 +1019,198 @@ ind_eff_sizes_df %>%
   group_by(language, model) %>%
   summarise(eff_sd = sd(eff_size)) %>%
   ungroup()
+```
+
+## Create plots for ICPhS paper
+```{r}
+p <- df_check %>%
+  mutate(
+    language = recode(language, "Taiwan Mandarin" = "Mandarin", "Seoul Korean" = "Korean", "American English" = "English"),
+    language = fct_relevel(language, "English", "Vietnamese", "Turkish", "Swahili", "Georgian", "Amharic", "Mandarin", "Korean")
+    ) %>%
+  ggplot(aes(x = language, y = prop_correct, color = language)) +
+  theme_minimal(base_size = 8) +
+  ggbeeswarm::geom_beeswarm(size = 1) +
+  labs(y = "Proportion of OK alignments") +
+  scale_y_continuous(limits = c(0.2, 1)) +
+  scale_color_manual(values = c("Korean" = "#76B7B2", "Mandarin" = "#59A14F", "Amharic" = "#4E79A7",
+                                "Georgian" = "#E15759", "Swahili" = "#EDC948", "Turkish" = "#B07AA1",
+                                "Vietnamese" = "#FF9DA7")) +
+  coord_flip() +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    panel.grid.minor = element_blank(),
+    axis.title.y = element_blank(),
+    plot.margin = margin(t = 0, r = 0, b = 0, l = 0),
+    plot.background = element_rect(fill = "transparent", color = NA),
+    panel.background = element_rect(fill = "transparent", color = NA),
+    legend.position = "none",
+    legend.background = element_rect(fill = "transparent", color = NA),
+    legend.box.background = element_rect(fill = "transparent", color = NA),
+    legend.key = element_rect(fill = "transparent", color = NA)
+  )
+
+p %>%
+  ggsave(plot = ., filename = "./graphs_icphs/check.pdf", width = 3, height = 2,
+         bg = "transparent")
+
+#----------
+
+p <- df_check %>%
+  mutate(
+    weight = ifelse(speaker == "mn_tw_6" | speaker == 27189 | speaker == "71404_4", round(weight, 2), ""),
+    language = recode(language, "Taiwan Mandarin" = "Mandarin", "Seoul Korean" = "Korean", "American English" = "English"),
+    language = fct_relevel(language, "English", "Vietnamese", "Turkish", "Swahili", "Georgian", "Amharic", "Mandarin", "Korean"),
+      language_ = as.integer(language)
+    ) %>%
+  ggplot(aes(y = language_, x = prop_correct, color = language)) +
+  theme_minimal(base_size = 8) +
+  geom_line(data = df_logit, aes(x = X, y = Y*6 + 1), inherit.aes = FALSE, color = "gray50", size = 1) +
+  geom_quasirandom(groupOnX = FALSE, size = 1) +
+  ggrepel::geom_text_repel(aes(label = weight), max.overlaps = 100, box.padding = unit(0.75, "lines"), point.padding = unit(0, "lines"), color = "black", size = 2, segment.size = 0.25, min.segment.length = 0) +
+  labs(x = "Proportion of OK alignments") +
+  scale_y_continuous(sec.axis = sec_axis(~ (. - 1) / 6, name = "Weight", breaks = c(0, 0.5, 1)), labels = c("Vietnamese", "Turkish", "Swahili", "Georgian", "Amharic", "Mandarin", "Korean"), breaks = 1:7) +
+  scale_x_continuous(limits = c(0.2, 1)) +
+  scale_color_manual(values = c("Korean" = "#76B7B2", "Mandarin" = "#59A14F", "Amharic" = "#4E79A7", "Georgian" = "#E15759", "Swahili" = "#EDC948", "Turkish" = "#B07AA1", "Vietnamese" = "#FF9DA7")) +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    panel.grid.minor = element_blank(),
+    axis.title.y.left = element_blank(),
+    plot.margin = margin(t = 0, r = 0, b = 0, l = 0),
+    plot.background = element_rect(fill = "transparent", color = NA),
+    panel.background = element_rect(fill = "transparent", color = NA),
+    legend.position = "none",
+    legend.background = element_rect(fill = "transparent", color = NA),
+    legend.box.background = element_rect(fill = "transparent", color = NA),
+    legend.key = element_rect(fill = "transparent", color = NA)
+  )
+
+set.seed(2022)
+p %>%
+  ggsave(plot = ., filename = "./graphs_icphs/check_w.pdf", width = 3, height = 2,
+         bg = "transparent")
+
+#-----
+
+p <- d_c_freq %>%
+  filter(language != "Kapampangan") %>%
+  mutate(
+    language = recode(language, "Taiwan Mandarin" = "Mandarin", "Seoul Korean" = "Korean", "American English" = "English"),
+    language = factor(language, levels = c(
+      "Korean", "Mandarin", "Amharic", "Georgian", "Swahili", "Turkish", "Vietnamese", "English")),
+    c_type = fct_relevel(c_type,
+    "syllabic C", "stop", "affricate", "fricative", "liquid", "nasal", "approximant", "non-high vowel", "high vowel"
+    )
+  ) %>%
+  ggplot(aes(x = c_type, y = prop, fill = language)) +
+  theme_minimal(base_size = 8) +
+  geom_bar(stat = "identity") +
+  facet_wrap(. ~ language, ncol = 4) +
+  coord_flip() +
+  labs(y = "Proportion") +
+  scale_fill_manual(values = c("Korean" = "#76B7B2", "Mandarin" = "#59A14F", "Amharic" = "#4E79A7",
+                                "Georgian" = "#E15759", "Swahili" = "#EDC948", "Turkish" = "#B07AA1",
+                                "Vietnamese" = "#FF9DA7", "English" = "#F28E2B")) +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    panel.grid.minor = element_blank(),
+    axis.title.y = element_blank(),
+    plot.margin = margin(t = 0, r = 0, b = 0, l = 0),
+    plot.background = element_rect(fill = "transparent", color = NA),
+    panel.background = element_rect(fill = "transparent", color = NA),
+    legend.position = "none",
+    legend.background = element_rect(fill = "transparent", color = NA),
+    legend.box.background = element_rect(fill = "transparent", color = NA),
+    legend.key = element_rect(fill = "transparent", color = NA)
+  )
+
+p %>%
+  ggsave(plot = ., filename = "./graphs_icphs/seg_freq.pdf", width = 6, height = 2.5,
+         bg = "transparent")
+
+#-----
+
+library(ggthemes)
+
+p <- eff_sizes_df %>%
+  mutate(
+    language = recode(language, "Taiwan Mandarin" = "Mandarin", "Seoul Korean" = "Korean", "American English" = "English"),
+    model = recode(model, "cv_mod_baseline" = "baseline", "cv_mod_weighted" = "weighted", "cv_mod_full" = "full"),
+    model = fct_relevel(model, "baseline", "weighted", "full")) %>%
+  ggplot(aes(x = model, y = eff_size, group = language, color = language)) +
+  theme_minimal(base_size = 8) +
+  geom_point(size = 1) +
+  geomtextpath::geom_textline(aes(label = language, hjust = ifelse(language %in% c("Mandarin", "Vietnamese"), 0.9, ifelse(language %in% c("English"), 0.85, 0.15))), vjust = -0.25, size = 2.75) +
+  labs(x = "Model", y = "Δ effect size") +
+  scale_color_tableau() +
+  scale_x_discrete(expand = c(0, 0)) +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    panel.grid.minor = element_blank(),
+    plot.margin = margin(t = 5, r = 10, b = 5, l = 5),
+    plot.background = element_rect(fill = "transparent", color = NA),
+    panel.background = element_rect(fill = "transparent", color = NA),
+    legend.position = "none",
+    legend.background = element_rect(fill = "transparent", color = NA),
+    legend.box.background = element_rect(fill = "transparent", color = NA),
+    legend.key = element_rect(fill = "transparent", color = NA)
+  )
+
+p %>%
+  ggsave(plot = ., filename = "./graphs_icphs/eff_size_parallel.pdf", width = 2.5, height = 2.5, bg = "transparent", device = cairo_pdf)
+
+#-----
+
+p <- d_uttr_plot %>%
+  filter(language == "Amharic") %>%
+  ggplot(data = ., aes(x = segment_dur_uttr, y = value, color = measure)) +
+  theme_minimal(base_size = 8) +
+  facet_wrap(. ~ language) +
+  geom_point(alpha = 0.1, pch = 16) +
+  geom_textline(
+    data = newdat_all %>%
+      filter(language == "Amharic", segment_type_o == "vowel") %>%
+      mutate(
+        model = fct_relevel(model, "cv_mod_baseline", "cv_mod_weighted", "cv_mod_full"),
+        model = recode(model, "cv_mod_baseline" = "baseline", "cv_mod_weighted" = "weighted", "cv_mod_full" = "full")
+      ),
+    aes(y = dur), color = "#F28E2B", label = "V", size = 5, linewidth = 1, hjust = 0.8) +
+  geom_textline(
+    data = newdat_all %>%
+      filter(language == "Amharic", segment_type_o == "consonant") %>%
+      mutate(
+        model = fct_relevel(model, "cv_mod_baseline", "cv_mod_weighted", "cv_mod_full"),
+        model = recode(model, "cv_mod_baseline" = "baseline", "cv_mod_weighted" = "weighted", "cv_mod_full" = "full")
+      ),
+    aes(y = dur), color = "#4E79A7", label = "C", size = 5, linewidth = 1, hjust = 0.8) +
+  facet_grid(. ~ model) +
+  geom_text(
+    data = eff_sizes_df %>% filter(language == "Amharic") %>%
+      mutate(
+        model = fct_relevel(model, "cv_mod_baseline", "cv_mod_weighted", "cv_mod_full"),
+        model = recode(model, "cv_mod_baseline" = "baseline", "cv_mod_weighted" = "weighted", "cv_mod_full" = "full")
+      ),
+    aes(label = paste0("Δβ = ", round(eff_size,2)), x = 0.05, y = 0.13), color = "black", size = 3) +
+  labs(x = "Average segment duration (s) [inverse speech rate]", y = "Average C vs. V duration (s)") +
+  scale_x_log10(breaks = c(0.05, 0.07, 0.1, 0.14)) +
+  scale_y_log10(breaks = c(0.05, 0.07, 0.1, 0.14), limits = c(0.03, 0.19)) +
+  scale_color_manual(values = c("cons_dur_uttr" = "#365373", "vowel_dur_uttr" = "#c4680c"), guide = "none") +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    panel.grid.minor = element_blank(),
+    plot.margin = margin(t = 5, r = 5, b = 5, l = 5),
+    plot.background = element_rect(fill = "transparent", color = NA),
+    panel.background = element_rect(fill = "transparent", color = NA),
+    legend.position = "none",
+    legend.background = element_rect(fill = "transparent", color = NA),
+    legend.box.background = element_rect(fill = "transparent", color = NA),
+    legend.key = element_rect(fill = "transparent", color = NA),
+    #strip.background.y = element_blank(), 
+    #strip.placement = "outside",
+    strip.text = element_text(size = 10)
+  )
+
+p %>%
+  ggsave(plot = ., filename = "./graphs_icphs/amharic.pdf", width = 6, height = 2.5,
+         bg = "transparent", device = cairo_pdf)
 ```
