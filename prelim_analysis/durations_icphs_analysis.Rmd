@@ -1168,7 +1168,7 @@ p <- d_uttr_plot %>%
       "Korean", "Mandarin", "Amharic", "Georgian", "Swahili", "Turkish", "Vietnamese", "English"))) %>%
   ggplot(data = ., aes(x = segment_dur_uttr, y = value, col = measure)) +
   coord_equal() +
-  facet_wrap(. ~ language, ncol=4) +
+  facet_wrap(. ~ language, ncol=3) +
   geom_point(alpha = 0.1, pch=16) +
   # geom_ribbon(data = filter(newdat_cv_full_plot,
   #                           segment_type_o == "vowel"),
@@ -1211,7 +1211,7 @@ p <- d_uttr_plot %>%
 p
 
 p %>%
-  ggsave(plot = ., filename = "./graphs_icphs/all_CV.pdf", width = 8.4, height = 4.5,
+  ggsave(plot = ., filename = "./graphs_icphs/all_CV.pdf", width = 4.85, height = 6.5,
          bg = "transparent")
 #-----
 
