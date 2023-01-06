@@ -1164,8 +1164,9 @@ p <- d_uttr_plot %>%
   filter(language != "Kapampangan") %>%
   mutate(
     language = recode(language, "Taiwan Mandarin" = "Mandarin", "Seoul Korean" = "Korean", "American English" = "English"),
+    # manually order the language factor to reflect effect size; should change to a more elegant way later
     language = factor(language, levels = c(
-      "Korean", "Mandarin", "Amharic", "Georgian", "Swahili", "Turkish", "Vietnamese", "English"))) %>%
+      "Mandarin", "Georgian", "Swahili", "Vietnamese", "Korean", "English", "Amharic", "Turkish"))) %>%
   ggplot(data = ., aes(x = segment_dur_uttr, y = value, col = measure)) +
   coord_equal(ylim = c(0.03, 0.19)) +
   facet_wrap(. ~ language, ncol = 3) +
@@ -1195,6 +1196,14 @@ p <- d_uttr_plot %>%
   #                   breaks=seq(0.04,0.14,0.02),
   #                   labels=c(".04",".06",".08",".10",".12",".14")) +
   scale_colour_manual(values = c("purple", "orange"), guide = "none") +
+  geom_text(
+    data = eff_sizes_df %>%
+      filter(model == "cv_mod_full") %>%
+      mutate(
+    language = recode(language, "Taiwan Mandarin" = "Mandarin", "Seoul Korean" = "Korean", "American English" = "English"),
+    language = fct_reorder(language, eff_size),
+    model = recode(model, "cv_mod_baseline" = "baseline", "cv_mod_weighted" = "alignment", "cv_mod_full" = "alignment + segment")),
+    aes(label = paste0("Δβ = ", round(eff_size, 2)), x = 0.05, y = 0.13), color = "black", size = 2, inherit.aes = F) +
   #scale_y_continuous(breaks=seq(0.04,0.20,0.02)) +
     # labels for axes
   xlab("Average segment dur. in s (inverse speech rate)") +
@@ -1211,7 +1220,7 @@ p <- d_uttr_plot %>%
   )
 
 p %>%
-  ggsave(plot = ., filename = "./graphs_icphs/all_CV.pdf", width = 3.25, height = 3.25, bg = "transparent")
+  ggsave(plot = ., filename = "./graphs_icphs/all_CV.pdf", width = 3.25, height = 3.25, bg = "transparent", device = cairo_pdf)
 #-----
 
 library(ggthemes)
