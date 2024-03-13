@@ -1,17 +1,25 @@
 ---
-title: "Taiwanese Mandarin / Korean / Kapampangan / English / Vietnamese articulation rate vs. rhythm"
-author: "Márton Sóskuthy & Roger Lo"
+title: "Articulation Rate in Consonants and Vowels: Results and Methodological Challenges from a Cross-Linguistic Corpus Study"
+author: "[redacted]"
 output: html_document
+editor_options: 
+  chunk_output_type: console
 ---
 
-Shared data processing pipeline for the four Ls.
 
 ```{r}
+setwd('/home/roger/Documents/RA/oops_lab-speech_rate/prelim_analysis')
+
 library(tidyverse)
 library(ggbeeswarm)
 library(ggpubr)
 library(geomtextpath)
+library(ggthemes)
+```
 
+Read in data
+
+```{r}
 twm <- read_csv("../data/taiwanese_mandarin_durations.csv") %>%
   arrange(speaker, file, phone_start) %>%
   filter(speaker != "mn_tw_66") %>%
@@ -346,8 +354,10 @@ d_uttr <- d_seg %>%
 Looking at Olivia's checking results
 
 ```{r}
-df_check <- read_csv("../data/spot_checking.csv") %>%
-  rename_with(tolower)
+df_check_k <- read_csv("../data/spot_checking_kapampangan_2.csv")
+df_check <- read_csv("../data/spot_checking.csv") %>% rename_with(tolower)
+
+df_check <- bind_rows(df_check, df_check_k)
 
 df_check <- df_check %>%
   group_by(language, speaker) %>%
@@ -453,8 +463,8 @@ GAMMs!
 library(mgcv)
 library(itsadug)
 
-d_seg <- d_seg %>%
-  filter(language != "Kapampangan")
+# d_seg <- d_seg %>%
+#   filter(language != "Kapampangan")
 
 d_seg$segment_type_o <- as.ordered(d_seg$segment_type)
 contrasts(d_seg$segment_type_o) <- "contr.treatment"
@@ -485,7 +495,7 @@ cv_mod_baseline <- bam(phone_dur ~
   nthreads = 8
 )
 saveRDS(cv_mod_baseline, "cv_mod_baseline.rds")
-#cv_mod_baseline <- readRDS("cv_mod_baseline.rds")
+cv_mod_baseline <- readRDS("cv_mod_baseline_with_k.rds")
 #summary(cv_mod_baseline)
 
 # model 2: weighted regression based on olivia's ratings
@@ -503,7 +513,7 @@ cv_mod_weighted <- bam(phone_dur ~
   nthreads = 8
 )
 saveRDS(cv_mod_weighted, "cv_mod_weighted.rds")
-#cv_mod_weighted <- readRDS("cv_mod_weighted.rds")
+cv_mod_weighted <- readRDS("cv_mod_weighted_with_k.rds")
 #summary(cv_mod_weighted)
 
 # model 3: weighted + control for segment type
@@ -522,7 +532,7 @@ cv_mod_full <- bam(phone_dur ~
   nthreads = 8
 )
 #saveRDS(cv_mod_full, "cv_mod_full.rds")
-cv_mod_full <- readRDS("cv_mod_full.rds")
+cv_mod_full <- readRDS("cv_mod_full_with_k.rds")
 #summary(cv_mod_full)
 ```
 
@@ -563,7 +573,7 @@ newdat_cv <- expand.grid(
     max(d_seg$segment_dur_uttr),
     length.out = 100
   ),
-  c_type_f=d_seg$c_type_f[1],
+  c_type_f = d_seg$c_type_f[1],
   speakerSegtype = d_seg$speakerSegtype[1],
   #language_f=unique(d_uttr_cv$language_f),
   languageSegtype = unique(d_seg$languageSegtype)
@@ -1023,18 +1033,23 @@ ind_eff_sizes_df %>%
 p <- df_check %>%
   mutate(
     language = recode(language, "Taiwan Mandarin" = "Mandarin", "Seoul Korean" = "Korean", "American English" = "English"),
-    language = fct_relevel(language, "English", "Vietnamese", "Turkish", "Swahili", "Georgian", "Amharic", "Mandarin", "Korean")
+    language = fct_relevel(language, "English", "Vietnamese", "Turkish", "Swahili", "Georgian", "Amharic", "Mandarin", "Korean", "Kapampangan")
     ) %>%
   ggplot(aes(x = language, y = prop_correct, color = language)) +
   theme_minimal(base_size = 8) +
   ggbeeswarm::geom_beeswarm(size = 1) +
   labs(y = "Proportion of OK alignments") +
   scale_y_continuous(limits = c(0.2, 1)) +
-  scale_color_manual(values = c("Korean" = "#76B7B2", "Mandarin" = "#59A14F", "Amharic" = "#4E79A7",
-                                "Georgian" = "#E15759", "Swahili" = "#EDC948", "Turkish" = "#B07AA1",
-                                "Vietnamese" = "#FF9DA7")) +
+  scale_color_manual(values = c(
+    "Kapampangan" = "#BAB0AC",
+    "Korean" = "#76B7B2", "Mandarin" = "#59A14F", "Amharic" = "#4E79A7",
+    "Georgian" = "#E15759", "Swahili" = "#EDC948", "Turkish" = "#B07AA1",
+    "Vietnamese" = "#FF9DA7")) +
   coord_flip() +
   theme(
+    panel.grid = element_line(color = "gray25"),
+    axis.text = element_text(color = "white"),
+    axis.title = element_text(color = "white"),
     plot.title = element_text(hjust = 0.5),
     panel.grid.minor = element_blank(),
     axis.title.y = element_blank(),
@@ -1048,7 +1063,7 @@ p <- df_check %>%
   )
 
 p %>%
-  ggsave(plot = ., filename = "./graphs_icphs/check.pdf", width = 3, height = 2,
+  ggsave(plot = ., filename = "./graphs_icphs/check_slide.png", width = 3, height = 3,
          bg = "transparent")
 
 #----------
@@ -1057,21 +1072,28 @@ p1 <- df_check %>%
   mutate(
     weight = ifelse(speaker == "mn_tw_6" | speaker == 27189 | speaker == "71404_4", round(weight, 2), ""),
     language = recode(language, "Taiwan Mandarin" = "Mandarin", "Seoul Korean" = "Korean", "American English" = "English"),
-    language = fct_relevel(language, "English", "Vietnamese", "Turkish", "Swahili", "Georgian", "Amharic", "Mandarin", "Korean"),
-      language_ = as.integer(language)
+    language = fct_relevel(language, "English", "Vietnamese", "Turkish", "Swahili", "Georgian", "Amharic", "Mandarin", "Korean", "Kapampangan"),
+    language_ = as.integer(language)
     ) %>%
   ggplot(aes(y = language, x = prop_correct, color = language)) +
   theme_minimal(base_size = 8) +
   #geom_line(data = df_logit, aes(x = X, y = Y*6 + 1), inherit.aes = FALSE, color = "gray50", size = 1) +
   geom_quasirandom(groupOnX = FALSE, size = 1) +
-  ggrepel::geom_text_repel(aes(label = weight), max.overlaps = 100, box.padding = unit(0.75, "lines"), point.padding = unit(0, "lines"), color = "black", size = 3, segment.size = 0.25, min.segment.length = 0) +
+  ggrepel::geom_text_repel(aes(label = weight), max.overlaps = 100, box.padding = unit(0.75, "lines"), point.padding = unit(0, "lines"), color = "white", size = 3, segment.size = 0.25, min.segment.length = 0) +
   labs(x = "Proportion of OK alignments", y = "", tag = "A") +
   #scale_y_continuous(sec.axis = sec_axis(~ (. - 1) / 6, name = "Weight", breaks = c(0, 0.5, 1)), labels = c("Vietnamese", "Turkish", "Swahili", "Georgian", "Amharic", "Mandarin", "Korean"), breaks = 1:7) +
   scale_x_continuous(limits = c(0.2, 1), position = "top") +
-  scale_color_manual(values = c("Korean" = "#76B7B2", "Mandarin" = "#59A14F", "Amharic" = "#4E79A7", "Georgian" = "#E15759", "Swahili" = "#EDC948", "Turkish" = "#B07AA1", "Vietnamese" = "#FF9DA7")) +
+  scale_color_manual(values = c(
+    "Kapampangan" = "#BAB0AC",
+    "Korean" = "#76B7B2", "Mandarin" = "#59A14F", "Amharic" = "#4E79A7",
+    "Georgian" = "#E15759", "Swahili" = "#EDC948", "Turkish" = "#B07AA1",
+    "Vietnamese" = "#FF9DA7")) +
   theme(
-    axis.title = element_text(size=8, face="bold"),
-    axis.text = element_text(size=8, colour="black"),
+    panel.grid = element_line(color = "gray25"),
+    axis.text = element_text(color = "white", size = 8),
+    axis.title = element_text(color = "white", size = 8, face = "bold"),
+    #axis.title = element_text(size=8, face="bold"),
+    #axis.text = element_text(size=8, colour="black"),
     axis.title.y = element_blank(),
     plot.title = element_text(hjust = 0.5),
     panel.grid.minor = element_blank(),
@@ -1086,14 +1108,16 @@ p1 <- df_check %>%
 
 p2 <- ggplot() +
   theme_minimal(base_size = 8) +
-  geom_line(data = df_logit, aes(x = X, y = Y), inherit.aes = FALSE, color = "gray50", size = 1) +
+  geom_line(data = df_logit, aes(x = X, y = Y), inherit.aes = FALSE, color = "gray75", size = 1) +
   scale_x_continuous(limits = c(0.2, 1)) +
   labs(y = "weight", tag = "B") +
   theme(
+    panel.grid = element_line(color = "gray25"),
+    axis.title = element_text(color = "white"),
     axis.title.x = element_blank(),
     axis.text.x = element_blank(),
     axis.title.y = element_text(size = 8, face="bold", margin = margin(l = 0, r = -40)),
-    axis.text.y = element_text(size = 8, color = "black"),
+    axis.text.y = element_text(size = 8, color = "white"),
     panel.grid.minor = element_blank(),
     plot.margin = margin(t = 0, r = 0, b = 0, l = 0),
     plot.background = element_rect(fill = "transparent", color = NA),
@@ -1105,18 +1129,19 @@ p2 <- ggplot() +
   )
 
 p <- ggarrange(p1, p2, nrow=2, heights=c(0.7,0.3), align = "v")
+
 set.seed(2022)
-ggsave(plot = p, filename = "./graphs_icphs/check_w.pdf", width = 3, height = 3,
+ggsave(plot = p, filename = "./graphs_icphs/check_w_slide.png", width = 3, height = 3,
        bg = "transparent")
 
 #-----
 
 p <- d_c_freq %>%
-  filter(language != "Kapampangan",
-         c_type != "syllabic C") %>%
+  filter(c_type != "syllabic C") %>%
   mutate(
     language = recode(language, "Taiwan Mandarin" = "Mandarin", "Seoul Korean" = "Korean", "American English" = "English"),
     language = factor(language, levels = c(
+      "Kapampangan",
       "Korean", "Mandarin", "Amharic", "Georgian", "Swahili", "Turkish", "Vietnamese", "English")),
     c_type = fct_relevel(c_type,
     "stop", "affricate", "fricative", "liquid", "nasal", "approximant", "high vowel", "non-high vowel"
@@ -1125,13 +1150,18 @@ p <- d_c_freq %>%
   ggplot(aes(x = c_type, y = prop, fill = language)) +
   theme_minimal(base_size = 12) +
   geom_bar(stat = "identity") +
-  facet_wrap(. ~ language, ncol = 4) +
+  facet_wrap(. ~ language, ncol = 3) +
   coord_flip() +
   labs(y = "Proportion") +
-  scale_fill_manual(values = c("Korean" = "#76B7B2", "Mandarin" = "#59A14F", "Amharic" = "#4E79A7",
-                                "Georgian" = "#E15759", "Swahili" = "#EDC948", "Turkish" = "#B07AA1",
-                                "Vietnamese" = "#FF9DA7", "English" = "#F28E2B")) +
+  scale_fill_manual(values = c(
+    "Kapampangan" = "#BAB0AC",
+    "Korean" = "#76B7B2", "Mandarin" = "#59A14F", "Amharic" = "#4E79A7",
+    "Georgian" = "#E15759", "Swahili" = "#EDC948", "Turkish" = "#B07AA1",
+    "Vietnamese" = "#FF9DA7", "English" = "#F28E2B")) +
   theme(
+    panel.grid = element_line(color = "gray25"),
+    axis.title = element_text(color = "white"),
+    axis.text = element_text(color = "white"),
     plot.title = element_text(hjust = 0.5),
     panel.grid.minor = element_blank(),
     axis.title.y = element_blank(),
@@ -1142,60 +1172,49 @@ p <- d_c_freq %>%
     legend.background = element_rect(fill = "transparent", color = NA),
     legend.box.background = element_rect(fill = "transparent", color = NA),
     legend.key = element_rect(fill = "transparent", color = NA),
-    strip.text=element_text(face="bold"),
-    axis.text.y=element_text(colour="black"),
+    strip.text=element_text(face="bold", color = "white"),
+    #axis.text.y=element_text(colour="black"),
   )
-
+p
 p %>%
-  ggsave(plot = ., filename = "./graphs_icphs/seg_freq.pdf", width = 8.4, height = 3.5,
+  ggsave(plot = ., filename = "./graphs_icphs/seg_freq_slide.png", width = 5, height = 5,
          bg = "transparent")
 
 #-----
 # full plot of CV effect
 
 newdat_cv_full_plot <- newdat_cv_full %>%
-  filter(language != "Kapampangan", model == "cv_mod_full") %>%
+  filter(model == "cv_mod_full") %>%
   mutate(
     language = recode(language, "Taiwan Mandarin" = "Mandarin", "Seoul Korean" = "Korean", "American English" = "English"),
     language = factor(language, levels = c(
+      "Kapampangan",
       "Korean", "Mandarin", "Amharic", "Georgian", "Swahili", "Turkish", "Vietnamese", "English")))
 
 p <- d_uttr_plot %>%
-  filter(language != "Kapampangan") %>%
   mutate(
     language = recode(language, "Taiwan Mandarin" = "Mandarin", "Seoul Korean" = "Korean", "American English" = "English"),
     # manually order the language factor to reflect effect size; should change to a more elegant way later
     language = factor(language, levels = c(
-      "Mandarin", "Georgian", "Swahili", "Vietnamese", "Korean", "English", "Amharic", "Turkish"))) %>%
+      "Mandarin", "Georgian", "Vietnamese", "Swahili", "Korean", "English", "Amharic", "Kapampangan", "Turkish"))) %>%
   ggplot(data = ., aes(x = segment_dur_uttr, y = value, col = measure)) +
-  coord_equal(ylim = c(0.03, 0.19)) +
+  #coord_equal(ylim = c(0.03, 0.19)) +
   facet_wrap(. ~ language, ncol = 3) +
   geom_point(alpha = 0.1, pch = 16) +
-  # geom_ribbon(data = filter(newdat_cv_full_plot,
-  #                           segment_type_o == "vowel"),
-  #             aes(ymin = ll, ymax = ul), y=NA, col = NA, fill = "grey",
-  #             alpha = 0.5) +
-  # geom_ribbon(data = filter(newdat_cv_full_plot,
-  #                           segment_type_o == "consonant"),
-  #             aes(ymin = ll, ymax = ul), y=NA, col = NA, fill = "grey",
-  #             alpha = 0.5) +
   geom_textline(data = filter(newdat_cv_full_plot,
                           segment_type_o == "vowel"),
             aes(y=dur), label = "V", size = 3, hjust = 0.8,
-            col = "darkorange4", linewidth = 0.5) +
+            col = "orange", linewidth = 0.5) +
   geom_textline(data = filter(newdat_cv_full_plot,
                           segment_type_o == "consonant"),
             aes(y = dur), label = "C", size = 3, hjust = 0.8,
-            col = "purple4", linewidth = 0.5) +
+            col = "magenta1", linewidth = 0.5) +
   #coord_cartesian(ylim = c(0.03, 0.19)) +
   scale_x_log10(breaks = c(0.05, 0.07, 0.1, 0.14),
                 labels = c(".05", ".07", ".10", ".14")) +
   scale_y_log10(breaks = c(0.05, 0.07, 0.1, 0.14),
-                labels=c(".05", ".07", ".10", ".14")) +
-  #scale_x_continuous(limits=c(0.035,0.145), 
-  #                   breaks=seq(0.04,0.14,0.02),
-  #                   labels=c(".04",".06",".08",".10",".12",".14")) +
-  scale_colour_manual(values = c("purple", "orange"), guide = "none") +
+                labels = c(".05", ".07", ".10", ".14")) +
+  scale_colour_manual(values = c("darkorchid3", "orange3"), guide = "none") +
   geom_text(
     data = eff_sizes_df %>%
       filter(model == "cv_mod_full") %>%
@@ -1203,27 +1222,80 @@ p <- d_uttr_plot %>%
     language = recode(language, "Taiwan Mandarin" = "Mandarin", "Seoul Korean" = "Korean", "American English" = "English"),
     language = fct_reorder(language, eff_size),
     model = recode(model, "cv_mod_baseline" = "baseline", "cv_mod_weighted" = "alignment", "cv_mod_full" = "alignment + segment")),
-    aes(label = paste0("Δβ = ", round(eff_size, 2)), x = 0.05, y = 0.13), color = "black", size = 2, inherit.aes = F) +
-  #scale_y_continuous(breaks=seq(0.04,0.20,0.02)) +
-    # labels for axes
+    aes(label = paste0("Δβ = ", round(eff_size, 2)), x = 0.05, y = 0.13), color = "white", size = 2, inherit.aes = F) +
   xlab("Average segment dur. in s (inverse speech rate)") +
   labs(y = "Average C vs. V duration in s") +
-  #ylab("Average V vs. C duration in s") +
-  # remove clutter
   theme_minimal(base_size = 8) +
   theme(
-    axis.text = element_text(size = 6, color = "black"),
-    axis.title = element_text(face = "bold", size = 8),
-    strip.text = element_text(face="bold"),
+    panel.grid = element_line(color = "gray25"),
+    axis.text = element_text(size = 6, color = "white"),
+    axis.title = element_text(face = "bold", size = 8, color = "white"),
+    strip.text = element_text(face="bold", color = "white"),
     plot.margin = margin(),
     panel.grid.minor=element_blank()
   )
 
 p %>%
-  ggsave(plot = ., filename = "./graphs_icphs/all_CV.pdf", width = 3.25, height = 3.25, bg = "transparent", device = cairo_pdf)
-#-----
+  ggsave(plot = ., filename = "./graphs_icphs/all_CV_slide.png", width = 4, height = 4, bg = "transparent")
 
-library(ggthemes)
+#-----
+# baseline plot of CV effect
+
+newdat_cv_full_plot <- newdat_cv_baseline %>%
+  filter(model == "cv_mod_baseline") %>%
+  mutate(
+    language = recode(language, "Taiwan Mandarin" = "Mandarin", "Seoul Korean" = "Korean", "American English" = "English"),
+    language = factor(language, levels = c("Kapampangan","Korean", "Mandarin", "Amharic", "Georgian", "Swahili", "Turkish", "Vietnamese", "English"))
+  )
+
+p <- d_uttr_plot %>%
+  mutate(
+    language = recode(language, "Taiwan Mandarin" = "Mandarin", "Seoul Korean" = "Korean", "American English" = "English"),
+    # manually order the language factor to reflect effect size; should change to a more elegant way later
+    language = factor(language, levels = c(
+      "Vietnamese", "Swahili", "Mandarin", "Korean", "English", "Georgian", "Kapampangan", "Amharic", "Turkish"))) %>%
+  ggplot(data = ., aes(x = segment_dur_uttr, y = value, col = measure)) +
+  #coord_equal(ylim = c(0.03, 0.19)) +
+  facet_wrap(. ~ language, ncol = 3) +
+  geom_point(alpha = 0.1, pch = 16) +
+  geom_textline(data = filter(newdat_cv_full_plot,
+                          segment_type_o == "vowel"),
+            aes(y=dur), label = "V", size = 3, hjust = 0.8,
+            col = "orange", linewidth = 0.5) +
+  geom_textline(data = filter(newdat_cv_full_plot,
+                          segment_type_o == "consonant"),
+            aes(y = dur), label = "C", size = 3, hjust = 0.8,
+            col = "magenta1", linewidth = 0.5) +
+  #coord_cartesian(ylim = c(0.03, 0.19)) +
+  scale_x_log10(breaks = c(0.05, 0.07, 0.1, 0.14),
+                labels = c(".05", ".07", ".10", ".14")) +
+  scale_y_log10(breaks = c(0.05, 0.07, 0.1, 0.14),
+                labels = c(".05", ".07", ".10", ".14")) +
+  scale_colour_manual(values = c("darkorchid3", "orange3"), guide = "none") +
+  geom_text(
+    data = eff_sizes_df %>%
+      filter(model == "cv_mod_baseline") %>%
+      mutate(
+    language = recode(language, "Taiwan Mandarin" = "Mandarin", "Seoul Korean" = "Korean", "American English" = "English"),
+    language = fct_reorder(language, eff_size),
+    model = recode(model, "cv_mod_baseline" = "baseline", "cv_mod_weighted" = "alignment", "cv_mod_full" = "alignment + segment")),
+    aes(label = paste0("Δβ = ", round(eff_size, 2)), x = 0.05, y = 0.13), color = "white", size = 2, inherit.aes = F) +
+  xlab("Average segment dur. in s (inverse speech rate)") +
+  labs(y = "Average C vs. V duration in s") +
+  theme_minimal(base_size = 8) +
+  theme(
+    panel.grid = element_line(color = "gray25"),
+    axis.text = element_text(size = 6, color = "white"),
+    axis.title = element_text(face = "bold", size = 8, color = "white"),
+    strip.text = element_text(face="bold", color = "white"),
+    plot.margin = margin(),
+    panel.grid.minor=element_blank()
+  )
+
+p %>%
+  ggsave(plot = ., filename = "./graphs_icphs/baseline_CV_slide.png", width = 4, height = 4, bg = "transparent")
+
+#-----
 
 p <- eff_sizes_df %>%
   mutate(
@@ -1235,7 +1307,12 @@ p <- eff_sizes_df %>%
   geom_point(size = 1) +
   geomtextpath::geom_textline(aes(label = language, hjust = ifelse(language %in% c("Mandarin", "Vietnamese"), 0.9, ifelse(language %in% c("English"), 0.85, 0.15))), vjust = -0.25, size = 2.75) +
   labs(x = "Model", y = "Δ effect size") +
-  scale_color_tableau() +
+  #scale_color_tableau() +
+  scale_color_manual(values = c(
+    "Kapampangan" = "#BAB0AC",
+    "Korean" = "#76B7B2", "Mandarin" = "#59A14F", "Amharic" = "#4E79A7",
+    "Georgian" = "#E15759", "Swahili" = "#EDC948", "Turkish" = "#B07AA1",
+    "Vietnamese" = "#FF9DA7", "English" = "#F28E2B")) +
   scale_x_discrete(expand = c(0, 0)) +
   theme(
     plot.title = element_text(hjust = 0.5),
@@ -1250,9 +1327,9 @@ p <- eff_sizes_df %>%
     legend.box.background = element_rect(fill = "transparent", color = NA),
     legend.key = element_rect(fill = "transparent", color = NA)
   )
-
+p
 p %>%
-  ggsave(plot = ., filename = "./graphs_icphs/eff_size_parallel.pdf", width = 2.5, height = 2.75, bg = "transparent", device = cairo_pdf)
+  ggsave(plot = ., filename = "./graphs_icphs/eff_size_parallel_slide.png", width = 2.5, height = 2.75, bg = "transparent")#, device = cairo_png)
 
 #-----
 
@@ -1268,33 +1345,33 @@ p <- d_uttr_plot %>%
       filter(language == "Amharic", segment_type_o == "vowel") %>%
       mutate(
         model = fct_relevel(model, "cv_mod_baseline", "cv_mod_weighted", "cv_mod_full"),
-        model = recode(model, "cv_mod_baseline" = "baseline", "cv_mod_weighted" = "alignment", "cv_mod_full" = "alignment + segment")
+        model = recode(model, "cv_mod_baseline" = "baseline", "cv_mod_weighted" = "alignment", "cv_mod_full" = "alignment\n+\nsegment")
       ),
-    aes(y = dur), color = "darkorange4", label = "V", size = 3, linewidth = 0.5, hjust = 0.8) +
+    aes(y = dur), color = "orange", label = "V", size = 3, linewidth = 0.5, hjust = 0.8) +
   geom_textline(
     data = newdat_all %>%
       filter(language == "Amharic", segment_type_o == "consonant") %>%
       mutate(
         model = fct_relevel(model, "cv_mod_baseline", "cv_mod_weighted", "cv_mod_full"),
-        model = recode(model, "cv_mod_baseline" = "baseline", "cv_mod_weighted" = "alignment", "cv_mod_full" = "alignment + segment")
+        model = recode(model, "cv_mod_baseline" = "baseline", "cv_mod_weighted" = "alignment", "cv_mod_full" = "alignment\n+\nsegment")
       ),
-    aes(y = dur), color = "purple4", label = "C", size = 3, linewidth = 0.5, hjust = 0.8) +
+    aes(y = dur), color = "magenta1", label = "C", size = 3, linewidth = 0.5, hjust = 0.8) +
   facet_grid(. ~ model) +
   geom_text(
     data = eff_sizes_df %>% filter(language == "Amharic") %>%
       mutate(
         model = fct_relevel(model, "cv_mod_baseline", "cv_mod_weighted", "cv_mod_full"),
-        model = recode(model, "cv_mod_baseline" = "baseline", "cv_mod_weighted" = "alignment", "cv_mod_full" = "alignment + segment")
+        model = recode(model, "cv_mod_baseline" = "baseline", "cv_mod_weighted" = "alignment", "cv_mod_full" = "alignment\n+\nsegment")
       ),
-    aes(label = paste0("Δβ = ", round(eff_size, 2)), x = 0.05, y = 0.13), color = "black", size = 3) +
+    aes(label = paste0("Δβ = ", round(eff_size, 2)), x = 0.05, y = 0.13), color = "white", size = 3) +
   labs(x = "Average segment duration in s (inverse speech rate)", y = "Average C vs. V duration in s") +
   scale_x_log10(breaks = c(0.05, 0.07, 0.1, 0.14)) +
   scale_y_log10(breaks = c(0.05, 0.07, 0.1, 0.14)) +
-  #coord_cartesian(ylim = c(0.03, 0.19)) +
-  scale_color_manual(values = c("cons_dur_uttr" = "purple", "vowel_dur_uttr" = "orange"), guide = "none") +
+  scale_color_manual(values = c("cons_dur_uttr" = "darkorchid3", "vowel_dur_uttr" = "orange3"), guide = "none") +
   theme(
-    axis.title = element_text(face = "bold", size = 8),
-    axis.text = element_text(colour="black", size = 6),
+    panel.grid = element_line(color = "gray25"),
+    axis.title = element_text(face = "bold", size = 8, color = "white"),
+    axis.text = element_text(colour="white", size = 6),
     plot.title = element_text(hjust = 0.5),
     panel.grid.minor = element_blank(),
     plot.margin = margin(t = 0, r = 0, b = 0, l = 0),
@@ -1304,12 +1381,10 @@ p <- d_uttr_plot %>%
     legend.background = element_rect(fill = "transparent", color = NA),
     legend.box.background = element_rect(fill = "transparent", color = NA),
     legend.key = element_rect(fill = "transparent", color = NA),
-    #strip.background.y = element_blank(), 
-    #strip.placement = "outside",
-    strip.text = element_text(face = "bold", size = 8),
+    strip.text = element_text(face = "bold", size = 8, color = "white"),
   )
 
 p %>%
-  ggsave(plot = ., filename = "./graphs_icphs/amharic.pdf", width = 6, height = 2,
-         bg = "transparent", device = cairo_pdf)
+  ggsave(plot = ., filename = "./graphs_icphs/amharic_slide.png", width = 6, height = 2.5,
+         bg = "transparent")#, device = cairo_pdf)
 ```
