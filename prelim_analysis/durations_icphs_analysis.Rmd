@@ -7,7 +7,10 @@ editor_options:
 ---
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 
+=======
+>>>>>>> fc530abc182ff6cef53795077d8129eacadc1816
 =======
 >>>>>>> fc530abc182ff6cef53795077d8129eacadc1816
 ```{r}
@@ -358,15 +361,21 @@ Looking at Olivia's checking results
 
 ```{r}
 <<<<<<< HEAD
+<<<<<<< HEAD
 df_check_k <- read_csv("../data/spot_checking_kapampangan_2.csv")
 df_check <- read_csv("../data/spot_checking.csv") %>% rename_with(tolower)
 
 df_check <- bind_rows(df_check, df_check_k)
 =======
+=======
+>>>>>>> fc530abc182ff6cef53795077d8129eacadc1816
 #df_check_k <- read_csv("../data/spot_checking_kapampangan_2.csv")
 df_check <- read_csv("../data/spot_checking.csv") %>% rename_with(tolower)
 
 #df_check <- bind_rows(df_check, df_check_k)
+<<<<<<< HEAD
+>>>>>>> fc530abc182ff6cef53795077d8129eacadc1816
+=======
 >>>>>>> fc530abc182ff6cef53795077d8129eacadc1816
 
 df_check <- df_check %>%
@@ -506,7 +515,11 @@ cv_mod_baseline <- bam(phone_dur ~
 )
 saveRDS(cv_mod_baseline, "cv_mod_baseline.rds")
 <<<<<<< HEAD
+<<<<<<< HEAD
 cv_mod_baseline <- readRDS("cv_mod_baseline_with_k.rds")
+=======
+cv_mod_baseline <- readRDS("cv_mod_baseline.rds")
+>>>>>>> fc530abc182ff6cef53795077d8129eacadc1816
 =======
 cv_mod_baseline <- readRDS("cv_mod_baseline.rds")
 >>>>>>> fc530abc182ff6cef53795077d8129eacadc1816
@@ -528,7 +541,11 @@ cv_mod_weighted <- bam(phone_dur ~
 )
 saveRDS(cv_mod_weighted, "cv_mod_weighted.rds")
 <<<<<<< HEAD
+<<<<<<< HEAD
 cv_mod_weighted <- readRDS("cv_mod_weighted_with_k.rds")
+=======
+cv_mod_weighted <- readRDS("cv_mod_weighted.rds")
+>>>>>>> fc530abc182ff6cef53795077d8129eacadc1816
 =======
 cv_mod_weighted <- readRDS("cv_mod_weighted.rds")
 >>>>>>> fc530abc182ff6cef53795077d8129eacadc1816
@@ -1199,6 +1216,11 @@ p
 
 p
 
+<<<<<<< HEAD
+>>>>>>> fc530abc182ff6cef53795077d8129eacadc1816
+=======
+p
+
 >>>>>>> fc530abc182ff6cef53795077d8129eacadc1816
 p %>%
   ggsave(plot = ., filename = "./graphs_icphs/seg_freq_slide.png", width = 5, height = 5,
@@ -1239,8 +1261,11 @@ p <- d_uttr_plot %>%
   scale_y_log10(breaks = c(0.05, 0.07, 0.1, 0.14),
                 labels = c(".05", ".07", ".10", ".14")) +
 <<<<<<< HEAD
+<<<<<<< HEAD
   scale_colour_manual(values = c("darkorchid3", "orange3"), guide = "none") +
 =======
+=======
+>>>>>>> fc530abc182ff6cef53795077d8129eacadc1816
   scale_colour_manual(values = c("purple", "orange"), guide = "none") +
 >>>>>>> fc530abc182ff6cef53795077d8129eacadc1816
   geom_text(
@@ -1254,6 +1279,9 @@ p <- d_uttr_plot %>%
     aes(label = paste0("Δβ = ", round(eff_size, 2)), x = 0.05, y = 0.13), color = "white", size = 2, inherit.aes = F) +
 =======
     aes(label = paste0("Δβ = ", round(eff_size, 2)), x = 0.05, y = 0.13), color = "black", size = 2, inherit.aes = F) +
+<<<<<<< HEAD
+>>>>>>> fc530abc182ff6cef53795077d8129eacadc1816
+=======
 >>>>>>> fc530abc182ff6cef53795077d8129eacadc1816
   xlab("Average segment dur. in s (inverse speech rate)") +
   labs(y = "Average C vs. V duration in s") +
@@ -1268,6 +1296,7 @@ p <- d_uttr_plot %>%
   )
 
 p %>%
+<<<<<<< HEAD
 <<<<<<< HEAD
   ggsave(plot = ., filename = "./graphs_icphs/all_CV_slide.png", width = 4, height = 4, bg = "transparent")
 
@@ -1328,6 +1357,10 @@ p <- d_uttr_plot %>%
 p %>%
   ggsave(plot = ., filename = "./graphs_icphs/baseline_CV_slide.png", width = 4, height = 4, bg = "transparent")
 
+=======
+  ggsave(plot = ., filename = "./graphs_icphs/all_CV.pdf", width = 3.25, height = 3.25, bg = "transparent", device = cairo_pdf)
+
+>>>>>>> fc530abc182ff6cef53795077d8129eacadc1816
 =======
   ggsave(plot = ., filename = "./graphs_icphs/all_CV.pdf", width = 3.25, height = 3.25, bg = "transparent", device = cairo_pdf)
 
@@ -1405,8 +1438,11 @@ p <- d_uttr_plot %>%
   scale_x_log10(breaks = c(0.05, 0.07, 0.1, 0.14)) +
   scale_y_log10(breaks = c(0.05, 0.07, 0.1, 0.14)) +
 <<<<<<< HEAD
+<<<<<<< HEAD
   scale_color_manual(values = c("cons_dur_uttr" = "darkorchid3", "vowel_dur_uttr" = "orange3"), guide = "none") +
 =======
+=======
+>>>>>>> fc530abc182ff6cef53795077d8129eacadc1816
   scale_color_manual(values = c("cons_dur_uttr" = "purple", "vowel_dur_uttr" = "orange"), guide = "none") +
 >>>>>>> fc530abc182ff6cef53795077d8129eacadc1816
   theme(
@@ -1423,8 +1459,11 @@ p <- d_uttr_plot %>%
     legend.box.background = element_rect(fill = "transparent", color = NA),
     legend.key = element_rect(fill = "transparent", color = NA),
 <<<<<<< HEAD
+<<<<<<< HEAD
     strip.text = element_text(face = "bold", size = 8, color = "white"),
 =======
+=======
+>>>>>>> fc530abc182ff6cef53795077d8129eacadc1816
     strip.text = element_text(face = "bold", size = 8),
 >>>>>>> fc530abc182ff6cef53795077d8129eacadc1816
   )
