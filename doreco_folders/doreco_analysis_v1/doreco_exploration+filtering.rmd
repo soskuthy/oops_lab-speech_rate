@@ -1,0 +1,1278 @@
+---
+title: "doreco_stretchiness_analysis"
+author: "Noah Luntzlara"
+date: "2025-10-01"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Set up
+
+Load packages.
+
+```{r}
+library(tidyverse)
+library(forcats)
+
+library(ggbeeswarm)
+library(halfmoon)
+# library(geomtextpath)
+# library(ggpubr)
+# 
+# library(mgcv)
+# library(itsadug)
+# 
+# library(RColorBrewer)
+# library(viridis)
+# 
+# library(broom)
+# library(dplyr)
+# library(tidyr)
+```
+
+Read in the data.
+
+```{r message=FALSE}
+
+apah <- read_csv("../doreco_data/doreco_apah1238_durations.csv",
+                 col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+  mutate(language="Yali") %>%
+  arrange(speaker, discourse, phone_start)
+arap <- read_csv("../doreco_data/doreco_arap1274_durations.csv",
+                 col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+  mutate(language="Arapaho") %>%
+  arrange(speaker, discourse, phone_start)
+bain <- read_csv("../doreco_data/doreco_bain1259_durations.csv",
+                 col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+  mutate(language="Gubeeher") %>%
+  arrange(speaker, discourse, phone_start)
+beja <- read_csv("../doreco_data/doreco_beja1238_durations.csv",
+                 col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+  mutate(language="Beja") %>%
+  arrange(speaker, discourse, phone_start)
+bora <- read_csv("../doreco_data/doreco_bora1263_durations.csv",
+                 col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+  mutate(language="Bora") %>%
+  arrange(speaker, discourse, phone_start)
+dolg <- read_csv("../doreco_data/doreco_dolg1241_durations.csv",
+                 col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+  mutate(language="Dolgan") %>%
+  arrange(speaker, discourse, phone_start)
+even <- read_csv("../doreco_data/doreco_even1259_durations.csv",
+                 col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+  mutate(language="Evenki") %>%
+  arrange(speaker, discourse, phone_start)
+guri <- read_csv("../doreco_data/doreco_guri1247_durations.csv",
+                 col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+  mutate(language="Gurindji") %>%
+  arrange(speaker, discourse, phone_start)
+jeju <- read_csv("../doreco_data/doreco_jeju1234_durations.csv",
+                 col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+  mutate(language="Jejuan") %>%
+  arrange(speaker, discourse, phone_start)
+kama <- read_csv("../doreco_data/doreco_kama1351_durations.csv",
+                 col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+  mutate(language="Kamas") %>%
+  arrange(speaker, discourse, phone_start)
+lowe <- read_csv("../doreco_data/doreco_lowe1385_durations.csv",
+                 col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+  mutate(language="Lower_Sorbian") %>%
+  arrange(speaker, discourse, phone_start)
+movi <- read_csv("../doreco_data/doreco_movi1243_durations.csv",
+                 col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+  mutate(language="Movima") %>%
+  arrange(speaker, discourse, phone_start)
+ngal <- read_csv("../doreco_data/doreco_ngal1292_durations.csv",
+                 col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+  mutate(language="Dalabon") %>%
+  arrange(speaker, discourse, phone_start)
+nngg <- read_csv("../doreco_data/doreco_nngg1234_durations.csv",
+                 col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+  mutate(language="Nuu") %>%
+  arrange(speaker, discourse, phone_start)
+orko <- read_csv("../doreco_data/doreco_orko1234_durations.csv",
+                 col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+  mutate(language="Fanbyak") %>%
+  arrange(speaker, discourse, phone_start)
+resi <- read_csv("../doreco_data/doreco_resi1247_durations.csv",
+                 col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+  mutate(language="Resigaro") %>%
+  arrange(speaker, discourse, phone_start)
+ruul <- read_csv("../doreco_data/doreco_ruul1235_durations.csv",
+                 col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+  mutate(language="Ruuli") %>%
+  arrange(speaker, discourse, phone_start)
+sadu <- read_csv("../doreco_data/doreco_sadu1234_durations.csv",
+                 col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+  mutate(language="Sadu") %>%
+  arrange(speaker, discourse, phone_start)
+sanz <- read_csv("../doreco_data/doreco_sanz1248_durations.csv",
+                col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+ mutate(language="Sanzhi_Dargwa") %>%
+ arrange(speaker, discourse, phone_start)
+sout <- read_csv("../doreco_data/doreco_sout3282_durations.csv",
+                 col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+  mutate(language="English") %>%
+  arrange(speaker, discourse, phone_start)
+svan <- read_csv("../doreco_data/doreco_svan1243_durations.csv",
+                 col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+  mutate(language="Svan") %>%
+  arrange(speaker, discourse, phone_start)
+trin <- read_csv("../doreco_data/doreco_trin1278_durations.csv",
+                col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+ mutate(language="Mojeno_Trinitario") %>%
+ arrange(speaker, discourse, phone_start)
+urum <- read_csv("../doreco_data/doreco_urum1249_durations.csv",
+                 col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+  mutate(language="Urum") %>%
+  arrange(speaker, discourse, phone_start)
+vera <- read_csv("../doreco_data/doreco_vera1241_durations.csv",
+                 col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+  mutate(language="Veraa") %>%
+  arrange(speaker, discourse, phone_start)
+yong <- read_csv("../doreco_data/doreco_yong1270_durations.csv",
+                 col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+  mutate(language="Yongning_Na") %>%
+  arrange(speaker, discourse, phone_start)
+```
+Combine into one data frame.
+
+```{r}
+d <- bind_rows(apah,
+               arap,
+               bain,
+               beja,
+               bora,
+               dolg,
+               even,
+               guri,
+               jeju,
+               kama,
+               lowe,
+               movi,
+               ngal,
+               nngg,
+               orko,
+               resi,
+               ruul,
+               sadu,
+               sanz,
+               sout,
+               svan,
+               trin,
+               urum,
+               vera,
+               yong
+               )
+```
+
+Transformation of discourse metadata to weights for regression (not used).
+
+```{r}
+bad_wt <- 0.5
+medium_wt <- 0.75
+good_wt <- 1
+
+d <- d %>%
+  mutate(sound_quality_wt = case_when(
+                              sound_quality == "bad" ~ bad_wt,
+                              sound_quality == "medium" ~ medium_wt,
+                              sound_quality == "good" ~ good_wt
+                              ),
+         background_noise_wt = case_when(
+                              background_noise == "constant" ~ bad_wt,
+                              background_noise == "punctual" ~ medium_wt,
+                              background_noise == "none_from_doreco_metadata" ~ good_wt
+                              ),
+         genre_wt = case_when(
+                              genre == "procedural" ~ bad_wt,
+                              genre == "stimulus retelling" ~ bad_wt,
+                              genre == "traditional narrative" ~ medium_wt,
+                              genre == "personal narrative" ~ good_wt,
+                              genre == "conversation" ~ good_wt
+                              )
+         )
+```
+
+Add the typographical information of vowel length contrast.
+
+```{r}
+d <- d %>%
+  mutate(syll_pos = if_else(syll_end == word_end,"final","nonfinal")) %>%
+  mutate(vowel_length_contrast = case_when(language %in% c("Dalabon",
+                                                    "Gurindji",
+                                                    "Jejuan",
+                                                    "Lower_Sorbian",
+                                                    "Nuu",
+                                                    "Sadu",
+                                                    "Sanzhi_Dargwa",
+                                                    "English",
+                                                    "Urum",
+                                                    "Veraa",
+                                                    "Yali",
+                                                    "Yongning_Na") ~ "none",
+                                    language %in% c("Kamas",
+                                                    "Mojeno_Trinitario",
+                                                    "Ruuli") ~ "restricted",
+                                    language %in% c("Arapaho",
+                                                    "Beja",
+                                                    "Bora",
+                                                    "Dolgan",
+                                                    "Evenki",
+                                                    "Fanbyak",
+                                                    "Gubeeher",
+                                                    "Movima",
+                                                    "Resigaro",
+                                                    "Svan") ~ "unrestricted")
+         ) %>%
+  mutate(segtype_vowel_length_revised = if_else(
+    (segtype_syllabic == "vowel") &
+      (vowel_length_contrast == "none" |
+         (vowel_length_contrast == "restricted" & syll_pos == "final")) ,
+                                        "short",
+                                        segtype_vowel_length),     
+        vlcLn = ifelse((vowel_length_contrast == "none") |
+                (vowel_length_contrast == "restricted" & syll_pos == "final"),
+                "no_contrast",
+                paste("contrast",segtype_vowel_length_revised,sep="_"))
+         )
+
+```
+
+
+Unite phone type into a single variable
+
+```{r}
+d <- d %>%
+  mutate(phone_type = case_when(is.na(segtype) ~ 'nonspeech',
+                                segtype_syllabic == 'vowel'
+                                ~ paste("vowel",
+                                        # if the vowel is a monophthong
+                                        case_when(segtype_vowel_dipthongality == "monophthong"
+                                        # label it "_mono_<long/short>_<high/nonhigh>"
+                                        ~ paste("mono",
+                                                segtype_vowel_length_revised,
+                                                segtype_vowel_height,
+                                                sep="_"),
+                                        # if the vowel is a diphthong
+                                        segtype_vowel_dipthongality == "diphthong"
+                                        # just label it "_diph"
+                                        ~ "diph"),
+                                        sep="_"),
+                                segtype_syllabic == 'syll_c'
+                                ~ 'syllabic_consonant',
+                                segtype_consonant == 'sonorant' #& segtype_complex != 'double_stop'
+                                ~ segtype_sonorant,
+                                segtype_consonant == 'obstruent' #&
+                                  #segtype_obstruent != 'click' &
+                                  #segtype_complex != 'double_stop'
+                                ~ segtype_obstruent,
+                                #segtype_obstruent == 'click' & segtype_click == 'simple'
+                                #~ segtype_obstruent,
+                                #segtype_complex == 'double_stop' & segtype_consonant == 'obstruent'
+                                #~ paste(segtype_obstruent,'double',sep="_"),
+                                #segtype_complex == 'double_stop' & segtype_consonant == 'sonorant'
+                                #~ paste(segtype_sonorant,'double',sep="_"),
+                                #segtype_obstruent == 'click' & segtype_click != 'simple'
+                                #~ 'click_contour'
+                                )
+         # phone_type_new = case_when(
+         #                        # if the phone is a vowel
+         #                        segtype_syllabic == 'vowel'
+         #                        ~ paste("vowel",
+         #                                # if the vowel is a monophthong
+         #                                case_when(segtype_vowel_dipthongality == "monophthong"
+         #                                # label it "_mono_<long/short>_<high/nonhigh>"
+         #                                ~ paste("mono",
+         #                                        segtype_vowel_length_revised,
+         #                                        segtype_vowel_height,
+         #                                        sep="_"),
+         #                                # if the vowel is a diphthong
+         #                                segtype_vowel_dipthongality == "diphthong"
+         #                                # just label it "_diph"
+         #                                ~ "diph"),
+         #                                sep="_"),
+         #                        .default = phone_type
+         #                        )
+  )
+```
+
+
+
+Calculate utterance level measures and compare with those generated by PGDB.
+```{r}
+# for analysis - segment level
+d_phones <- d %>%
+  filter(phone_type != 'nonspeech'
+         ) %>%
+  group_by(
+    language,
+    speaker,
+    uttr_id
+  ) %>%
+  # rename old measures
+  rename(uttr_dur_pgdb = uttr_dur,
+         word_dur_pgdb = word_dur,
+         syll_dur_pgdb = syll_dur,
+         num_phones_uttr_pgdb = num_phones_uttr,
+         num_sylls_uttr_pgdb = num_sylls_uttr,
+         num_words_uttr_pgdb = num_words_uttr,
+         num_phones_word_pgdb = num_phones_word,
+         num_sylls_word_pgdb = num_sylls_word,
+         num_phones_syll_pgdb = num_phones_syll,
+         ) %>%
+  # Encode utterance level measures before filtering
+  mutate(
+    uttr_dur_init = sum(phone_dur),
+    num_phones_uttr_init = n(),
+    num_sylls_uttr_init = n_distinct(syll_id),
+    num_words_uttr_init = n_distinct(word_id),
+    num_cons_uttr_init = sum(segtype == "consonant"),
+    num_vowel_uttr_init = sum(segtype == "syllabic"),
+    cv_ratio_uttr_init = num_cons_uttr_init/num_vowel_uttr_init
+    ) %>%
+  ungroup() %>%
+  # Encode word level measures before filtering
+  group_by(language,speaker,uttr_id,word_id) %>%
+  mutate(word_dur_init = sum(phone_dur),
+         num_phones_word_init = n(),
+         num_sylls_word_init = n_distinct(syll_id)) %>%
+  ungroup() %>%
+  # Encode syllable level measures before filtering
+  group_by(language,speaker,uttr_id,word_id,syll_id) %>%
+  mutate(syll_dur_init = sum(phone_dur),
+         num_phones_syll_init = n()) %>%
+  ungroup() %>%
+  # Encode rate measures before filtering
+  mutate(
+    phone_dur_uttr_init = uttr_dur_init / num_phones_uttr_init,
+    phone_dur_uttr_ex_init = (uttr_dur_init - phone_dur) / (num_phones_uttr_init - 1),
+    syll_dur_uttr_init = uttr_dur_init / num_sylls_uttr_init,
+    syll_dur_uttr_ex_init = if_else(num_sylls_uttr_init > 1, 
+                                    (uttr_dur_init - syll_dur_init) / (num_sylls_uttr_init - 1),
+                                    syll_dur_uttr_init),
+   word_dur_uttr_init = uttr_dur_init / num_words_uttr_init,
+   word_dur_uttr_ex_init = if_else(num_words_uttr_init > 1, 
+                                    (uttr_dur_init - word_dur_init) / (num_words_uttr_init - 1),
+                                    word_dur_uttr_init)
+   )
+
+
+#Checks that the utterance-level metrics compare as expected with the ones generated by PolyglotDB.
+
+d_phones_check <- d_phones %>%
+  mutate(num_phones_uttr_check = (num_phones_uttr_init == num_phones_uttr_pgdb),
+         num_sylls_uttr_check = (num_sylls_uttr_init == num_sylls_uttr_pgdb),
+         num_words_uttr_check = (num_words_uttr_init == num_words_uttr_pgdb),
+         uttr_dur_check = abs(uttr_dur_pgdb - uttr_dur_init) < 0.0001) %>%
+  group_by(num_phones_uttr_check,
+           num_sylls_uttr_check,
+           num_words_uttr_check,
+           uttr_dur_check) %>%
+  summarize(num_uttr = n_distinct(uttr_id))
+d_phones_check
+
+d_phones_uttr_dur_check <- d_phones
+
+d_phones_uttr_dur_check %>%
+  group_by(language,speaker,uttr_id) %>%
+  summarize(uttr_dur_pgdb = uttr_dur_pgdb[1],
+            uttr_dur_init = uttr_dur_init[1]) %>%
+  mutate(uttr_dur_diff = uttr_dur_pgdb - uttr_dur_init) %>%
+  filter(uttr_dur_diff > 0.0001) %>%
+  ggplot(aes(x = uttr_dur_diff)) +
+  facet_wrap(~language) +
+  geom_density(bw = 0.04) +
+  scale_x_log10(labels = scales::label_number(drop0trailing=TRUE)) +
+  labs(x = "discrepancy in pgdb utterance duration")
+```
+
+# Filtering
+
+Setting thresholds.
+```{r}
+threshold_sylls_min <- 5
+
+threshold_uttr_min <- 0.04
+threshold_uttr_max <- 0.2
+
+threshold_individual_min <- 0.03 # changed from 0.025
+threshold_individual_max <- 0.5 # changed from 0.4
+
+threshold_z_uttr_dur <- 3
+threshold_z_phone_dur <- 3
+
+threshold_num_phones_uttr <- 10
+threshold_num_phones_removed <- 5
+threshold_prop_phones_removed <- 0.1
+```
+
+Performing filtering
+```{r}
+# First round of filtering
+
+# Perform utterance-level filtering
+
+# Create a data frame summarized by utterance
+d_uttr <- d_phones %>%
+  group_by(language,speaker,uttr_id) %>%
+  summarize(num_sylls_uttr_init = num_sylls_uttr_init[1],
+            phone_dur_uttr_init = phone_dur_uttr_init[1])
+
+# Remove utterances with 5 syllables or fewer
+d_uttr_filt_1.1 <- d_uttr %>%
+  filter(num_sylls_uttr_init > threshold_sylls_min)
+
+# Remove utterances with average phone duration outside (40ms, 200ms)
+d_uttr_filt_1.2 <- d_uttr_filt_1.1 %>%
+  filter(phone_dur_uttr_init > threshold_uttr_min,
+         phone_dur_uttr_init < threshold_uttr_max) %>%
+  # create thresholds for log average phone duration by utterance
+  # 3 standard deviations above/below the mean by language
+  group_by(language) %>%
+  mutate(
+    threshold_uttr_by_lang_min =
+    exp(
+      mean(log(phone_dur_uttr_init)) -
+      threshold_z_uttr_dur*sd(log(phone_dur_uttr_init))
+      ),
+    threshold_uttr_by_lang_max =
+    exp(
+      mean(log(phone_dur_uttr_init)) +
+      threshold_z_uttr_dur*sd(log(phone_dur_uttr_init))
+    )
+  ) %>%
+  ungroup()
+  
+d_uttr_filt_1.3 <- d_uttr_filt_1.2 %>%
+  # remove utterances with log average phone duration by utterance
+  # # 3 standard deviations above/below the mean by language
+  filter(phone_dur_uttr_init > threshold_uttr_by_lang_min,
+         phone_dur_uttr_init < threshold_uttr_by_lang_max)
+
+d_uttr_filt_1 <- d_uttr_filt_1.3
+
+d_phones_filt_1.1 <- d_phones %>%
+  # remove utterances removed by utterance-level filtering
+  filter(uttr_id %in% d_uttr_filt_1$uttr_id)
+
+d_phones_filt_1.2 <- d_phones_filt_1.1 %>%
+  # remove phones with duration outside (20ms, 500ms)
+  filter(
+    phone_dur > threshold_individual_min,
+    phone_dur < threshold_individual_max
+         )
+
+d_phones_filt_1 <- d_phones_filt_1.2
+
+# Counting phones removed
+d_phones_filt_1 <- d_phones_filt_1 %>%
+  group_by(language,speaker,uttr_id) %>%
+  mutate(num_phones_uttr = n(),
+         num_phones_uttr_removed = num_phones_uttr_init - num_phones_uttr,
+         prop_phones_uttr_removed = num_phones_uttr_removed/num_phones_uttr_init) %>%
+  ungroup()
+
+# Recalculating rate measures
+d_phones_filt_1 <- d_phones_filt_1 %>%
+  # Encode utterance level measures after filtering
+  group_by(language,speaker,uttr_id) %>%
+  mutate(
+    uttr_dur = sum(phone_dur),
+    num_phones_uttr = n(),
+    num_sylls_uttr = n_distinct(syll_id),
+    num_words_uttr = n_distinct(word_id),
+    num_cons_uttr = sum(segtype == "consonant"),
+    num_vowel_uttr = sum(segtype == "syllabic"),
+    cv_ratio_uttr = num_cons_uttr/num_vowel_uttr
+  ) %>%
+  ungroup() %>%
+  # Encode word level measures after filtering
+  group_by(language,speaker,uttr_id,word_id) %>%
+  mutate(word_dur = sum(phone_dur),
+         num_phones_word = n(),
+         num_sylls_word = n_distinct(syll_id)) %>%
+  ungroup() %>%
+  # Encode syllable level measures after filtering
+  group_by(language,speaker,uttr_id,word_id,syll_id) %>%
+  mutate(syll_dur = sum(phone_dur),
+         num_phones_syll = n()) %>%
+  ungroup() %>%
+  # Encode rate measures after filtering
+  mutate(
+    phone_dur_uttr = uttr_dur / num_phones_uttr,
+    phone_dur_uttr_ex = (uttr_dur - phone_dur) / (num_phones_uttr - 1),
+    syll_dur_uttr = uttr_dur / num_sylls_uttr,
+    syll_dur_uttr_ex = if_else(num_sylls_uttr > 1, 
+                               (uttr_dur - syll_dur) / (num_sylls_uttr - 1),
+                               syll_dur_uttr),
+    word_dur_uttr = uttr_dur / num_words_uttr,
+    word_dur_uttr_ex = if_else(num_words_uttr > 1, 
+                               (uttr_dur - word_dur) / (num_words_uttr - 1),
+                               word_dur_uttr)
+    )
+
+# Second round of filtering
+
+d_phones_filt_2 <- d_phones_filt_1 %>%
+  # remove utterances with at least 10% of phones removed OR
+  # at least 5 phones removed
+  filter(num_phones_uttr_removed < threshold_num_phones_removed,
+         prop_phones_uttr_removed < threshold_prop_phones_removed)
+
+# d_phones_filt_2 <- d_phones_filt_1 %>%
+#   # remove utterances with 10 phones or fewer
+#   filter(num_phones_uttr >= threshold_num_phones_uttr)
+
+# Third round of filtering
+
+# Create a data frame summarized by utterance
+d_uttr_filt_2.1 <- d_phones_filt_2 %>%
+  group_by(language,speaker,uttr_id) %>%
+  summarize(phone_dur_uttr = phone_dur_uttr[1])
+
+d_uttr_thresholds_by_lang_1 <- d_uttr_filt_1 %>%
+  group_by(language) %>%
+  summarize(threshold_uttr_by_lang_min=threshold_uttr_by_lang_min[1],
+            threshold_uttr_by_lang_max=threshold_uttr_by_lang_max[1])
+
+d_uttr_filt_2.1 <- d_uttr_filt_2.1 %>%
+  left_join(d_uttr_thresholds_by_lang_1,by="language")
+  # group_by(language) %>%
+  # mutate(
+  #   threshold_uttr_by_lang_2_min =
+  #   exp(
+  #     mean(log(phone_dur_uttr)) -
+  #     threshold_z_uttr_dur*sd(log(phone_dur_uttr))
+  #     ),
+  #   threshold_uttr_by_lang_2_max =
+  #   exp(
+  #     mean(log(phone_dur_uttr)) +
+  #     threshold_z_uttr_dur*sd(log(phone_dur_uttr))
+  #   )
+  # ) %>%
+  # ungroup()
+
+d_uttr_filt_2 <- d_uttr_filt_2.1
+
+d_uttr_filt_3 <- d_uttr_filt_2 %>%
+  filter(phone_dur_uttr > threshold_uttr_by_lang_min,
+         phone_dur_uttr < threshold_uttr_by_lang_max)
+  # filter(phone_dur_uttr > threshold_uttr_by_lang_2_min,
+  #        phone_dur_uttr < threshold_uttr_by_lang_2_max)
+
+d_phones_filt_3 <- d_phones_filt_2 %>%
+  filter(uttr_id %in% d_uttr_filt_3$uttr_id)
+```
+
+```{r}
+
+# Final filtered dataframe
+d_phones_filt <- d_phones_filt_1 # d_phones_filt_3
+
+# Renaming measures in unfiltered dataframe
+d_phones_unfilt <- d_phones %>%
+  rename_with(~str_remove(., '_init'))
+
+d_phones_filt %>% write_csv("../doreco_data/combined_doreco_durations_filtered.csv")
+
+d_phones_unfilt %>% write_csv("../doreco_data/combined_doreco_durations_unfiltered.csv")
+```
+
+# Data exploration
+
+## Metadata
+
+Make dataframes to look at metadata by discourse (i.e. recording), language, and speaker.
+```{r}
+d <- d %>%
+  group_by(discourse) %>%
+  mutate(discourse_dur = max(phone_end)) %>%
+  ungroup()
+
+d_discourses <- d %>%
+  group_by(discourse) %>%
+  summarize(num_speakers = n_distinct(speaker),
+            language = language[1],
+            genre = genre[1],
+            sound_quality = sound_quality[1],
+            background_noise = background_noise[1],
+            all_speakers = all_speakers[1],
+            discourse_dur = discourse_dur[1])
+
+d_languages <- d %>%
+  group_by(language) %>%
+  summarize(num_speakers = n_distinct(speaker),
+            hours = sum(discourse_dur)/3600)
+
+d_discourses_speakers <- d_discourses %>%
+  group_by(language,all_speakers) %>%
+  summarize(num_speakers = num_speakers[1],
+            hours = sum(discourse_dur)/3600)
+
+d_discourses_genres <- d_discourses %>%
+  mutate(genre = factor(genre,
+                        levels=c("procedural",
+                                 "stimulus retelling",
+                                 "conversation",
+                                 "traditional narrative",
+                                 "personal narrative"))) %>%
+  group_by(genre,language) %>%
+  summarize(hours = sum(discourse_dur)/3600,
+            num_discourses = n())
+d_discourses_genres_summary <- d_discourses_genres %>%
+  group_by(genre) %>%
+  summarize(hours = sum(hours),
+            num_discourses=sum(num_discourses),
+            num_languages=n_distinct(language))
+
+d_discourses_quality <- d_discourses %>%
+  mutate(sound_quality = factor(sound_quality,
+                                levels=c("bad",
+                                         "medium",
+                                         "good"))) %>%
+  group_by(language,sound_quality) %>%
+  summarize(hours = sum(discourse_dur)/3600,
+            num_discourses = n())
+d_discourses_quality_summary <- d_discourses_quality %>%
+  group_by(sound_quality) %>%
+  summarize(hours = sum(hours),
+            num_discourses=sum(num_discourses),
+            num_languages=n_distinct(language))
+
+d_discourses_noise <- d_discourses %>%
+  mutate(background_noise = factor(background_noise,
+                        levels=c("constant",
+                                 "punctual",
+                                 "none_from_doreco_metadata"),
+                        labels=c("constant",
+                                 "punctual",
+                                 "none")
+                        )
+         ) %>%
+  group_by(language,background_noise) %>%
+  summarize(hours = sum(discourse_dur)/3600,
+            num_discourses = n())
+d_discourses_noise_summary <- d_discourses_noise %>%
+  group_by(background_noise) %>%
+  summarize(hours = sum(hours),
+            num_discourses=sum(num_discourses),
+            num_languages=n_distinct(language))
+
+d_discourses_quality_noise <- d_discourses %>%
+  mutate(sound_quality = factor(sound_quality,
+                                levels=c("bad",
+                                         "medium",
+                                         "good")),
+         background_noise = factor(background_noise,
+                        levels=c("constant",
+                                 "punctual",
+                                 "none_from_doreco_metadata"),
+                        labels=c("constant",
+                                 "punctual",
+                                 "none"),
+                        ),
+         quality_noise = interaction(background_noise,sound_quality)) %>%
+  group_by(language,quality_noise) %>%
+  summarize(hours = sum(discourse_dur)/3600,
+            num_discourses = n())
+
+#d_discourses_genres
+#d_discourses_quality
+#d_discourses_noise
+
+d_discourses_genres_summary
+d_discourses_quality_summary
+d_discourses_noise_summary
+
+```
+
+
+```{r}
+d_languages %>%
+  ggplot(aes(y=language,x=num_speakers)) +
+  geom_bar(stat = "identity") + 
+  scale_x_continuous(n.breaks = 17, 
+                     limits = c(0,32)
+                     ) +
+  labs(title = "Number of speakers per language")
+
+d_discourses_speakers %>%
+  mutate(num_speakers = as.factor(num_speakers)) %>%
+  ggplot(aes(y=language,
+             x=hours,
+             color = num_speakers)) +
+  geom_point() +
+  scale_x_continuous(n.breaks = 8) +
+  labs(title = "Number of hours per discourse per language",
+       x = "hours / discourse")
+
+d_discourses_genres %>%
+  ggplot(aes(x = hours, 
+             y = language, 
+             fill = genre)) +
+  geom_bar(stat = "identity") +
+  scale_x_continuous(n.breaks = 8) +
+  scale_fill_manual(values = c("traditional narrative"="violet",
+                               "personal narrative"="yellowgreen",
+                               "conversation"="gold",
+                               "stimulus retelling"="goldenrod",
+                               "procedural"="orangered") ) +
+  labs(title = "Number of hours per language by genre")
+
+d_discourses_quality %>%
+  ggplot(aes(x = hours, 
+             y = language, 
+             fill = sound_quality)) +
+  geom_bar(stat = "identity") +
+  scale_x_continuous(n.breaks = 8) +
+  scale_fill_manual(values = c("bad" = "red2", "medium"="orange", "good"="green3") ) +
+  labs(title = "Number of hours per language by sound quality")
+
+d_discourses_noise %>%
+  ggplot(aes(x = hours, 
+             y = language, 
+             fill = background_noise)) +
+  geom_bar(stat = "identity") +
+  scale_x_continuous(n.breaks = 8) +
+  scale_fill_manual(values = c("constant" = "yellow3",
+                               "punctual" = "purple",
+                               "none" = "cyan4") ) +
+  labs(title = "Number of hours per language by background noise")
+
+d_discourses_quality_noise %>%
+  ggplot(aes(x = hours, 
+             y = language, 
+             fill = quality_noise)) +
+  geom_bar(stat = "identity") +
+  scale_x_continuous(n.breaks = 8) +
+  scale_fill_manual(values = c("constant.bad" = "darkred",
+                               "punctual.bad" = "red",
+                               "none.bad" = "indianred",
+                               "constant.medium" = "darkorange",
+                               "punctual.medium" = "orange",
+                               "none.medium" = "yellow",
+                               "constant.good" = "purple",
+                               "punctual.good" = "forestgreen",
+                               "none.good" = "green") ) +
+  labs(title = "Number of hours per language by quality and background noise")
+
+```
+
+
+
+
+## Phone categories
+
+Make some summaries to look at phone type
+
+
+```{r}
+d %>%
+  group_by(phone_type) %>%
+  summarize(num_langs = n_distinct(language),
+            num_phones = n_distinct(phone),
+            count = n()) %>%
+  arrange(num_langs)
+  
+  
+d %>%
+  ggplot(aes(y = language, 
+             fill = phone_type)) +
+  geom_bar() +
+  scale_x_continuous(n.breaks = 8)
+```
+```{r}
+d %>%
+  filter(phone_type %in% c("click",
+                           #"click_contour",
+                           #"nasal_double",
+                           #"plosive_double",
+                           "syllabic_consonant")) %>%
+  group_by(phone_type,language) %>%
+  summarize(count = n())
+
+
+
+d %>%
+  filter(language %in% filter(d,phone_type=="click")$language,
+         segtype == "consonant") %>%
+  group_by(language) %>%
+  mutate(total_c = n()) %>%
+  ungroup() %>%
+  group_by(language,phone_type,phone_ipa) %>%
+  filter(phone_type %in% c("click")) %>%
+  summarize(count = n(),
+            total_c = total_c[1]) %>%
+  mutate(percent_c = round(100*count/total_c,2)) %>%
+  arrange(language,desc(percent_c)) %>%
+  select(-total_c)
+
+
+# d %>%
+#   filter(language %in% filter(d,phone_type=="plosive_double")$language,
+#          segtype == "consonant") %>%
+#   group_by(language) %>%
+#   mutate(total_c = n()) %>%
+#   ungroup() %>%
+#   group_by(language,phone_type) %>%
+#   filter(phone_type %in% c("nasal_double","plosive_double")) %>%
+#   summarize(count = n(),
+#             total_c = total_c[1]) %>%
+#   mutate(percent_c = round(100*count/total_c,2)) %>%
+#   arrange(language,desc(percent_c)) %>%
+#   select(-total_c)
+
+d %>%
+  filter(language %in% filter(d,phone_type=="syllabic_consonant")$language,
+         segtype == "syllabic") %>%
+  group_by(language) %>%
+  mutate(total_v = n()) %>%
+  ungroup() %>%
+  group_by(language,phone_type,phone_ipa) %>%
+  filter(phone_type %in% c("syllabic_consonant")) %>%
+  summarize(count = n(),
+            total_v = total_v[1]) %>%
+  mutate(percent_v = round(100*count/total_v,2)) %>%
+  arrange(language,desc(percent_v)) %>%
+  select(-total_v)
+```
+
+Make some summaries to look at vowels and consonants
+
+
+
+
+```{r}
+d_vowels_plot <- d %>%
+  filter(segtype_syllabic == 'vowel')
+
+d_consonants_plot <- d %>%
+  filter(segtype == "consonant")
+
+ggplot(d_consonants_plot, aes(x = "",
+                     y = phone_dur,
+                     fill = phone_type)) +
+  scale_y_log10(n.breaks = 10) +
+  geom_boxplot() +
+  labs(title = "Consonant durations by phone type.")
+
+ggplot(d_vowels_plot, aes(x = "",
+                     y = phone_dur,
+                     fill = phone_type)) +
+  scale_y_log10(n.breaks = 10) +
+  geom_boxplot() +
+  labs(title = "Vowel durations by phone type.")
+
+ggplot(d_vowels_plot, aes(x = vowel_length_contrast,
+                     y = phone_dur,
+                     fill = vlcLn)) +
+  scale_fill_manual(values = c("blue","limegreen","magenta")) +
+  scale_y_log10(n.breaks = 10) +
+  geom_boxplot() +
+  labs(title = "Vowel durations by length contrast.")
+```
+```{r}
+d_vowels_plot %>%
+  group_by(phone_type) %>%
+  summarize(count = n())
+```
+
+
+```{r warning=FALSE}
+d_monos_plot <- d_phones_filt_2 %>%
+  filter(segtype_syllabic == 'vowel') %>%
+  filter(phone_type != 'vowel_diph') %>%
+  mutate(phone_short = str_replace(phone_ipa,'ː',''))
+
+d_monos_plot %>%
+  group_by(vowel_length_contrast,language,phone_short,segtype_vowel_length_revised) %>%
+  summarize() %>%
+  group_by(vowel_length_contrast,language) %>%
+  summarize(count = n()) %>%
+  arrange(desc(vowel_length_contrast),count)
+
+
+for (l in d_monos_plot$languages) {
+d_monos_plot %>%
+  filter(language == l) %>%
+  ggplot() +
+  facet_grid(phone_short~speaker) +
+  geom_point(aes(x=phone_dur_uttr,y=phone_dur,fill=segtype_vowel_length_revised),pch=21,stroke=NA) +   geom_smooth(aes(x=phone_dur_uttr,y=phone_dur,fill=segtype_vowel_length_revised,col=segtype_vowel_length_revised),method='gam') +
+  scale_x_log10() +scale_y_log10() +
+  scale_color_manual(values = c('long'='blue','short'='limegreen'),guide='legend') +
+  scale_fill_manual(values = c('long'='royalblue','short'='green'),guide='none') +
+guides(col = guide_legend(title = "Length",
+                          override.aes = list(lwd = 2),fill=NA))
+}
+```
+
+## Visualizations for filtering.
+
+First round of filtering.
+
+```{r}
+d_uttr %>%
+  ggplot(aes(x=num_sylls_uttr_init)) +
+  facet_wrap(~language) +
+  geom_histogram() +
+  geom_vline(xintercept = c(threshold_sylls_min),
+             color = "red",
+             linetype = "dashed") +
+  scale_x_log10(breaks = c(1,3,10,30,100,
+                           threshold_sylls_min)) +
+  labs(title = "Utterances by number of syllables per utterance.")
+
+d_uttr %>%
+  filter(num_sylls_uttr_init <= threshold_sylls_min) %>%
+  mutate(num_sylls = factor(num_sylls_uttr_init)) %>%
+  mutate(language = reorder(language, desc(language))) %>%
+  ggplot(aes(y=language)) +
+  geom_bar(aes(fill = num_sylls)) +
+  labs(title = "Utterances removed for having too few syllables.")
+  
+
+
+d_uttr_filt_1.1 %>%
+  ggplot(aes(x=phone_dur_uttr_init)) +
+  facet_wrap(~language) +
+  geom_density(bw = 0.01,fill="grey50") +
+  geom_vline(xintercept = c(threshold_uttr_min,threshold_uttr_max),
+             color = "red",
+             linetype = "dashed") +
+  scale_x_log10(breaks = c(threshold_uttr_min,
+                           0.08,
+                           threshold_uttr_max)) +
+  labs(title = "Utterances after syllable filtering by average phone duration.")
+
+d_uttr_filt_1.1 %>%
+  filter(phone_dur_uttr_init <= threshold_uttr_min |
+         phone_dur_uttr_init >= threshold_uttr_max) %>%
+  mutate(error_type = ifelse(phone_dur_uttr_init <= threshold_uttr_min,
+                           "below_min","above_max")) %>%
+  mutate(language = reorder(language, desc(language))) %>%
+  ggplot(aes(y=language)) +
+  geom_bar(aes(fill=error_type)) +
+  labs(title = "Utterances removed for having too high or low average phone duration.")
+
+
+
+d_uttr_filt_1.2 %>%
+  ggplot(aes(x=phone_dur_uttr_init)) +
+  facet_wrap(~language) +
+  geom_density(bw = 0.01,fill="grey50") +
+  geom_vline(aes(xintercept = threshold_uttr_by_lang_min),
+             color = "blue",
+             linetype = "dashed") +
+  geom_vline(aes(xintercept = threshold_uttr_by_lang_max),
+             color = "blue",
+             linetype = "dashed") +
+  scale_x_log10(
+    breaks=c(round(min(d_uttr_filt_1.2$threshold_uttr_by_lang_min),3),
+             0.075,
+             round(max(d_uttr_filt_1.2$threshold_uttr_by_lang_max),3))
+    ) +
+  labs(title = "Utterances after bulk filtering by average phone duration.")
+
+d_uttr_filt_1.2 %>%
+  filter(phone_dur_uttr_init <= threshold_uttr_by_lang_min |
+         phone_dur_uttr_init >= threshold_uttr_by_lang_max) %>%
+  mutate(error_type = ifelse(phone_dur_uttr_init <= threshold_uttr_by_lang_min,
+                           "below_min","above_max")) %>%
+  mutate(language = reorder(language, desc(language))) %>%
+  ggplot(aes(y=language)) +
+  geom_bar(aes(fill=error_type)) +
+  labs(title = "Utterances removed for having outlying average phone duration by language.")
+
+
+d_phones_filt_1.1 %>%
+  ggplot(aes(x=phone_dur)) +
+  facet_wrap(~language) +
+  geom_density(bw = 0.04,fill="grey50") +
+  geom_vline(xintercept = c(threshold_individual_min,threshold_individual_max),
+             color = "red",
+             linetype = "dashed") +
+  scale_x_log10(
+    breaks=c(threshold_individual_min,
+             0.1,
+             threshold_individual_max)
+    ) +
+  labs(title = "Phone durations after utterance-level filtering.")
+  
+d_phones_filt_1.1 %>%
+  filter(phone_dur <= threshold_individual_min |
+         phone_dur >= threshold_individual_max) %>%
+  mutate(error_type = ifelse(phone_dur <= threshold_individual_min,
+                           "below_min","above_max")) %>%
+  mutate(language = reorder(language, desc(language))) %>%
+  ggplot(aes(y=language)) +
+  geom_bar(aes(fill=error_type)) +
+  labs(title = "Phones removed for having too high or too low duration.")
+```
+
+Second round of filtering.
+
+```{r warning=FALSE}
+
+d_uttr_filt_1.4 <- d_phones_filt_1 %>%
+  group_by(language,speaker,uttr_id) %>%
+  summarize(num_phones_uttr = num_phones_uttr[1],
+            num_phones_uttr_removed = num_phones_uttr_removed[1],
+            prop_phones_uttr_removed = prop_phones_uttr_removed[1])
+
+d_uttr_filt_1.4 %>%
+  ggplot(aes(x=num_phones_uttr)) +
+  facet_wrap(.~language) +
+  geom_histogram() +
+  geom_vline(aes(xintercept = threshold_num_phones_uttr),
+             col = "red",
+             linetype = "dashed") +
+  scale_x_log10(breaks = c(1,3,10,30,100,
+                           threshold_num_phones_uttr)) +
+  labs(title = "Utterances by number of phones remaining after filtering (v1).")
+
+
+d_uttr_filt_1.4 %>%
+  filter(num_phones_uttr < threshold_num_phones_uttr) %>%
+  ggplot(aes(y=reorder(language, desc(language)))) +
+  geom_bar(aes(fill=num_phones_uttr_removed==0)) +
+  labs(title = "Utterances removed for having too few phones remaining after filtering (v1).")
+
+d_uttr_filt_1.4 %>%
+  filter(num_phones_uttr_removed != 0) %>%
+  group_by(num_phones_uttr_removed,prop_phones_uttr_removed) %>%
+  summarize(num_uttr = n()) %>%
+  ggplot(aes(x=num_phones_uttr_removed,prop_phones_uttr_removed,size=num_uttr)) +
+  #facet_wrap(.~language) +
+  geom_point(alpha=0.3) +
+  geom_hline(aes(yintercept = threshold_prop_phones_removed),
+             col = "red",
+             linetype = "dashed") +
+  geom_vline(aes(xintercept = threshold_num_phones_removed),
+             col = "red",
+             linetype = "dashed") +
+  labs(title = "Utterances with ≥1 phone removed by number and proportion removed (v2).")
+
+d_uttr_filt_1.4 %>%
+  filter(num_phones_uttr_removed >= threshold_num_phones_removed |
+         prop_phones_uttr_removed >= threshold_prop_phones_removed) %>%
+  mutate(error_type = case_when(
+    num_phones_uttr_removed < threshold_num_phones_removed ~ "proportion",
+    prop_phones_uttr_removed < threshold_prop_phones_removed ~ "number",
+    num_phones_uttr_removed >= threshold_num_phones_removed &
+         prop_phones_uttr_removed >= threshold_prop_phones_removed ~ "both"
+  )) %>%
+  mutate(language = reorder(language, desc(language))) %>%
+  ggplot(aes(y=language)) +
+  geom_bar(aes(fill=error_type)) +
+  #scale_x_continuous(breaks = c(0,2,4,6,8,10,12)) +
+  labs(title = "Utterances removed for having too many phones removed (v2).")
+```
+
+
+Third round of filtering.
+
+
+
+```{r warning=FALSE}
+
+
+d_uttr_filt_2 %>%
+  ggplot(aes(x=phone_dur_uttr)) +
+  facet_wrap(~language) +
+  geom_density(bw = 0.01,fill="grey50") +
+  # geom_vline(aes(xintercept = threshold_uttr_by_lang_2_min),
+  #            color = "darkgreen",
+  #            linetype = "solid") +
+  # geom_vline(aes(xintercept = threshold_uttr_by_lang_2_max),
+  #            color = "darkgreen",
+  #            linetype = "solid") +
+  geom_vline(aes(xintercept = threshold_uttr_by_lang_min),
+             color = "blue",
+             linetype = "dashed") +
+  geom_vline(aes(xintercept = threshold_uttr_by_lang_max),
+             color = "blue",
+             linetype = "dashed") +
+  scale_x_log10(
+    breaks=c(round(min(d_uttr_filt_1.2$threshold_uttr_by_lang_min),3),
+             0.075,
+             round(max(d_uttr_filt_1.2$threshold_uttr_by_lang_min),3))
+    ) +
+  labs(title = "Utterances after bulk filtering by average phone duration.")
+
+d_uttr_filt_2 %>%
+  filter(phone_dur_uttr <= threshold_uttr_by_lang_min |
+         phone_dur_uttr >= threshold_uttr_by_lang_max) %>%
+  mutate(error_type = ifelse(phone_dur_uttr <= threshold_uttr_by_lang_min,
+                           "below_min","above_max")) %>%
+  ggplot(aes(y=reorder(language, desc(language)))) +
+  geom_bar(aes(fill = error_type)) +
+  labs(title = "Utterances removed for having outlying recalculated average phone duration.")
+```
+
+
+```{r warning=FALSE}
+d_phones_unfilt %>%
+  ggplot(aes(x = phone_dur_uttr,
+             y = phone_dur)) +
+  facet_wrap(~language) +
+  geom_point(aes(fill=segtype), alpha=0.3, shape=21, stroke=0) +
+  scale_fill_manual(values=c("purple","orange")) +
+  geom_smooth(aes(col=segtype), method="gam", se=F) +
+  scale_color_manual(values=c("purple4","darkorange2")) +
+  scale_x_log10(limits=c(min(d_phones_unfilt$phone_dur_uttr),
+                              max(d_phones_unfilt$phone_dur_uttr))) +
+  scale_y_continuous(limits=c(min(d_phones_unfilt$phone_dur),
+                              1)) +
+  labs(title = "Unfiltered duration data",
+       x = "Initial Mean Duration by Utterance (Inverse Rate)")
+  
+d_phones_filt_1 %>%
+  ggplot(aes(x = phone_dur_uttr_init,
+             y = phone_dur)) +
+  facet_wrap(~language) +
+  geom_point(aes(fill=segtype), alpha=0.3, shape=21, stroke=0) +
+  scale_fill_manual(values=c("purple","orange")) +
+  geom_smooth(aes(col=segtype), method="gam", se=F) +
+  scale_color_manual(values=c("purple4","darkorange2")) +
+  scale_x_log10(limits=c(min(d_phones_unfilt$phone_dur_uttr),
+                              max(d_phones_unfilt$phone_dur_uttr))) +
+  scale_y_continuous(limits=c(min(d_phones_unfilt$phone_dur),
+                              1)) +
+  labs(title = "Duration data after first round of filtering (by phone duration and initial rate)",
+       x = "Initial Mean Duration by Utterance (Inverse Speech Rate)")
+
+d_phones_filt_1 %>%
+  ggplot(aes(x = phone_dur_uttr,
+             y = phone_dur)) +
+  facet_wrap(~language) +
+  geom_point(aes(fill=segtype), alpha=0.3, shape=21, stroke=0) +
+  scale_fill_manual(values=c("purple","orange")) +
+  geom_smooth(aes(col=segtype), method="gam", se=F) +
+  scale_color_manual(values=c("purple4","darkorange2")) +
+  scale_x_log10(limits=c(min(d_phones_unfilt$phone_dur_uttr),
+                              max(d_phones_unfilt$phone_dur_uttr))) +
+  scale_y_continuous(limits=c(min(d_phones_unfilt$phone_dur),
+                              1)) +
+  labs(title = "Duration data after first round of filtering (by phone duration and initial rate)",
+       x = "Recalculated Mean Duration by Utterance (Inverse Speech Rate)")
+
+d_phones_filt_2 %>%
+  ggplot(aes(x = phone_dur_uttr,
+             y = phone_dur)) +
+  facet_wrap(~language) +
+  geom_point(aes(fill=segtype), alpha=0.3, shape=21, stroke=0) +
+  scale_fill_manual(values=c("purple","orange")) +
+  geom_smooth(aes(col=segtype), method="gam", se=F) +
+  scale_color_manual(values=c("purple4","darkorange2")) +
+  scale_x_log10(limits=c(min(d_phones_unfilt$phone_dur_uttr),
+                              max(d_phones_unfilt$phone_dur_uttr))) +
+  scale_y_continuous(limits=c(min(d_phones_unfilt$phone_dur),1)) +
+  labs(title = "Duration data after second round of filtering (by phones removed per utterance)",
+       x = "Recalculated Mean Duration by Utterance (Inverse Speech Rate)")
+
+d_phones_filt_3 %>%
+  ggplot(aes(x = phone_dur_uttr,
+             y = phone_dur)) +
+  facet_wrap(~language) +
+  geom_point(aes(fill=segtype), alpha=0.3, shape=21, stroke=0) +
+  scale_fill_manual(values=c("purple","orange")) +
+  geom_smooth(aes(col=segtype), method="gam", se=F) +
+  scale_color_manual(values=c("purple4","darkorange2")) +
+  scale_x_log10(limits=c(min(d_phones_unfilt$phone_dur_uttr),
+                              max(d_phones_unfilt$phone_dur_uttr))) +
+  scale_y_continuous(limits=c(min(d_phones_unfilt$phone_dur),1)) + 
+  labs(title = "Duration data after third round of filtering (by recalculated rate)",
+       x = "Recalculated Mean Duration by Utterance (Inverse Speech Rate)")
+```
+
+
+
+## Further Visualizations
+
+```{r}
+d_phones_filt_language_nums <- d_phones_filt %>%
+  group_by(language) %>%
+  summarize() %>%
+  mutate(language_number = row_number())
+  
+
+d_phones_filt_speaker_nums <- d_phones_filt %>%
+  group_by(language,sex,speaker) %>%
+  summarize(phone_dur_uttr_av=mean(phone_dur_uttr)) %>%
+  group_by(language) %>%
+  mutate(num_speakers = n()) %>%
+  mutate(phone_dur_uttr_av_scaled = if_else(num_speakers > 1,
+                                            (phone_dur_uttr_av-min(phone_dur_uttr_av))/
+                                              (max(phone_dur_uttr_av)-min(phone_dur_uttr_av)),
+                                            0)) %>%
+  arrange(phone_dur_uttr_av_scaled) %>%
+  mutate(speaker_number = as.factor(row_number()))
+
+d_phones_filt_speakers <- left_join(d_phones_filt,d_phones_filt_speaker_nums,
+                                    by = c("language","sex","speaker"))
+d_phones_filt_speakers <- left_join(d_phones_filt_speakers,d_phones_filt_language_nums,
+                                    by = "language")
+
+
+d_phones_filt_speakers %>%
+  group_by(language,sex,speaker) %>%
+  summarize(speaker_number = speaker_number[1],num_speakers = num_speakers[1]) %>%
+  group_by(language) %>%
+  arrange(num_speakers)
+```
+
+```{r}
+d_phones_filt_speakers %>%
+  group_by(language,language_number,sex,speaker,speaker_number,phone_dur_uttr_av_scaled,vlcLn,genre,uttr_id) %>%
+  summarize(phone_dur_uttr = phone_dur_uttr[1]) %>%
+  filter(language_number <= 5) %>%
+  ggplot() +
+  facet_grid(genre~language) +
+  geom_density(aes(x=phone_dur_uttr,groups=speaker,fill=sex,after_stat(scaled)),linewidth=0,alpha=0.5)
+
+d_phones_filt_speakers %>%
+  group_by(language,language_number,sex,speaker,speaker_number,phone_dur_uttr_av_scaled,vlcLn,genre,uttr_id) %>%
+  summarize(phone_dur_uttr = phone_dur_uttr[1]) %>%
+  filter(language_number > 5 &
+           language_number <= 10) %>%
+  ggplot() +
+  facet_grid(genre~language) +
+  geom_density(aes(x=phone_dur_uttr,groups=speaker,fill=sex,after_stat(scaled)),linewidth=0,alpha=0.5)
+
+d_phones_filt_speakers %>%
+  group_by(language,language_number,sex,speaker,speaker_number,phone_dur_uttr_av_scaled,vlcLn,genre,uttr_id) %>%
+  summarize(phone_dur_uttr = phone_dur_uttr[1]) %>%
+  filter(language_number > 10 &
+           language_number <= 15) %>%
+  ggplot() +
+  facet_grid(genre~language) +
+  geom_density(aes(x=phone_dur_uttr,groups=speaker,fill=sex,after_stat(scaled)),linewidth=0,alpha=0.5)
+
+d_phones_filt_speakers %>%
+  group_by(language,language_number,sex,speaker,speaker_number,phone_dur_uttr_av_scaled,vlcLn,genre,uttr_id) %>%
+  summarize(phone_dur_uttr = phone_dur_uttr[1]) %>%
+  filter(language_number > 15 &
+           language_number <= 20) %>%
+  ggplot() +
+  facet_grid(genre~language) +
+  geom_density(aes(x=phone_dur_uttr,groups=speaker,fill=sex,after_stat(scaled)),linewidth=0,alpha=0.5)
+
+d_phones_filt_speakers %>%
+  group_by(language,language_number,sex,speaker,speaker_number,phone_dur_uttr_av_scaled,vlcLn,genre,uttr_id) %>%
+  summarize(phone_dur_uttr = phone_dur_uttr[1]) %>%
+  filter(language_number > 20) %>%
+  ggplot() +
+  facet_grid(genre~language) +
+  geom_density(aes(x=phone_dur_uttr,groups=speaker,fill=sex,after_stat(scaled)),linewidth=0,alpha=0.5) +
+  scale_color_manual(values = c("traditional narrative"="violet",
+                               "personal narrative"="yellowgreen",
+                               "conversation"="gold",
+                               "stimulus retelling"="goldenrod",
+                               "procedural"="orangered") )
+
+```
+

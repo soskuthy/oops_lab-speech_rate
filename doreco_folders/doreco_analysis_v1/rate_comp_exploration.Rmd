@@ -1,0 +1,754 @@
+---
+title: "Rate Measures Comparison"
+author: "Noah Luntzlara"
+date: "2025-12-09"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Set Up
+
+`Load packages.
+
+```{r}
+library(tidyverse)
+library(forcats)
+
+library(ggbeeswarm)
+library(halfmoon)
+# library(geomtextpath)
+library(ggpubr)
+# 
+# library(mgcv)
+# library(itsadug)
+# 
+# library(RColorBrewer)
+# library(viridis)
+# 
+# library(broom)
+# library(dplyr)
+# library(tidyr)
+```
+
+```{r}
+
+d_all <- read_csv("../doreco_data/combined_doreco_durations_filtered.csv") %>%
+  mutate(phone_type_broad = 
+  case_when(phone_type %in% c("vowel_diph",
+                                         "vowel_mono_long_high",
+                                         "vowel_mono_long_nonhigh",
+                                         "vowel_mono_short_high",
+                                         "vowel_mono_short_nonhigh",
+                                         "approximant",
+                                         "syllabic_consonant")
+            ~ paste("vocalic",
+                    if_else(segtype_vowel_length_revised=='long','long','short',missing='short'),
+                    sep='_'),
+    phone_type %in% c("liquid", "nasal", "fricative", "nasal_double") ~ "continuant",
+    phone_type %in% c("plosive", "plosive_double", "affricate", "flap", "glottal", "trill", "click", "click_contour") ~ "non_continuant"
+  ))
+
+d_all_unfilt <- read_csv("../doreco_data/combined_doreco_durations_unfiltered.csv")  %>%
+  mutate(phone_type_broad = 
+  case_when(phone_type %in% c("vowel_diph",
+                                         "vowel_mono_long_high",
+                                         "vowel_mono_long_nonhigh",
+                                         "vowel_mono_short_high",
+                                         "vowel_mono_short_nonhigh",
+                                         "approximant",
+                                         "syllabic_consonant")
+            ~ paste("vocalic",
+                    if_else(segtype_vowel_length_revised=='long','long','short',missing='short'),
+                    sep='_'),
+    phone_type %in% c("liquid", "fricative") ~ "continuant",
+    phone_type %in% c("plosive", "plosive_double", "nasal", "nasal_double", "affricate", "flap", "glottal", "trill", "click", "click_contour") ~ "non_continuant"
+  ))
+
+```
+
+```{r}
+d_langs <- d_all %>%
+  group_by(vowel_length_contrast,language) %>%
+  summarize() %>%
+  print()
+```
+
+```{r}
+d_rates <- d_all_unfilt %>%
+  group_by(language,speaker,phone) %>%
+  mutate(dur_av = mean(phone_dur),
+         dur_sd = sd(phone_dur),
+         dur_md = median(phone_dur),
+         log_dur_av = mean(log(phone_dur)),
+         log_dur_sd = sd(log(phone_dur)),
+         log_dur_md = median(log(phone_dur)),
+         dur_z = (log(phone_dur)-log_dur_av)/log_dur_sd,#ecdf(phone_dur)(phone_dur),
+         dur_z_av = mean(dur_z),
+         dur_z_sd = sd(dur_z)) %>%
+  ungroup() %>%
+  group_by(language,speaker,uttr_id) %>%
+  mutate(dur_uttr_av = mean(phone_dur),
+         dur_uttr_md = median(phone_dur),
+         dur_uttr_sd = sd(phone_dur),
+         log_dur_uttr_av = mean(log(phone_dur)),
+         log_dur_uttr_md = median(log(phone_dur)),
+         log_dur_uttr_sd = sd(log(phone_dur)),
+         dur_z_uttr_av = mean(dur_z),
+         dur_z_uttr_md = median(dur_z),
+         dur_z_uttr_sd = sd(dur_z)) %>%
+  group_by(language,speaker,uttr_id,phone_type_broad) %>%
+  mutate(dur_uttr_type_av = mean(phone_dur),
+         dur_uttr_type_md = median(phone_dur),
+         dur_uttr_type_sd = sd(phone_dur),
+         log_dur_uttr_type_av = mean(log(phone_dur)),
+         log_dur_uttr_type_md = median(log(phone_dur)),
+         log_dur_uttr_type_sd = sd(log(phone_dur)),
+         dur_z_uttr_type_av = mean(dur_z),
+         dur_z_uttr_type_md = median(dur_z),
+         dur_z_uttr_type_sd = sd(dur_z)) %>%
+  ungroup()
+
+
+```
+
+
+```{r}
+
+d_rates %>%
+  filter(language == 'Svan') %>%
+  group_by(language,phone_type_broad) %>%
+  summarize(dur_av = dur_av[1],
+            dur_sd = dur_sd[1],
+            dur_z = dur_z[1]) %>%
+  #filter(phone_type %in% c('vowel_mono_long_high','plosive')) %>%
+  ggplot(aes(x = dur_av,
+             y = phone_type_broad,
+             col = phone_type_broad)) +
+  geom_point() +
+  geom_segment(aes(x = dur_av-dur_sd, xend = dur_av+dur_sd))
+
+d_rates %>%
+  filter(language == 'Svan') %>%
+  group_by(language,phone_type_broad) %>%
+  summarize(dur_av = dur_av[1],
+            dur_sd = dur_sd[1],
+            dur_z = dur_z[1],
+            dur_z_av = dur_z_av[1],
+            dur_z_sd = dur_z_sd[1]) %>%
+  #filter(phone_type %in% c('vowel_mono_long_high','plosive')) %>%
+  ggplot(aes(x = dur_z_av,
+             y = phone_type_broad,
+             col = phone_type_broad)) +
+  geom_point() +
+  geom_segment(aes(x = dur_z_av-dur_z_sd, xend = dur_z_av+dur_z_sd))
+
+d_rates %>%
+  filter(language == 'Svan',
+         #phone_type == 'nasal'
+         ) %>%
+  #filter(phone_type %in% c('vowel_mono_long_high','plosive')) %>%
+  ggplot(aes(x = log(phone_dur_uttr),
+             y = dur_z_uttr_av,
+             col = phone_type_broad)) +
+  facet_wrap(.~phone_type_broad) +
+  geom_point(alpha = 0.3)
+```
+```{r}
+d_rates %>%
+  filter(language == 'Svan',
+         #phone_type == 'nasal'
+         ) %>%
+  #filter(phone_type %in% c('vowel_mono_long_high','plosive')) %>%
+  ggplot() +
+  geom_histogram(aes(x = dur_uttr_sd/dur_sd),
+                 binwidth = 0.1,
+                 fill='forestgreen',alpha=0.5,lwd=0) +
+  geom_histogram(aes(x = dur_z_uttr_sd/dur_z_sd),
+                 binwidth = 0.1,
+                 fill='red',alpha=0.5,lwd=0) +
+  geom_vline(aes(xintercept=1)) +
+  scale_x_log10(limits = c(0,2.5),
+                     n.breaks = 20)
+```
+
+```{r}
+d_rates %>%
+  filter(language == 'Svan',
+         #phone_type %in% c('vowel_mono_short_nonhigh','vowel_mono_long_nonhigh')
+        # phone %in% c('a','a:','i','i:')
+        ) %>%
+  #filter(phone_type %in% c('vowel_mono_long_high','plosive')) %>%
+  ggplot(aes(x = log(phone_dur_uttr),
+             y = log(phone_dur),
+             col = phone_type_broad)) +
+  #facet_wrap(.~phone_ipa) +
+  geom_point(alpha = 0.05) +
+  geom_smooth(method='gam')
+
+d_rates %>%
+  filter(language == 'Svan',
+         #phone_type %in% c('vowel_mono_short_nonhigh','vowel_mono_long_nonhigh')
+         #phone %in% c('a','a:','i','i:')
+         ) %>%
+  #filter(phone_type %in% c('vowel_mono_long_high','plosive')) %>%
+  ggplot(aes(x = dur_z_uttr_av,
+             y = log(phone_dur),
+             col = phone_type_broad)) +
+  #facet_wrap(.~phone_ipa) +
+  geom_point(alpha = 0.05) +
+  geom_smooth(method='gam')
+
+d_rates %>%
+  filter(language == 'Svan',
+         #phone_type %in% c('vowel_mono_short_nonhigh','vowel_mono_long_nonhigh')
+        # phone %in% c('a','a:','i','i:')
+        ) %>%
+  #filter(phone_type %in% c('vowel_mono_long_high','plosive')) %>%
+  ggplot(aes(x = log(phone_dur_uttr),
+             y = dur_z,
+             col = phone_type_broad)) +
+  #facet_wrap(.~phone_ipa) +
+  geom_point(alpha = 0.05) +
+  geom_smooth(method='gam')
+
+d_rates %>%
+  filter(language == 'Svan',
+         #phone_type %in% c('vowel_mono_short_nonhigh','vowel_mono_long_nonhigh')
+         #phone %in% c('a','a:','i','i:')
+         ) %>%
+  #filter(phone_type %in% c('vowel_mono_long_high','plosive')) %>%
+  ggplot(aes(x = dur_z_uttr_av,
+             y = dur_z,
+             col = phone_type_broad)) +
+  #facet_wrap(.~phone_ipa) +
+  geom_point(alpha = 0.05) +
+  geom_smooth(method='gam')
+```
+```{r}
+d_rates %>%
+  filter(language == 'Svan') %>%
+  group_by(language,discourse,speaker) %>%
+  summarize()
+```
+
+```{r}
+d_rates_sample <- d_rates %>%
+  filter(language == 'Svan',
+         discourse %in% c('svv18_03','svv21_02','svv27_05','svv30_03','svv30_20'
+                          #'svv33_03','svv35_02','svv35_02','svv36_03','svv37_04'
+                          )
+         ) %>%
+  group_by(discourse) %>%
+  filter(uttr_id == uttr_id[1]) %>%
+  ungroup()
+
+d_rates_sample %>%
+  ggplot(aes(x = phone_start, y = log(phone_dur), col = phone_type)) +
+  facet_grid(phone_type~uttr_id,scales='free_x') +
+  geom_line() +
+  geom_hline(aes(yintercept=log_dur_uttr_type_md, col = phone_type), linetype='dashed') +
+  geom_point()
+
+d_rates_sample %>%
+  ggplot(aes(x = phone_start, y = log(phone_dur), col = phone_type)) +
+  facet_grid(~uttr_id,scales='free_x') +
+  geom_line() +
+  geom_hline(aes(yintercept=log_dur_uttr_type_md, col = phone_type), linetype='dashed') +
+  geom_point()
+
+d_rates_sample %>%
+  ggplot(aes(x = phone_start, y = dur_z, col = phone_type)) +
+  facet_grid(phone_type~uttr_id,scales='free_x') +
+  geom_line() +
+  geom_hline(aes(yintercept=dur_z_uttr_type_md, col = phone_type), linetype='dashed') +
+  geom_point()
+
+d_rates_sample %>%
+  ggplot(aes(x = phone_start, y = dur_z, col = phone_type)) +
+  facet_grid(~uttr_id,scales='free_x') +
+  geom_line() +
+  geom_hline(aes(yintercept=dur_z_uttr_type_md, col = phone_type), linetype='dashed') +
+  geom_point()
+```
+
+
+```{r warning=TRUE}
+d_rates %>%
+  filter(language == 'Svan',
+         discourse == 'svv37_04',
+         phone_start < 38.45) %>%
+  ggplot(aes(fill=phone_type_broad)) +
+  facet_wrap(~uttr_id) +
+  geom_violin(aes(y=phone_type_broad,x=log(phone_dur)),alpha=1,lwd=0) +
+  geom_vline(aes(xintercept=log(phone_dur_uttr)),col='black',linetype='dashed')
+
+d_rates %>%
+  filter(language == 'Svan',
+         discourse == 'svv37_04',
+         phone_start < 38.45) %>%
+  ggplot(aes(fill=phone_type_broad)) +
+  facet_wrap(~uttr_id) +
+  geom_violin(aes(y=phone_type_broad,x=dur_z),alpha=1,lwd=0) +
+  geom_vline(aes(xintercept=dur_z_uttr_av),col='black',linetype='dashed')
+```
+```{r}
+d_rates_uttr_ptb <- d_all %>%
+  group_by(vowel_length_contrast,language,speaker,discourse,uttr_id,phone_type_broad) %>%
+  summarize(dur_uttr_ptb_md = median(log(phone_dur)),
+            dur_uttr_ptb_av = mean(log(phone_dur))) %>%
+  mutate(measure = dur_uttr_ptb_md) %>%
+  group_by(vowel_length_contrast,language,phone_type_broad) %>%
+  mutate(rank = rank(measure,na.last='keep')/max(rank(measure,na.last=FALSE)))
+
+d_rates_uttr_ptb <- d_rates_uttr_ptb %>%
+  select(vowel_length_contrast,language,speaker,discourse,uttr_id,phone_type_broad,measure,rank) %>%
+  pivot_wider(names_from = phone_type_broad,
+              values_from = c(measure,rank)) %>%
+  mutate(measure_vocalic_short2 = measure_vocalic_short,
+         measure_vocalic_long2 = measure_vocalic_long,
+         measure_continuant2 = measure_continuant,
+         measure_non_continuant2 = measure_non_continuant,
+         rank_vocalic_short2 = rank_vocalic_short,
+         rank_vocalic_long2 = rank_vocalic_long,
+         rank_continuant2 = rank_continuant,
+         rank_non_continuant2 = rank_non_continuant) %>%
+  pivot_longer(c(measure_vocalic_short,
+                 measure_vocalic_long,
+                 measure_continuant,
+                 measure_non_continuant,
+                 rank_vocalic_short,
+                 rank_vocalic_long,
+                 rank_continuant,
+                 rank_non_continuant),
+               names_to = c(".value", "phone_type_broad"),
+               names_pattern = "(measure|rank)_(.*)") %>%
+  rename_with(~str_remove(., '2'))
+```
+
+```{r}
+d_rates_uttr_ptb %>%
+  #filter(language %in% sample_langs) %>%
+  ggplot(aes(x=exp(measure_vocalic_short),y=exp(measure))) +
+  facet_wrap(.~language) +
+  geom_point(aes(fill=phone_type_broad),alpha=0.3,pch=21,stroke=NA) +
+  geom_smooth(aes(color=phone_type_broad),method='gam') +
+  scale_fill_manual(values=c("vocalic_short" = "limegreen",
+                              "vocalic_long" = "royalblue",
+                              "continuant" = "yellow",
+                              "non_continuant" = "hotpink")) +
+  scale_color_manual(values=c("vocalic_short" = "darkgreen",
+                              "vocalic_long" = "blue",
+                              "continuant" = "goldenrod",
+                              "non_continuant" = "red")) +
+  labs(y='Uttr av dur by type',
+       x='Uttr av dur for short vowels') +
+  scale_x_log10(breaks = c(0.03,0.05,0.07,0.10,0.14,0.2,0.3,0.5)) +
+  scale_y_log10(breaks = c(0.03,0.05,0.07,0.10,0.14,0.2,0.3,0.5))
+
+d_rates_uttr_ptb %>%
+  #filter(language %in% sample_langs) %>%
+  ggplot(aes(x=exp(measure_vocalic_short),y=exp(measure))) +
+  facet_wrap(.~language) +
+  geom_point(aes(fill=phone_type_broad),alpha=0.3,pch=21,stroke=NA) +
+  geom_smooth(aes(color=phone_type_broad),method='gam') +
+  scale_fill_manual(values=c("vocalic_short" = "limegreen",
+                              "vocalic_long" = "royalblue",
+                              "continuant" = "yellow",
+                              "non_continuant" = "hotpink")) +
+  scale_color_manual(values=c("vocalic_short" = "darkgreen",
+                              "vocalic_long" = "blue",
+                              "continuant" = "goldenrod",
+                              "non_continuant" = "red")) +
+  labs(y='Uttr av dur by type',
+       x='Uttr av dur for short vowels') +
+  scale_x_log10(breaks = c(0.03,0.05,0.07,0.10,0.14,0.2,0.3,0.5)) +
+  scale_y_log10(breaks = c(0.03,0.05,0.07,0.10,0.14,0.2,0.3,0.5))
+```
+
+
+```{r}
+sample_langs <- unique(d_all$language)
+
+for (lang in sample_langs) {
+my_plot <- ggarrange(
+d_rates_uttr_ptb %>%
+  filter(language == lang) %>%
+  ggplot(aes(x=rank_vocalic_short,y=rank)) +
+  #facet_wrap(.~language) +
+  geom_point(aes(fill=phone_type_broad),alpha=0.3,pch=21,stroke=NA) +
+  geom_smooth(aes(color=phone_type_broad),method='gam') +
+  scale_fill_manual(values=c("vocalic_short" = "limegreen",
+                              "vocalic_long" = "royalblue",
+                              "continuant" = "yellow",
+                              "non_continuant" = "hotpink")) +
+  scale_color_manual(values=c("vocalic_short" = "darkgreen",
+                              "vocalic_long" = "blue",
+                              "continuant" = "goldenrod",
+                              "non_continuant" = "red")) +
+  coord_fixed() +
+  labs(y='Rank by type',
+       x='Rank for short vowels')
+,
+d_rates_uttr_ptb %>%
+  filter(language == lang) %>%
+  ggplot(aes(x=rank_vocalic_long,y=rank)) +
+  #facet_wrap(.~language) +
+  geom_point(aes(fill=phone_type_broad),alpha=0.3,pch=21,stroke=NA) +
+  geom_smooth(aes(color=phone_type_broad),method='gam') +
+  scale_fill_manual(values=c("vocalic_short" = "limegreen",
+                              "vocalic_long" = "royalblue",
+                              "continuant" = "yellow",
+                              "non_continuant" = "hotpink")) +
+  scale_color_manual(values=c("vocalic_short" = "darkgreen",
+                              "vocalic_long" = "blue",
+                              "continuant" = "goldenrod",
+                              "non_continuant" = "red")) +
+  coord_fixed() +
+  labs(y='Rank by type',
+       x='Rank for long vowels')
+,
+d_rates_uttr_ptb %>%
+  filter(language == lang) %>%
+  ggplot(aes(x=rank_continuant,y=rank)) +
+  #facet_wrap(.~language) +
+  geom_point(aes(fill=phone_type_broad),alpha=0.3,pch=21,stroke=NA) +
+  geom_smooth(aes(color=phone_type_broad),method='gam') +
+  scale_fill_manual(values=c("vocalic_short" = "limegreen",
+                              "vocalic_long" = "royalblue",
+                              "continuant" = "yellow",
+                              "non_continuant" = "hotpink")) +
+  scale_color_manual(values=c("vocalic_short" = "darkgreen",
+                              "vocalic_long" = "blue",
+                              "continuant" = "goldenrod",
+                              "non_continuant" = "red")) +
+  coord_fixed() +
+  labs(y='Rank by type',
+       x='Rank for continuants')
+,
+d_rates_uttr_ptb %>%
+  filter(language == lang) %>%
+  ggplot(aes(x=rank_non_continuant,y=rank)) +
+  #facet_wrap(.~language) +
+  geom_point(aes(fill=phone_type_broad),alpha=0.3,pch=21,stroke=NA) +
+  geom_smooth(aes(color=phone_type_broad),method='gam') +
+  scale_fill_manual(values=c("vocalic_short" = "limegreen",
+                              "vocalic_long" = "royalblue",
+                              "continuant" = "yellow",
+                              "non_continuant" = "hotpink")) +
+  scale_color_manual(values=c("vocalic_short" = "darkgreen",
+                              "vocalic_long" = "blue",
+                              "continuant" = "goldenrod",
+                              "non_continuant" = "red")) +
+  coord_fixed() +
+  labs(y='Rank by type',
+       x='Rank for non-continuants')
+,
+nrow = 2,
+ncol = 2,
+common.legend = TRUE,
+legend = "right"
+)
+my_plot <- annotate_figure(my_plot,
+                top = text_grob(paste0("Ranks of utterances by phone type duration in ",lang), 
+                                color = "black", face = "bold", size = 24))
+ggsave(paste0("rate_comp/bylang/rank/median/rank_rate_preds_median_",lang,".png"),
+       plot = my_plot,
+       width=10, height=10)
+}
+```
+
+
+
+
+```{r}
+cluster_string <- function(n) {
+  cluster <- case_when(n < 6 ~ str_dup('C',n),
+                       n >= 6 ~ 'X')
+  return(cluster)
+}
+
+nuc_string <- function(diphthongality, length) {
+  nuc_type <- case_when(diphthongality == 'monophthong' ~ 'V',
+                        diphthongality == 'diphthong' ~ 'D',
+                        is.na(diphthongality) ~ 'N')
+  nuc_wt <- case_when(length == 'short' ~ 1,
+                      length == 'long' ~ 2,
+                      is.na(length) ~ 1)
+  nuc <- str_dup(nuc_type,nuc_wt)
+  return(nuc)
+}
+
+nuc_count <- function(diphthongality, length) {
+  nuc_type <- case_when(diphthongality == 'monophthong' ~ 1,
+                        diphthongality == 'diphthong' ~ 1.5,
+                        is.na(diphthongality) ~ 1)
+  nuc_wt <- case_when(length == 'short' ~ 0,
+                      length == 'long' ~ 1,
+                      is.na(length) ~ 0)
+  count <- nuc_type + nuc_wt
+  return(count)
+}
+```
+
+
+
+```{r}
+d_syll <- d_rates %>%
+  group_by(syll_id) %>%
+  mutate(nuc_count = sum(segtype=='syllabic')) %>%
+  filter(nuc_count == 1) %>%
+  mutate(nuc_start = phone_start[segtype=='syllabic'],
+         nuc_phone = phone[segtype=='syllabic'],
+         nuc_phone_ipa = phone_ipa[segtype=='syllabic'],
+         nuc_diphthongality = segtype_vowel_dipthongality[segtype=='syllabic'],
+         nuc_length = segtype_vowel_length_revised[segtype=='syllabic']) %>%
+  ungroup() %>%
+  mutate(syll_pos = case_when(phone_start < nuc_start ~ 'ons',
+                              phone_start == nuc_start ~ 'nuc',
+                              phone_start > nuc_start ~ 'cod')) %>%
+  group_by(vowel_length_contrast,
+           language,
+           discourse,
+           speaker,
+           uttr_id,
+           syll_id) %>%
+  summarize(syll_dur = syll_dur[1],
+            dur_syll_ons = sum(phone_dur[syll_pos == 'ons']),
+            dur_syll_cod = sum(phone_dur[syll_pos == 'cod']),
+            dur_syll_nuc = sum(phone_dur[syll_pos == 'nuc']),
+            num_phones_syll = num_phones_syll[1],
+            num_phones_syll_ons = sum(syll_pos == 'ons'),
+            num_phones_syll_cod = sum(syll_pos == 'cod'),
+            nuc_phone = nuc_phone[1],
+            nuc_phone_ipa = nuc_phone_ipa[1],
+            nuc_diphthongality = nuc_diphthongality[1],
+            nuc_length = nuc_length[1]
+            ) %>%
+  mutate(ons_type = cluster_string(num_phones_syll_ons),
+         nuc_type = nuc_string(nuc_diphthongality,nuc_length),
+         num_phones_syll_nuc = nuc_count(nuc_diphthongality,nuc_length),
+         cod_type = cluster_string(num_phones_syll_cod),
+         syll_type = paste0(ons_type,nuc_type,cod_type))
+```
+
+
+```{r}
+d_syll %>%
+  #filter(!(language %in% c('Arapaho','Svan'))) %>%
+  group_by(syll_type) %>%
+  summarize(rep = n_distinct(language),
+            count = n(),
+            the = if_else(rep==1,language[1],"multi")) %>%
+  arrange(desc(rep),desc(count))
+```
+
+```{r}
+d_syll %>%
+  ggplot(aes(y = language, x = ons_type)) +
+  geom_point()
+
+d_syll %>%
+  ggplot(aes(y = language, x = nuc_type)) +
+  geom_point()
+
+d_syll %>%
+  ggplot(aes(y = language, x = cod_type)) +
+  geom_point()
+```
+```{r}
+d_syll <- d_syll %>%
+  group_by(language) %>%
+  mutate(ons_all = str_c(sort(unique(ons_type)),collapse = ", "),
+         cod_all = str_c(sort(unique(cod_type)),collapse = ", "),
+         nuc_all = str_c(sort(unique(nuc_type)),collapse = ", "),
+         max_ons = unique(ons_type[num_phones_syll_ons == max(num_phones_syll_ons)]),
+         max_cod = unique(cod_type[num_phones_syll_cod == max(num_phones_syll_cod)]),
+         max_nuc = str_c(sort(unique(nuc_type[num_phones_syll_nuc == max(num_phones_syll_nuc)])),collapse=", "),
+         max_syll = str_c(sort(unique(syll_type[0.1*num_phones_syll_ons+num_phones_syll_nuc+num_phones_syll_cod == max(0.1*num_phones_syll_ons+num_phones_syll_nuc+num_phones_syll_cod)])),collapse=", "),
+         max_syll_n = max(0.1*num_phones_syll_ons+num_phones_syll_nuc+num_phones_syll_cod)
+         #max_cod_both = cod_type[num_phones_syll_ons+num_phones_syll_cod == max(num_phones_syll_ons+num_phones_syll_cod)]
+         ) %>%
+  ungroup()
+
+d_syll %>%
+  group_by(language) %>%
+  summarize(max_syll = max_syll[1],
+            max_syll_n = max_syll_n[1]) %>%
+  arrange(max_syll_n)
+
+d_syll %>%
+  group_by(max_syll) %>%
+  summarize(max_syll_n = max_syll_n[1],
+            count = n_distinct(language),
+            the = if_else(count==1,language[1],NA)) %>%
+  arrange(max_syll_n)
+```
+```{r warning=FALSE}
+
+sample_langs <- c('Urum','Sanzhi_Dargwa','Veraa','Beja','Svan')
+
+d_syll %>%
+  #filter(vowel_length_contrast == 'unrestricted') %>%
+  filter(!(language=='English'&cod_type=='CCC')) %>%
+  filter(nuc_type == 'V') %>%
+  filter(cod_type != '') %>%
+  ggplot(aes(x = dur_syll_nuc, y = dur_syll_cod, col = cod_type)) +
+  facet_wrap(.~language) +
+  geom_smooth(method='gam',se=FALSE) +
+  #geom_point() +
+  scale_x_log10() +
+  scale_y_log10()
+
+d_syll %>%
+  #filter(vowel_length_contrast == 'unrestricted') %>%
+  filter(nuc_type == 'V') %>%
+  filter(ons_type != '') %>%
+  ggplot(aes(x = dur_syll_nuc, y = dur_syll_ons, col = ons_type)) +
+  facet_wrap(.~language) +
+  geom_smooth(method='gam',se=FALSE) +
+  #geom_point() +
+  scale_x_log10() +
+  scale_y_log10()
+
+d_syll %>%
+  #filter(vowel_length_contrast == 'unrestricted') %>%
+  filter(nuc_type == 'V') %>%
+  filter(ons_type != '',
+         cod_type != '') %>%
+  ggplot(aes(x = dur_syll_cod, y = dur_syll_ons, col = syll_type)) +
+  facet_wrap(.~language) +
+  geom_smooth(method='gam',se=FALSE) +
+  #geom_point() +
+  scale_x_log10() +
+  scale_y_log10()
+```
+
+
+```{r}
+sample_langs <- c('Urum','Lower_Sorbian','Gubeeher','Evenki','Dolgan','Gubeeher','Dalabon','Arapaho')
+
+d_syll %>%
+  filter(language %in% sample_langs) %>%
+  ggplot(aes(x=dur_syll_nuc)) +
+  facet_wrap(~language) +
+  geom_point(aes(y=dur_syll_cod,col=cod_type)) +
+  geom_smooth(aes(y=dur_syll_cod,col=cod_type),method='gam') +
+  scale_x_log10() +
+  scale_y_log10()
+
+d_syll %>%
+  filter(language %in% sample_langs) %>%
+  ggplot(aes(x=dur_syll_nuc)) +
+  facet_wrap(~language) +
+  geom_point(aes(y=dur_syll_ons,col=ons_type)) +
+  geom_smooth(aes(y=dur_syll_ons,col=ons_type),method='gam') +
+  scale_x_log10() +
+  scale_y_log10()
+```
+
+
+```{r}
+d_rates_uttr_onc <- d_syll %>%
+  group_by(vowel_length_contrast,language,speaker,discourse,uttr_id,syll_pos) %>%
+  summarize(dur_uttr_onc_md = median(log(phone_dur)),
+            dur_uttr_onc_av = mean(log(phone_dur))) %>%
+  mutate(measure = dur_uttr_onc_av) %>%
+  group_by(vowel_length_contrast,language,syll_pos) %>%
+  mutate(rank = rank(measure,na.last='keep')/max(rank(measure,na.last=FALSE)))
+
+d_rates_uttr_onc <- d_rates_uttr_onc %>%
+  select(vowel_length_contrast,language,speaker,discourse,uttr_id,syll_pos,measure,rank) %>%
+  pivot_wider(names_from = syll_pos,
+              values_from = c(measure,rank)) %>%
+  mutate(measure_Ons2 = measure_Ons,
+         measure_Nuc2 = measure_Nuc,
+         measure_Cod2 = measure_Cod,
+         rank_Ons2 = rank_Ons,
+         rank_Nuc2 = rank_Nuc,
+         rank_Cod2 = rank_Cod,
+         ) %>%
+  pivot_longer(c(measure_Ons,
+                 measure_Nuc,
+                 measure_Cod,
+                 rank_Ons,
+                 rank_Nuc,
+                 rank_Cod),
+               names_to = c(".value", "syll_pos"),
+               names_pattern = "(measure|rank)_(.*)") %>%
+  rename_with(~str_remove(., '2'))
+```
+```{r}
+d_rates_uttr_onc %>%
+  #filter(language %in% sample_langs) %>%
+  ggplot(aes(x=exp(measure_Nuc),y=exp(measure))) +
+  facet_wrap(.~language) +
+  geom_point(aes(fill=syll_pos),alpha=0.3,pch=21,stroke=NA) +
+  geom_smooth(aes(color=syll_pos),method='gam') +
+  scale_fill_manual(values=c("Ons" = "cyan",
+                              "Nuc" = "yellow",
+                              "Cod" = "hotpink")) +
+  scale_color_manual(values=c("Ons" = "darkcyan",
+                              "Nuc" = "gold",
+                              "Cod" = "red")) +
+  labs(y='Uttr av dur by type',
+       x='Uttr av dur for onsets') +
+  scale_x_log10(breaks = c(0.03,0.05,0.07,0.10,0.14,0.2,0.3,0.5)) +
+  scale_y_log10(breaks = c(0.03,0.05,0.07,0.10,0.14,0.2,0.3,0.5))
+
+d_rates_uttr_onc %>%
+  #filter(language %in% sample_langs) %>%
+  ggplot(aes(x=rank_Nuc,y=rank)) +
+  facet_wrap(.~language) +
+  geom_point(aes(fill=syll_pos),alpha=0.3,pch=21,stroke=NA) +
+  geom_smooth(aes(color=syll_pos),method='gam') +
+  scale_fill_manual(values=c("Ons" = "cyan",
+                              "Nuc" = "yellow",x
+                              "Cod" = "hotpink")) +
+  scale_color_manual(values=c("Ons" = "darkcyan",
+                              "Nuc" = "gold",
+                              "Cod" = "red")) +
+  labs(y='Rank by type',
+       x='Rank for onsets')
+```
+
+```{r}
+d_syll %>%
+  filter(language=='Svan') %>%
+  ggplot(aes(x=log(phone_dur),
+             y=phone_type,
+             fill=syll_pos)) +
+  geom_violin()
+
+d_syll %>%
+  filter(language=='Svan') %>%
+  ggplot(aes(x=phone_dur/nuc_dur,
+             y=phone_type,
+             fill=syll_pos)) +
+  geom_violin()
+```
+
+
+```{r}
+d_syll %>%
+  filter(language=='Svan') %>%
+  filter(segtype != 'syllabic') %>%
+  ggplot(aes(x=log(nuc_dur),lty=syll_pos)) +
+  facet_wrap(.~speaker) +
+  geom_point(aes(y=log(phone_dur),fill=phone_type_broad),
+             alpha=0.3, pch=21,stroke=NA) +
+  geom_smooth(aes(y=log(phone_dur),col=phone_type_broad),method='gam') +
+  scale_fill_manual(values=c("vocalic_short" = "limegreen",
+                              "vocalic_long" = "royalblue",
+                              "continuant" = "yellow",
+                              "non_continuant" = "hotpink")) +
+  scale_color_manual(values=c("vocalic_short" = "darkgreen",
+                              "vocalic_long" = "blue",
+                              "continuant" = "goldenrod",
+                              "non_continuant" = "red")) +
+  labs(y='uttr av log dur by type',
+       x='Rank of uttr md dur for non-continuants')
+```
+

@@ -1,0 +1,1062 @@
+---
+title: "doreco_stretchiness_analysis"
+author: "Noah Luntzlara"
+date: "2025-10-01"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Set Up
+
+Load packages.
+
+```{r}
+library(tidyverse)
+# library(ggbeeswarm)
+# library(ggpubr)
+library(forcats)
+
+library(mgcv)
+library(itsadug)
+
+library(geomtextpath)
+library(RColorBrewer)
+library(viridis)
+
+library(broom)
+```
+
+Read in the data.
+
+```{r}
+
+d_all <- read_csv("../doreco_data/combined_doreco_durations_filtered.csv")
+
+# d_all_unfilt <- read_csv("../doreco_data/combined_doreco_durations_unfiltered.csv")
+
+```
+
+Data frame for CV models
+
+```{r}
+
+d_cv <- d_all %>%
+  filter(phone_type != "syllabic_consonant")
+
+d_cv$segtype_o <- as.ordered(d_cv$segtype)
+contrasts(d_cv$segtype_o) <- "contr.treatment"
+
+d_cv$speaker_f <- as.factor(d_cv$speaker)
+d_cv$speakerSegtype <- interaction(d_cv$speaker, d_cv$segtype)
+
+d_cv$language_f <- as.factor(d_cv$language)
+d_cv$languageSegtype <- interaction(d_cv$language, d_cv$segtype)
+
+d_cv$phone_type_f <- as.factor(d_cv$phone_type)
+
+```
+
+
+# GAMMs for CV comparisons
+
+## Fitting CV models
+
+```{r}
+# model 1: consonants vs vowels phone duration by utterance
+
+cv_mod_baseline <- bam(phone_dur ~
+  segtype_o +
+  s(phone_dur_uttr, bs = "cr") +
+  s(phone_dur_uttr, by = segtype_o, bs = "cr") +
+  #s(phone_dur_uttr, phone_type_f, bs = "fs", m = 1, xt = list("cr")) +
+  s(phone_dur_uttr, speakerSegtype, bs = "fs", m = 1, xt = list("cr")) +
+  s(phone_dur_uttr, languageSegtype, bs = "fs", m = 1, xt = list("cr")),
+  data = d_cv,
+  #weights=d_cv$weight / mean(d_cv$weight),
+  discrete = TRUE,
+  nthreads = 8
+)
+
+saveRDS(cv_mod_baseline, "cv_mod_baseline.rds")
+cv_mod_baseline <- readRDS("cv_mod_baseline.rds")
+summary(cv_mod_baseline)
+
+# model 2: consonants vs vowels phone duration by utterance w/ phone type
+
+cv_mod_type <- bam(phone_dur ~
+  segtype_o +
+  s(phone_dur_uttr, bs = "cr") +
+  s(phone_dur_uttr, by = segtype_o, bs = "cr") +
+  s(phone_dur_uttr, phone_type_f, bs = "fs", m = 1, xt = list("cr")) +
+  s(phone_dur_uttr, speakerSegtype, bs = "fs", m = 1, xt = list("cr")) +
+  s(phone_dur_uttr, languageSegtype, bs = "fs", m = 1, xt = list("cr")),
+  data = d_cv,
+  #weights=d_cv$weight / mean(d_cv$weight),
+  discrete = TRUE,
+  nthreads = 8
+)
+
+saveRDS(cv_mod_type, "cv_mod_type.rds")
+cv_mod_type <- readRDS("cv_mod_type.rds")
+summary(cv_mod_type)
+```
+
+Just reading the models from files
+
+```{r}
+cv_mod_baseline <- readRDS("cv_mod_baseline.rds")
+cv_mod_type <- readRDS("cv_mod_type.rds")
+```
+
+
+## Model Predictions for CV Models
+
+```{r}
+# model predictions for models with with segment inclusive speech rate measures
+newdat_cv <- expand.grid(
+  phone_dur_uttr = seq(
+    min(d_cv$phone_dur_uttr),
+    max(d_cv$phone_dur_uttr),
+    length.out = 100
+  ),
+  phone_type_f=d_cv$phone_type_f[1],
+  #phone_type_new_f=d_cv$phone_type_new_f[1],
+  speakerSegtype = d_cv$speakerSegtype[1],
+  languageSegtype = unique(d_cv$languageSegtype)
+)
+
+newdat_cv$segtype_o <- str_extract(newdat_cv$languageSegtype, "[^.]*$")
+newdat_cv$segtype_o <- as.ordered(newdat_cv$segtype_o)
+contrasts(newdat_cv$segtype_o) <- "contr.treatment"
+
+newdat_cv$language <- str_extract(newdat_cv$languageSegtype, "^[^.]*")
+newdat_cv$language_f <- as.factor(newdat_cv$language)
+newdat_cv$speaker_f <- as.factor(str_extract(newdat_cv$speakerSegtype, "^[^.]*"))
+#newdat_cv$speaker_f <- newdat_cv$speaker_f[1]
+
+preds_baseline <- predict(cv_mod_baseline, newdat_cv,
+  # the following is used when predicting without speakers
+  exclude=c("s(phone_dur_uttr,speakerSegtype)",
+            "s(phone_dur_uttr,speaker_f)",
+            "s(phone_dur_uttr,speaker_f):segtype_ovowel_dur_uttr",
+            "s(phone_dur_uttr,phone_type_f)"),
+  se.fit = TRUE
+)
+
+preds_type <- predict(cv_mod_type, newdat_cv,
+  # the following is used when predicting without speakers
+  exclude=c("s(phone_dur_uttr,speakerSegtype)",
+            "s(phone_dur_uttr,speaker_f)",
+            "s(phone_dur_uttr,speaker_f):segtype_ovowel_dur_uttr",
+            "s(phone_dur_uttr,phone_type_f)"),
+  se.fit = TRUE
+)
+
+# baseline
+
+newdat_cv_baseline <- newdat_cv
+
+newdat_cv_baseline$dur <- preds_baseline$fit
+newdat_cv_baseline$ul <- preds_baseline$fit + preds_baseline$se.fit * 1.96
+newdat_cv_baseline$ll <- preds_baseline$fit - preds_baseline$se.fit * 1.96
+
+newdat_cv_baseline$model <- "cv_mod_baseline"
+
+# controlling for phone type
+
+newdat_cv_type <- newdat_cv
+
+newdat_cv_type$dur <- preds_type$fit
+newdat_cv_type$ul <- preds_type$fit + preds_type$se.fit * 1.96
+newdat_cv_type$ll <- preds_type$fit - preds_type$se.fit * 1.96
+
+newdat_cv_type$model <- "cv_mod_type"
+
+
+newdat_cv_all <- bind_rows(
+  newdat_cv_baseline,
+  newdat_cv_type
+)
+
+newdat_cv_all %>% write_csv("./newdat_cv_all.csv")
+newdat_cv_all <- read_csv("./newdat_cv_all.csv")
+```
+
+
+## Plotting CV Model Predictions
+
+New data with C and V averages by utterance
+
+```{r}
+d_uttr_cv <- d_cv %>%
+  group_by(language,speaker,uttr_id) %>%
+  summarize(vowel_dur_uttr = mean(phone_dur[segtype == "syllabic"]),
+            cons_dur_uttr = mean(phone_dur[segtype == "consonant"]),
+            phone_dur_uttr = phone_dur_uttr[1]
+  ) %>%
+  pivot_longer(c(vowel_dur_uttr, cons_dur_uttr),
+               names_to="measure",
+               values_to="value")
+```
+
+Plot CV model predictions
+
+```{r}
+newdat_cv_all %>%
+  filter(language %in% d_uttr_cv$language) %>%
+  ggplot(data = ., aes(x = phone_dur_uttr)) +
+  facet_wrap(. ~ language) +
+  geom_point(data = d_uttr_cv,
+             aes(y = value, col=measure), alpha = 0.1, pch=16) +
+  geom_line(aes(y = dur, lty=model, col = segtype_o),, lwd = 1) +
+  # geom_ribbon(data = filter(newdat_cv_all,
+  #                          model == "cv_mod_baseline",
+  #                          segtype_o == "consonant"),
+  #           aes(ymin = ll, ymax = ul), col = NA, fill = "skyblue",
+  #           alpha = 0.5) +
+  # geom_ribbon(data = filter(newdat_cv_all,
+  #                          model == "cv_mod_baseline",
+  #                          segtype_o == "syllabic"),
+  #           aes(ymin = ll, ymax = ul), col = NA, fill = "yellow",
+  #           alpha = 0.5) +
+  scale_color_manual(values = c("consonant" = "purple4", "syllabic" = "darkorange",
+                                "cons_dur_uttr" = "purple", "vowel_dur_uttr" = "orange"),
+                     guide = "none") +
+  scale_x_log10(breaks = c(0.05, 0.07, 0.1, 0.14)) +
+  scale_y_log10(breaks = c(0.05, 0.07, 0.1, 0.14),
+                #limits = c(0.03, 0.2)
+                ) +
+  #scale_x_continuous(limits=c(0.035,0.145), 
+  #                   breaks=seq(0.04,0.14,0.02),
+  #                   labels=c(".04",".06",".08",".10",".12",".14")) +
+  #scale_y_continuous(breaks=seq(0.04,0.20,0.02)) +
+  # labels for axes
+  labs(x = "Average phone duration by utterance",
+       y = "Average C vs. V duration in s") +
+  # remove clutter
+  theme_minimal() +
+  theme(panel.grid = element_blank(),
+        axis.line = element_line(size=0.8),
+        axis.ticks = element_line(size=0.8),
+        axis.text = element_text(size=16, colour="black"),
+        axis.title = element_text(size=18, face="bold"),
+        strip.background.y = element_blank(), 
+        strip.placement = "outside",
+        strip.text=element_text(size=18, face="bold"))
+  ggsave("doreco_graphs_v1/cv/cv_mod_all.png", width=15, height=15, dpi=300)
+```
+
+# CV Model Phone Type Comparisons
+
+## CV Model Predictions for Phone Type
+
+CV Model predictions for phone type
+
+```{r}
+# model predictions
+newdat_phonetype <- expand.grid(
+  phone_dur_uttr = seq(
+    min(d_cv$phone_dur_uttr),
+    max(d_cv$phone_dur_uttr),
+    length.out = 100
+  ),
+  phone_type_f=unique(d_cv$phone_type_f),
+  speakerSegtype = d_cv$speakerSegtype[1], # will be set to 0
+  languageSegtype = unique(d_cv$languageSegtype) # will be set to 0
+) #%>% filter(phone_type_f != "syllabic C")
+
+newdat_phonetype$segtype_o <- ifelse(
+  newdat_phonetype$phone_type_f %in% c("vowel_diph",
+                                         "vowel_mono_long_high",
+                                         "vowel_mono_long_nonhigh",
+                                         "vowel_mono_short_high",
+                                         "vowel_mono_short_nonhigh"),
+  "syllabic",
+  "consonant"
+  )
+newdat_phonetype$segtype_o <- as.ordered(newdat_phonetype$segtype_o)
+contrasts(newdat_phonetype$segtype_o) <- "contr.treatment"
+
+preds_ctype <- predict(cv_mod_type, newdat_phonetype,
+  # the following is used when predicting without speakers
+  exclude=c("s(phone_dur_uttr,speakerSegtype)",
+            "s(phone_dur_uttr,speaker_f)",
+            "s(phone_dur_uttr,speaker_f):segtype_ovowel_dur_uttr",
+            "s(phone_dur_uttr,languageSegtype)"),
+  se.fit = TRUE
+)
+
+newdat_phonetype$dur <- preds_ctype$fit
+newdat_phonetype$ul <- preds_ctype$fit + preds_ctype$se.fit * 1.96
+newdat_phonetype$ll <- preds_ctype$fit - preds_ctype$se.fit * 1.96
+
+newdat_phonetype$segtype_broad <- 
+  case_when(
+    newdat_phonetype$phone_type_f %in% c("vowel_diph",
+                                         "vowel_mono_long_high",
+                                         "vowel_mono_long_nonhigh",
+                                         "vowel_mono_short_high",
+                                         "vowel_mono_short_nonhigh",
+                                         "approximant",
+                                         "syllabic_consonant") ~ "vocalic",
+    newdat_phonetype$phone_type_f %in% c("liquid", "nasal", "fricative", "nasal_double") ~ "continuant + nasal",
+    newdat_phonetype$phone_type_f %in% c("plosive", "plosive_double", "affricate", "flap", "glottal", "trill", "click", "click_contour") ~ "non-continuant"
+  )
+newdat_phonetype$segtype_broad <- 
+  factor(newdat_phonetype$segtype_broad,
+         levels=c("vocalic", "continuant + nasal", "non-continuant", "complex segment"))
+```
+
+## Plotting CV Model Phone Type Effects
+
+Plotting phone type effects
+
+```{r}
+mycolors = c(brewer.pal(name="Dark2", n = 8), brewer.pal(name="Paired", n = 8))
+
+ggplot(newdat_phonetype, aes(x=phone_dur_uttr, y=dur, col=phone_type_f)) +
+  facet_wrap(~segtype_broad) +
+  geom_ribbon(aes(ymin=ll,ymax=ul, group=phone_type_f), col=NA, fill="grey",
+              alpha=0.3) +
+  geom_textline(aes(label = phone_type_f), size = 5, vjust = 0.2,
+                linewidth = 1) +
+  scale_x_continuous(breaks=c(-3.5,-3,-2.5,-2),
+                     labels=round(exp(c(-3.5,-3,-2.5,-2)),2)) +
+  scale_y_continuous(breaks=c(-3.5,-3,-2.5,-2),
+                     labels=round(exp(c(-3.5,-3,-2.5,-2)),2)) +
+  #scale_colour_brewer(palette = "Set3", guide='none') +
+  scale_color_manual(values = mycolors) +
+  #scale_colour_manual(values=c("purple4", "darkorange2"), guide="none") +
+  xlab("Overall average segment duration in s (inverse speech rate)") +
+  labs(y=NULL) +
+  ylab("Average duration per segment type") +
+  # remove clutter
+  theme_minimal() +
+  # some specific formatting...
+  theme(panel.grid = element_blank(),
+        axis.line = element_line(size=0.8),
+        axis.ticks = element_line(size=0.8),
+        axis.text = element_text(size=14, colour="black"),
+        axis.title = element_text(size=16, face="bold"),
+        strip.background.y = element_blank(), 
+        strip.placement = "outside",
+        strip.text=element_text(size=16, face="bold"))
+ggsave("doreco_graphs_v1/phonetype_mod_preds.png", width=10, height=6, dpi=300)
+
+```
+
+# CV Model Effect Sizes at Medians
+
+## Computing CV Model Effect Sizes at Medians
+Measuring and comparing derivatives at the medians for CV models
+
+```{r}
+eff_sizes_cv <- list()
+
+# model predictions
+newdat_cv_deriv <- expand.grid(
+  phone_type_f=d_cv$phone_type_f[1],
+  #phone_type_new_f=d_cv$phone_type_new_f[1],
+  speakerSegtype = d_cv$speakerSegtype[1],
+  #language_f=unique(d_cv$language_f),
+  languageSegtype = unique(d_cv$languageSegtype),
+  measure_type = "dur"
+)
+
+
+newdat_cv_deriv$segtype_o <- str_extract(newdat_cv_deriv$languageSegtype,
+                                        "[^.]*$")
+newdat_cv_deriv$segtype_o <- as.ordered(newdat_cv_deriv$segtype_o)
+contrasts(newdat_cv_deriv$segtype_o) <- "contr.treatment"
+
+newdat_cv_deriv$language <- str_extract(newdat_cv_deriv$languageSegtype,
+                                        "^[^.]*")
+newdat_cv_deriv$language_f <- as.factor(newdat_cv_deriv$language)
+newdat_cv_deriv$speaker_f <- as.factor(str_extract(newdat_cv_deriv$speakerSegtype, "^[^.]*"))
+#newdat_cv_deriv$speaker_f <- newdat_cv$speaker_f[1]
+
+language_med_durs <- d_cv %>%
+  group_by(language) %>%
+  summarise(phone_dur_uttr = median(phone_dur_uttr)) %>%
+  ungroup()
+
+newdat_cv_deriv <- left_join(
+  newdat_cv_deriv,
+  language_med_durs,
+  by = "language"
+)
+
+eps <- 0.001
+
+newdat_cv_deriv_1 <- newdat_cv_deriv %>%
+  mutate(phone_dur_uttr = exp(log(phone_dur_uttr) - (eps/2)))
+newdat_cv_deriv_2 <- newdat_cv_deriv %>%
+  mutate(phone_dur_uttr = exp(log(phone_dur_uttr) + (eps/2)))
+
+mods_cv <- c("cv_mod_baseline", "cv_mod_type"
+             #, "cv_mod_type2"
+             )
+
+for (m in mods_cv) {
+X1 <- predict(get(m), 
+              newdat_cv_deriv_1,
+              exclude=c(
+                "s(phone_dur_uttr,speakerSegtype)",
+                "s(phone_dur_uttr,speaker_f)",
+                "s(phone_dur_uttr,speaker_f):segtype_ovowel_dur_uttr",
+                "s(phone_dur_uttr,phone_type_f)"
+                #"s(phone_dur_uttr,phone_type_new_f)"
+              )
+) %>% log()
+X2 <- predict(get(m), 
+              newdat_cv_deriv_2,
+              exclude=c(
+                "s(phone_dur_uttr,speakerSegtype)",
+                "s(phone_dur_uttr,speaker_f)",
+                "s(phone_dur_uttr,speaker_f):segtype_ovowel_dur_uttr",
+                "s(phone_dur_uttr,phone_type_f)"
+                #"s(phone_dur_uttr,phone_type_new_f)"
+              )
+) %>% log()
+
+X0 <- predict(get(m), 
+              newdat_cv_deriv,
+              exclude=c(
+                "s(phone_dur_uttr,speakerSegtype)",
+                "s(phone_dur_uttr,speaker_f)",
+                "s(phone_dur_uttr,speaker_f):segtype_ovowel_dur_uttr",
+                "s(phone_dur_uttr,phone_type_f)"
+                #"s(phone_dur_uttr,phone_type_new_f)"
+              )
+)
+
+# finite difference approximation of first derivative
+# the design matrix
+first_deriv <- (X2 - X1) / eps
+#first_deriv <- Xp %*% coef(get(m))
+
+
+
+newdat_cv_deriv$derivative <- first_deriv
+newdat_cv_deriv$model <- m
+
+newdat_cv_deriv$phone_dur <- X0
+
+eff_sizes_cv[[m]] <- newdat_cv_deriv %>%
+  dplyr::select(language, segtype_o, phone_dur_uttr, phone_dur, model, derivative) %>%
+  group_by(language, phone_dur_uttr, model) %>%
+  summarise(derivative_c = derivative[segtype_o == "consonant"],
+            derivative_v = derivative[segtype_o == "syllabic"],
+            eff_size = derivative_v - derivative_c,
+            phone_dur_v = phone_dur[segtype_o == "syllabic"],
+            phone_dur_c = phone_dur[segtype_o == "consonant"],) %>%
+  ungroup() %>%
+  arrange(desc(eff_size))
+}
+
+
+eff_sizes_cv_df <- bind_rows(eff_sizes_cv)
+eff_sizes_cv_df %>% write_csv("eff_sizes_cv_df.csv")
+eff_sizes_cv_df <- read_csv("./eff_sizes_cv_df.csv")
+```
+
+
+
+
+
+## Making CV Prediction Plots Showing Effect Sizes at Medians
+
+Ordering by effect size (delta-beta) & showing this number in the plot of CV predictions.
+
+```{r}
+for (m in mods_cv) {
+  
+  eff_sizes_cv_m <- eff_sizes_cv[[m]]
+  eff_sizes_cv_m$language <- factor(eff_sizes_cv_m$language, levels=eff_sizes_cv_m$language)
+  eff_sizes_cv_m$phone_dur_uttr_median <- eff_sizes_cv_m$phone_dur_uttr
+  eff_sizes_cv_m$phone_dur_uttr <- 0.05
+  eff_sizes_cv_m$value <- 0.13
+  
+  newdat_m <- filter(newdat_cv_all, model==m)
+  newdat_m$language <- factor(newdat_m$language, levels=eff_sizes_cv_m$language)
+  
+  plot_dat <- d_uttr_cv
+  plot_dat$language <- factor(plot_dat$language, levels=eff_sizes_cv_m$language)
+  
+  plot_dat %>%
+    ggplot(data = ., aes(x = phone_dur_uttr, y = value, col = measure)) +
+    facet_wrap(. ~ language) +
+    geom_point(alpha = 0.1, pch=16) + 
+    #geom_ribbon(data = filter(newdat_cv_all,
+    #                          model == "dur",
+    #                          segtype_o == "vowel_dur_uttr"),
+    #            aes(ymin = ll, ymax = ul), col = NA, fill = "grey",
+    #            alpha = 0.5) +
+    #geom_ribbon(data = filter(newdat_cv,
+    #                          measure_type == "dur",
+    #                          segtype_o == "cons_dur_uttr"),
+    #            aes(ymin = ll, ymax = ul), col = NA, fill = "grey",
+    #            alpha = 0.5) +
+    geom_line(data = filter(newdat_m,
+                            segtype_o == "syllabic"),
+              aes(lty=model, y=dur),
+              col = "darkorange1", lwd = 1) +
+    geom_line(data = filter(newdat_m,
+                            segtype_o == "consonant"),
+              aes(lty=model, y=dur),
+              col = "purple4", lwd = 1) +
+    geom_text(data=eff_sizes_cv_m, 
+              aes(label=paste0("Δβ = ", round(eff_size,2))),
+              col="black", size=5) +
+    geom_text(data=eff_sizes_cv_m, 
+              aes(y=value/1.2,
+                  #x=phone_dur_uttr*2,
+                  label=paste0("med = ", round(phone_dur_uttr_median,2))),
+              col="black", size=5) +
+    scale_x_log10(breaks = c(0.05, 0.07, 0.1, 0.14)) +
+    scale_y_log10(breaks = c(0.05, 0.07, 0.1, 0.14),
+                  limits = c(0.03, 0.19)) +
+    scale_colour_manual(values = c("purple", "orange"), guide = "none") +
+    labs(title = "Filtering by number of phones remaining (v1)",
+         x = "Average segment duration in s (inverse speech rate)",
+         y = "Average C vs. V duration in s") +
+    theme_minimal() +
+    theme(panel.grid = element_blank(),
+        title = element_text(size=24, face="bold"),
+        axis.line = element_line(size=0.8),
+        axis.ticks = element_line(size=0.8),
+        axis.text = element_text(size=16, colour="black"),
+        axis.title = element_text(size=18, face="bold"),
+        strip.background.y = element_blank(), 
+        strip.placement = "outside",
+        strip.text=element_text(size=18, face="bold"))
+  ggsave(paste0("doreco_graphs_v1/cv/", m, ".png"), width=15, height=15, dpi=300)
+}
+```
+
+## Comparing CV Model Effect Sizes at Medians
+
+Comparing effect sizes at medians and values of the median
+
+```{r}
+for (m in mods_cv) {
+  eff_sizes_cv_m <- eff_sizes_cv[[m]] %>%
+  ggplot(aes(x=phone_dur_uttr,y=eff_size)) +
+    geom_point() +
+    xlab("Median average phone duration by utterance") +
+    labs(y = "Δβ ") +
+    theme_minimal() +
+    theme(panel.grid = element_blank(),
+        axis.line = element_line(size=0.8),
+        axis.ticks = element_line(size=0.8),
+        axis.text = element_text(size=16, colour="black"),
+        axis.title = element_text(size=18, face="bold"),
+        strip.background.y = element_blank(), 
+        strip.placement = "outside",
+        strip.text=element_text(size=18, face="bold"))
+  ggsave(paste0("doreco_graphs_v1/cv/cv_eff_size_comp_", m, ".png"), width=5, height=5, dpi=300)
+}
+```
+
+Comparing predicted phone durations and slopes at medians
+
+```{r}
+for (m in mods_cv) {
+  eff_sizes_cv_m <- eff_sizes_cv[[m]] %>%
+  ggplot() +
+    geom_point(aes(x=phone_dur_v,y=derivative_v),col="orange") +
+    geom_point(aes(x=phone_dur_c,y=derivative_c),col="purple") +
+    geom_segment(aes(x=phone_dur_c,xend=phone_dur_v,
+                     y=derivative_c,yend=derivative_v,
+                     col = phone_dur_uttr)) +
+    xlab("Predicted phone duration at median") +
+    labs(y = "β") +
+    theme_minimal() +
+    theme(panel.grid = element_blank(),
+        axis.line = element_line(size=0.8),
+        axis.ticks = element_line(size=0.8),
+        axis.text = element_text(size=16, colour="black"),
+        axis.title = element_text(size=18, face="bold"),
+        strip.background.y = element_blank(), 
+        strip.placement = "outside",
+        strip.text=element_text(size=18, face="bold"))
+  ggsave(paste0("doreco_graphs_v1/cv/cv_deriv_pred_", m, ".png"), width=5, height=5, dpi=300)
+}
+```
+
+# CV Model Density-Weighted Effect Sizes
+
+## Computing CV Model Effect Curves and Density-Weighted Effect Sizes
+
+```{r}
+eff_curves_cv <- list()
+eff_sizes_dw_cv <- list()
+
+newdat_cv_deriv_curve <- expand.grid(
+  phone_dur_uttr = seq(
+    min(d_cv$phone_dur_uttr),
+    max(d_cv$phone_dur_uttr),
+    length.out = 100
+  ),
+  phone_type_f=d_cv$phone_type_f[1],
+  #phone_type_new_f=d_cv$phone_type_new_f[1],
+  speakerSegtype = d_cv$speakerSegtype[1],
+  languageSegtype = unique(d_cv$languageSegtype),
+  measure_type = "dur"
+)
+
+
+
+
+newdat_cv_deriv_curve$segtype_o <- str_extract(newdat_cv_deriv_curve$languageSegtype, "[^.]*$")
+newdat_cv_deriv_curve$segtype_o <- as.ordered(newdat_cv_deriv_curve$segtype_o)
+contrasts(newdat_cv_deriv_curve$segtype_o) <- "contr.treatment"
+
+newdat_cv_deriv_curve$language <- str_extract(newdat_cv_deriv_curve$languageSegtype, "^[^.]*")
+newdat_cv_deriv_curve$language_f <- as.factor(newdat_cv_deriv_curve$language)
+newdat_cv_deriv_curve$speaker_f <- as.factor(str_extract(newdat_cv_deriv_curve$speakerSegtype, "^[^.]*"))
+#newdat_cv_deriv_curve$speaker_f <- newdat_cv_deriv_curve$speaker_f[1]
+
+
+
+
+
+# preds_baseline <- predict(cv_mod_baseline, newdat_cv_deriv_curve,
+#   # the following is used when predicting without speakers
+#   exclude=c("s(phone_dur_uttr,speakerSegtype)",
+#             "s(phone_dur_uttr,speaker_f)",
+#             "s(phone_dur_uttr,speaker_f):segtype_ovowel_dur_uttr",
+#             "s(phone_dur_uttr,phone_type_f)"),
+#   se.fit = TRUE
+# )
+
+
+
+
+language_dist_stats <- d_cv %>%
+  select(language,phone_dur_uttr) %>%
+  group_by(language) %>%
+  nest() %>%
+  mutate(
+    phone_dur_uttr_med = as.numeric(map(data,~median(.x$phone_dur_uttr))),
+    dens_data = map(data,~broom::tidy(density(.x$phone_dur_uttr,
+                                              n = 100,
+                                              from = min(d_cv$phone_dur_uttr),
+                                              to = max(d_cv$phone_dur_uttr))))
+         ) %>%
+  unnest(dens_data) %>%
+  mutate(phone_dur_uttr = x,
+         density = y/max(y)) %>%
+  ungroup() %>%
+  select(language,phone_dur_uttr_med,phone_dur_uttr,density)
+  
+
+newdat_cv_deriv_curve <- left_join(
+  mutate(newdat_cv_deriv_curve,
+         phone_dur_uttr = round(phone_dur_uttr,15)),
+  mutate(language_dist_stats,
+         phone_dur_uttr = round(phone_dur_uttr,15)),
+  by = c("language","phone_dur_uttr")
+)
+
+
+eps <- 0.001
+
+newdat_cv_deriv_curve_1 <- newdat_cv_deriv_curve %>%
+  mutate(phone_dur_uttr = exp(log(phone_dur_uttr) - (eps/2)))
+newdat_cv_deriv_curve_2 <- newdat_cv_deriv_curve %>%
+  mutate(phone_dur_uttr = exp(log(phone_dur_uttr) + (eps/2)))
+
+mods_cv <- c("cv_mod_baseline", "cv_mod_type"
+             #, "cv_mod_type2"
+             )
+
+for (m in mods_cv) {
+X1_curve <- predict(get(m), 
+              newdat_cv_deriv_curve_1,
+              exclude=c(
+                "s(phone_dur_uttr,speakerSegtype)",
+                "s(phone_dur_uttr,speaker_f)",
+                "s(phone_dur_uttr,speaker_f):segtype_ovowel_dur_uttr",
+                "s(phone_dur_uttr,phone_type_f)"
+                #"s(phone_dur_uttr,phone_type_new_f)"
+              )
+) %>% log()
+X2_curve <- predict(get(m), 
+              newdat_cv_deriv_curve_2,
+              exclude=c(
+                "s(phone_dur_uttr,speakerSegtype)",
+                "s(phone_dur_uttr,speaker_f)",
+                "s(phone_dur_uttr,speaker_f):segtype_ovowel_dur_uttr",
+                "s(phone_dur_uttr,phone_type_f)"
+                #"s(phone_dur_uttr,phone_type_new_f)"
+              )
+) %>% log()
+
+X0_curve <- predict(get(m), 
+              newdat_cv_deriv_curve,
+              exclude=c(
+                "s(phone_dur_uttr,speakerSegtype)",
+                "s(phone_dur_uttr,speaker_f)",
+                "s(phone_dur_uttr,speaker_f):segtype_ovowel_dur_uttr",
+                "s(phone_dur_uttr,phone_type_f)"
+                #"s(phone_dur_uttr,phone_type_new_f)"
+              )
+)
+
+# finite difference approximation of first derivative
+# the design matrix
+first_deriv_curve <- (X2_curve - X1_curve) / eps
+#first_deriv <- Xp %*% coef(get(m))
+
+
+
+newdat_cv_deriv_curve$derivative <- first_deriv_curve
+newdat_cv_deriv_curve$model <- m
+
+newdat_cv_deriv_curve$phone_dur <- X0_curve
+
+
+
+eff_curves_cv[[m]] <- newdat_cv_deriv_curve %>%
+  dplyr::select(language, segtype_o, phone_dur_uttr_med, phone_dur_uttr, density, phone_dur, model, derivative) %>%
+  group_by(language, phone_dur_uttr_med, phone_dur_uttr, density, model) %>%
+  summarise(derivative_c = derivative[segtype_o == "consonant"],
+            derivative_v = derivative[segtype_o == "syllabic"],
+            delta_deriv = derivative_v - derivative_c,
+            phone_dur_v = phone_dur[segtype_o == "syllabic"],
+            phone_dur_c = phone_dur[segtype_o == "consonant"]) %>%
+  group_by(language) %>%
+  mutate(derivative_v_w = derivative_v*density,
+         derivative_c_w = derivative_c*density,
+         delta_deriv_w = delta_deriv*density,
+         phone_dur_v_w = phone_dur_v*density,
+         phone_dur_c_w = phone_dur_c*density) %>%
+  ungroup()
+
+eff_sizes_dw_cv[[m]] <- eff_curves_cv[[m]] %>%
+  group_by(language, phone_dur_uttr_med, model) %>%
+  summarize(density_area = sum(density),
+            derivative_v_w_area = sum(derivative_v_w),
+            derivative_c_w_area = sum(derivative_c_w),
+            delta_deriv_w_area = sum(delta_deriv_w),
+            phone_dur_v_w_area = sum(phone_dur_v_w),
+            phone_dur_c_w_area = sum(phone_dur_c_w),
+            eff_size_dw = delta_deriv_w_area/density_area,
+            derivative_v_dw = derivative_v_w_area/density_area,
+            derivative_c_dw = derivative_c_w_area/density_area,
+            phone_dur_v_dw = phone_dur_v_w_area/density_area,
+            phone_dur_c_dw = phone_dur_c_w_area/density_area,
+            )
+
+eff_sizes_dw_cv[[m]] <- left_join(
+  eff_sizes_dw_cv[[m]],
+  rename(eff_sizes_cv[[m]],eff_size_med = eff_size),
+  by = "language")
+
+eff_sizes_dw_cv[[m]] <- eff_sizes_dw_cv[[m]] %>%
+  arrange(desc(eff_size_dw))
+}
+
+eff_curves_cv_df <- bind_rows(eff_curves_cv)
+eff_curves_cv_df %>% write_csv("eff_curves_cv_df.csv")
+eff_curves_cv_df <- read_csv("./eff_curves_cv_df.csv")
+
+eff_sizes_dw_cv_df <- bind_rows(eff_sizes_dw_cv)
+eff_sizes_dw_cv_df %>% write_csv("eff_sizes_dw_cv_df.csv")
+eff_sizes_dw_cv_df <- read_csv("./eff_sizes_dw_cv_df.csv")
+```
+
+
+## Making CV Prediction Plots Showing Density-Weighted Effect Sizes
+Ordering by effect size (delta-beta) & showing this number in the plot of CV predictions.
+
+```{r}
+for (m in mods_cv) {
+  
+  eff_sizes_dw_cv_m <- eff_sizes_dw_cv[[m]]
+  eff_sizes_dw_cv_m$language <- factor(eff_sizes_dw_cv_m$language, levels=eff_sizes_dw_cv_m$language)
+  eff_sizes_dw_cv_m$phone_dur_uttr_median <- eff_sizes_dw_cv_m$phone_dur_uttr
+  eff_sizes_dw_cv_m$phone_dur_uttr <- 0.055
+  eff_sizes_dw_cv_m$value <- 0.13
+  
+  newdat_m <- filter(newdat_cv_all, model==m)
+  newdat_m$language <- factor(newdat_m$language, levels=eff_sizes_dw_cv_m$language)
+  
+  plot_dat <- d_uttr_cv
+  plot_dat$language <- factor(plot_dat$language, levels=eff_sizes_dw_cv_m$language)
+  
+  plot_dat %>%
+    ggplot(data = ., aes(x = phone_dur_uttr, y = value, col = measure)) +
+    facet_wrap(. ~ language) +
+    geom_point(alpha = 0.1, pch=16) + 
+    #geom_ribbon(data = filter(newdat_cv_all,
+    #                          model == "dur",
+    #                          segtype_o == "vowel_dur_uttr"),
+    #            aes(ymin = ll, ymax = ul), col = NA, fill = "grey",
+    #            alpha = 0.5) +
+    #geom_ribbon(data = filter(newdat_cv,
+    #                          measure_type == "dur",
+    #                          segtype_o == "cons_dur_uttr"),
+    #            aes(ymin = ll, ymax = ul), col = NA, fill = "grey",
+    #            alpha = 0.5) +
+    geom_line(data = filter(newdat_m,
+                            segtype_o == "syllabic"),
+              aes(lty=model, y=dur),
+              col = "darkorange1", lwd = 1) +
+    geom_line(data = filter(newdat_m,
+                            segtype_o == "consonant"),
+              aes(lty=model, y=dur),
+              col = "purple4", lwd = 1) +
+    geom_text(data=eff_sizes_dw_cv_m, 
+              aes(label=paste0("Δβ[dw] == ",
+                               round(eff_sizes_dw_cv_m$eff_size_dw,2))),
+              col="black", size=5, parse = TRUE) +
+    geom_text(data=eff_sizes_dw_cv_m,
+              aes(y=value/1.2,
+                  label=paste0("Δβ[m] == ",
+                               round(eff_sizes_dw_cv_m$eff_size_med,2))),
+              col="black", size=5, parse = TRUE) +
+    scale_x_log10(breaks = c(0.05, 0.07, 0.1, 0.14)) +
+    scale_y_log10(breaks = c(0.05, 0.07, 0.1, 0.14),
+                  limits = c(0.03, 0.19)) +
+    scale_colour_manual(values = c("purple", "orange"), guide = "none") +
+    labs(x = "Average segment duration in s (inverse speech rate)",
+         y = "Average C vs. V duration in s") +
+    theme_minimal() +
+    theme(panel.grid = element_blank(),
+        title = element_text(size=24, face="bold"),
+        axis.line = element_line(size=0.8),
+        axis.ticks = element_line(size=0.8),
+        axis.text = element_text(size=16, colour="black"),
+        axis.title = element_text(size=18, face="bold"),
+        strip.background.y = element_blank(), 
+        strip.placement = "outside",
+        strip.text=element_text(size=18, face="bold"))
+  ggsave(paste0("doreco_graphs_v1/cv/", m, ".png"), width=15, height=15, dpi=300)
+}
+
+
+
+```
+
+## Plotting CV Model Effect Curves
+
+Plot effect size curves
+
+```{r}
+for (m in mods_cv) {
+
+  eff_curves_cv_m <- eff_curves_cv[[m]]
+  eff_sizes_dw_cv_m <- eff_sizes_dw_cv[[m]]
+  
+  eff_sizes_dw_cv_m$language <- factor(eff_sizes_dw_cv_m$language,
+                                     levels=eff_sizes_dw_cv_m$language)
+  eff_curves_cv_m$language <- factor(eff_curves_cv_m$language,
+                                     levels=eff_sizes_dw_cv_m$language)
+  
+  eff_curves_cv_m %>%
+    ggplot(data = ., aes(x = phone_dur_uttr)) +
+    facet_wrap(. ~ language) +
+    #geom_ribbon(data = filter(newdat_cv_all,
+    #                          model == "dur",
+    #                          segtype_o == "vowel_dur_uttr"),
+    #            aes(ymin = ll, ymax = ul), col = NA, fill = "grey",
+    #            alpha = 0.5) +
+    #geom_ribbon(data = filter(newdat_cv,
+    #                          measure_type == "dur",
+    #                          segtype_o == "cons_dur_uttr"),
+    #            aes(ymin = ll, ymax = ul), col = NA, fill = "grey",
+    #            alpha = 0.5) +
+    # geom_density(data = d_cv,
+    #              aes(x = phone_dur_uttr, after_stat(scaled)),
+    #              n = 100, trim = FALSE, #bounds = c(min(d_cv$phone_dur_uttr),max(d_cv$phone_dur_uttr)),
+    #              fill = "forestgreen",lwd=0, alpha=0.3) +
+    geom_area(aes(y = density),
+              fill = "darkgreen",alpha=0.3) +
+    # geom_line(aes(y = derivative_v),
+    #           col = "orange", lwd = 1) +
+    # geom_line(aes(y = derivative_c),
+    #           col = "purple", lwd = 1) +
+    geom_line(aes(y = delta_deriv),
+              col = "darkblue", lwd = 1) +
+    # geom_line(aes(y = delta_deriv_w),
+    #           col = "firebrick", lwd = 1) +
+    geom_text(data = eff_sizes_dw_cv_m,
+              aes(label=paste0("Δβ[w] == ", round(eff_size_dw,2)),
+                  x = 0.05, y = 0.9),
+              col="darkblue", size=5, parse=TRUE) +
+    geom_text(data = eff_sizes_dw_cv_m,
+              aes(label=paste0("Δβ[m] == ", round(eff_size_med,2)),
+                  x = 0.05, y = 0.75),
+              col="red", size=5, parse=TRUE) +
+    geom_hline(data = eff_sizes_dw_cv_m,
+               aes(yintercept = eff_size_dw),
+               linetype = 'dashed',
+               col = "darkblue") +
+    geom_hline(data = eff_sizes_dw_cv_m,
+               aes(yintercept = eff_size_med),
+               linetype = 'dashed',
+               col = "red") +
+    geom_hline(yintercept = 0, linetype = 'dashed') +
+    geom_vline(aes(xintercept = phone_dur_uttr_med),
+               col = 'red') +
+    
+    scale_x_log10(breaks = c(0.05, 0.07, 0.1, 0.14)) +
+    scale_y_continuous(
+      limits=c(-0.2,1.1)
+      ) +
+    labs(title = "Effect Curves",
+         x = "Average segment duration in s (inverse speech rate)",
+         y = "Delta derivative") +
+    theme_minimal() +
+    theme(panel.grid = element_blank(),
+        title = element_text(size=24, face="bold"),
+        axis.line = element_line(size=0.8),
+        axis.ticks = element_line(size=0.8),
+        axis.text = element_text(size=16, colour="black"),
+        axis.title = element_text(size=18, face="bold"),
+        strip.background.y = element_blank(), 
+        strip.placement = "outside",
+        strip.text=element_text(size=18, face="bold"))
+  ggsave(paste0("doreco_graphs_v1/cv/effect_curves_", m, ".png"), width=15, height=15, dpi=300)
+}
+```
+
+Derivative curves
+
+```{r}
+for (m in mods_cv) {
+
+  eff_curves_cv_m <- eff_curves_cv[[m]]
+  eff_sizes_dw_cv_m <- eff_sizes_dw_cv[[m]]
+  
+  eff_sizes_dw_cv_m$language <- factor(eff_sizes_dw_cv_m$language,
+                                     levels=eff_sizes_dw_cv_m$language)
+  eff_curves_cv_m$language <- factor(eff_curves_cv_m$language,
+                                     levels=eff_sizes_dw_cv_m$language)
+  
+  eff_curves_cv_m %>%
+    ggplot(data = ., aes(x = phone_dur_uttr)) +
+    facet_wrap(. ~ language) +
+    #geom_ribbon(data = filter(newdat_cv_all,
+    #                          model == "dur",
+    #                          segtype_o == "vowel_dur_uttr"),
+    #            aes(ymin = ll, ymax = ul), col = NA, fill = "grey",
+    #            alpha = 0.5) +
+    #geom_ribbon(data = filter(newdat_cv,
+    #                          measure_type == "dur",
+    #                          segtype_o == "cons_dur_uttr"),
+    #            aes(ymin = ll, ymax = ul), col = NA, fill = "grey",
+    #            alpha = 0.5) +
+    # geom_density(data = d_cv,
+    #              aes(x = phone_dur_uttr, after_stat(scaled)),
+    #              n = 100, trim = FALSE, #bounds = c(min(d_cv$phone_dur_uttr),max(d_cv$phone_dur_uttr)),
+    #              fill = "forestgreen",lwd=0, alpha=0.3) +
+    # geom_line(aes(y = density),
+    #           col = "darkgreen", lwd = 0.5) +
+    geom_area(aes(y = density/2+1),
+              fill = "darkgreen",alpha=0.3) +
+    geom_line(aes(y = derivative_v),
+              col = "orange", lwd = 1) +
+    geom_line(aes(y = derivative_c),
+              col = "purple", lwd = 1) +
+    geom_hline(yintercept = 1, linetype = 'dashed') +
+    # geom_line(aes(y = delta_deriv),
+    #           col = "darkblue", lwd = 1) +
+    geom_vline(aes(xintercept = phone_dur_uttr_med),
+               col = 'red') +
+    scale_x_log10(breaks = c(0.05, 0.07, 0.1, 0.14)) +
+    scale_y_log10(n.breaks = 8) +
+    labs(title = "Derivative Curves",
+         x = "Average segment duration in s (inverse speech rate)",
+         y = "Predicted phone duration") +
+    theme_minimal() +
+    theme(panel.grid = element_blank(),
+        title = element_text(size=24, face="bold"),
+        axis.line = element_line(size=0.8),
+        axis.ticks = element_line(size=0.8),
+        axis.text = element_text(size=16, colour="black"),
+        axis.title = element_text(size=18, face="bold"),
+        strip.background.y = element_blank(), 
+        strip.placement = "outside",
+        strip.text=element_text(size=18, face="bold"))
+  ggsave(paste0("doreco_graphs_v1/cv/derivative_curves_", m, ".png"), width=15, height=15, dpi=300)
+}
+```
+
+## Comparing CV Model Density-Weighted Effect Sizes
+
+Comparing effect sizes computed in different ways
+
+```{r}
+for (m in mods_cv) {
+  eff_sizes_dw_cv_m <- eff_sizes_dw_cv[[m]] %>%
+  ggplot(aes(x=eff_size_dw, y=eff_size_med)) +
+    geom_segment(x=-1,xend=1,
+                 y=-1,yend=1,
+                 col="red", lwd = 0.25) +
+    geom_point() +
+    scale_x_continuous(limits = c(0,0.65)) +
+    scale_y_continuous(limits = c(0,0.65)) +
+    labs(x = "Δβ duration-weighted",
+         y = "Δβ at median") +
+    theme_minimal() +
+    theme(panel.grid = element_blank(),
+        axis.line = element_line(size=0.8),
+        axis.ticks = element_line(size=0.8),
+        axis.text = element_text(size=16, colour="black"),
+        axis.title = element_text(size=18, face="bold"),
+        strip.background.y = element_blank(), 
+        strip.placement = "outside",
+        strip.text=element_text(size=18, face="bold"))
+  ggsave(paste0("doreco_graphs_v1/cv/cv_eff_type_comp_", m, ".png"), width=5, height=5, dpi=300)
+  
+  eff_sizes_dw_cv_m <- eff_sizes_dw_cv[[m]] %>%
+  ggplot(aes(x=phone_dur_uttr_med, y = eff_size_med - eff_size_dw)) +
+    geom_hline(yintercept=0, col="red", lwd = 0.25) +
+    geom_point() +
+    xlab("Median") +
+    labs(y = "Δβ duration-weighted - Δβ at median") +
+    theme_minimal() +
+    theme(panel.grid = element_blank(),
+        axis.line = element_line(size=0.8),
+        axis.ticks = element_line(size=0.8),
+        axis.text = element_text(size=16, colour="black"),
+        axis.title = element_text(size=18, face="bold"),
+        strip.background.y = element_blank(), 
+        strip.placement = "outside",
+        strip.text=element_text(size=18, face="bold"))
+  ggsave(paste0("doreco_graphs_v1/cv/cv_eff_type_diff_", m, ".png"), width=5, height=5, dpi=300)
+}
+```
+Comparing predicted phone durations and slopes
+```{r}
+for (m in mods_cv) {
+  eff_sizes_dw_cv_m <- eff_sizes_dw_cv[[m]] %>%
+  ggplot() +
+    geom_point(aes(x=phone_dur_v_dw,y=derivative_v_dw),col="orange") +
+    geom_point(aes(x=phone_dur_c_dw,y=derivative_c_dw),col="purple") +
+    geom_segment(aes(x=phone_dur_c_dw,xend=phone_dur_v_dw,
+                     y=derivative_c_dw,yend=derivative_v_dw)) +
+    xlab("Predicted density-weighted phone duration") +
+    labs(y = "β ") +
+    theme_minimal() +
+    theme(panel.grid = element_blank(),
+        axis.line = element_line(size=0.8),
+        axis.ticks = element_line(size=0.8),
+        axis.text = element_text(size=16, colour="black"),
+        axis.title = element_text(size=18, face="bold"),
+        strip.background.y = element_blank(), 
+        strip.placement = "outside",
+        strip.text=element_text(size=18, face="bold"))
+  ggsave(paste0("doreco_graphs_v1/cv/cv_deriv_pred_dw_", m, ".png"), width=5, height=5, dpi=300)
+}
+
+```
+
+
+

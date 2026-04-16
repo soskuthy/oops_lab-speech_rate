@@ -1,0 +1,2240 @@
+---
+title: "doreco_stretchiness_analysis"
+author: "Noah Luntzlara"
+date: "2025-10-01"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Set Up
+
+Load packages.
+
+```{r}
+library(tidyverse)
+# library(ggbeeswarm)
+# library(ggpubr)
+library(forcats)
+
+library(mgcv)
+library(itsadug)
+
+library(geomtextpath)
+library(RColorBrewer)
+library(viridis)
+
+library(broom)
+```
+
+Read in the data.
+
+```{r}
+
+d_all <- read_csv("../doreco_data/combined_doreco_durations_filtered.csv")
+
+# d_all_unfilt <- read_csv("../doreco_data/combined_doreco_durations_unfiltered.csv")
+
+```
+
+
+
+Data frame for VL models
+
+```{r}
+d_vl <- d_all %>%
+  filter(segtype_syllabic == "vowel",
+         segtype_vowel_dipthongality == "monophthong")
+
+#d_vl$segtype_o <- as.ordered(d_vl$segtype)
+#contrasts(d_vl$segtype_o) <- "contr.treatment"
+
+d_vl$speaker_f <- as.factor(d_vl$speaker)
+d_vl$speakerSegtype <- interaction(d_vl$speaker, d_vl$segtype)
+
+d_vl$language_f <- as.factor(d_vl$language)
+d_vl$languageSegtype <- interaction(d_vl$language, d_vl$segtype)
+
+d_vl$phone_type_f <- as.factor(d_vl$phone_type)
+#d_vl$phone_type_new_f <- as.factor(d_vl$phone_type_new)
+
+
+d_vl$vlcLn_f <- factor(d_vl$vlcLn)
+d_vl$vlcLn_f <- relevel(d_vl$vlcLn_f, ref = "no_contrast")
+d_vl$vlcLn_o <- as.ordered(d_vl$vlcLn_f)
+contrasts(d_vl$vlcLn_o) <- "contr.treatment"
+
+d_vl$vht_f <- as.factor(d_vl$segtype_vowel_height)
+d_vl$vht_o <- as.ordered(d_vl$vht_f)
+contrasts(d_vl$vht_o) <- "contr.treatment"
+
+d_vl$syll_pos_f <- as.factor(d_vl$syll_pos)
+d_vl$syll_pos_o <- as.ordered(d_vl$syll_pos_f) # ??? not ordered?
+contrasts(d_vl$syll_pos_o) <- "contr.treatment" #added, re-run
+
+```
+
+
+Lists of languages by vowel length typology
+```{r}
+d_vl_language_types <- d_vl %>%
+  group_by(language,vowel_length_contrast) %>%
+  summarize()
+
+languages <- d_vl_language_types$language
+
+languages_no_contrast <- filter(d_vl_language_types,
+                                vowel_length_contrast=="none")$language
+
+languages_restricted <- filter(d_vl_language_types,
+                                vowel_length_contrast=="restricted")$language
+
+languages_unrestricted <- filter(d_vl_language_types,
+                                vowel_length_contrast=="unrestricted")$language
+```
+
+# GAMMs for VL comparisons
+
+## Fitting VL models
+
+```{r}
+# vln_mod_mono_baseline <- bam(phone_dur ~
+#   vlcLn_o +
+#   #vht_o +
+#   #syll_pos_o +
+#   s(phone_dur_uttr, bs = "cr") +
+#   s(phone_dur_uttr, by = vlcLn_o, bs = "cr") +
+#   #s(phone_dur_uttr, by = vht_o, bs = "cr") +
+#   #s(phone_dur_uttr, by = syll_pos_o, bs = "cr") +
+#   s(phone_dur_uttr, speaker_f, bs = "fs", m = 1, xt = list("cr")) +
+#   s(phone_dur_uttr, language_f, bs = "fs", m = 1, xt = list("cr")),
+#   data = d_vl,
+#   #weights=d_vl$weight / mean(d_vl$weight),
+#   discrete = TRUE,
+#   nthreads = 8
+# )
+# 
+# saveRDS(vln_mod_mono_baseline, "vln_mod_mono_baseline.rds")
+# vln_mod_mono_baseline <- readRDS("vln_mod_mono_baseline.rds")
+# summary(vln_mod_mono_baseline)
+# 
+# vln_mod_mono_height <- bam(phone_dur ~
+#   vlcLn_o +
+#   vht_o +
+#   #syll_pos_o +
+#   s(phone_dur_uttr, bs = "cr") +
+#   s(phone_dur_uttr, by = vlcLn_o, bs = "cr") +
+#   s(phone_dur_uttr, by = vht_o, bs = "cr") +
+#   #s(phone_dur_uttr, by = syll_pos_o, bs = "cr") +
+#   s(phone_dur_uttr, speaker_f, bs = "fs", m = 1, xt = list("cr")) +
+#   s(phone_dur_uttr, language_f, bs = "fs", m = 1, xt = list("cr")),
+#   data = d_vl,
+#   #weights=d_vl$weight / mean(d_vl$weight),
+#   discrete = TRUE,
+#   nthreads = 8
+# )
+# 
+# saveRDS(vln_mod_mono_height, "vln_mod_mono_height.rds")
+# vln_mod_mono_height <- readRDS("vln_mod_mono_height.rds")
+# summary(vln_mod_mono_height)
+# 
+# vln_mod_mono_pos <- bam(phone_dur ~
+#   vlcLn_o +
+#   #vht_o +
+#   syll_pos_o +
+#   s(phone_dur_uttr, bs = "cr") +
+#   s(phone_dur_uttr, by = vlcLn_o, bs = "cr") +
+#   #s(phone_dur_uttr, by = vht_o, bs = "cr") +
+#   s(phone_dur_uttr, by = syll_pos_o, bs = "cr") +
+#   s(phone_dur_uttr, speaker_f, bs = "fs", m = 1, xt = list("cr")) +
+#   s(phone_dur_uttr, language_f, bs = "fs", m = 1, xt = list("cr")),
+#   data = d_vl,
+#   #weights=d_vl$weight / mean(d_vl$weight),
+#   discrete = TRUE,
+#   nthreads = 8
+# )
+# 
+# saveRDS(vln_mod_mono_pos, "vln_mod_mono_pos.rds")
+# vln_mod_mono_pos <- readRDS("vln_mod_mono_pos.rds")
+# summary(vln_mod_mono_pos)
+# 
+# vln_mod_mono_full <- bam(phone_dur ~
+#   vlcLn_o +
+#   vht_o +
+#   syll_pos_o +
+#   s(phone_dur_uttr, bs = "cr") +
+#   s(phone_dur_uttr, by = vlcLn_o, bs = "cr") + # keep
+#   s(phone_dur_uttr, by = vht_o, bs = "cr") + # keep
+#   s(phone_dur_uttr, by = syll_pos_o, bs = "cr") +
+#   s(phone_dur_uttr, speaker_f, bs = "fs", m = 1, xt = list("cr")) + # keep
+#   s(phone_dur_uttr, language_f, bs = "fs", m = 1, xt = list("cr")), # replace with random smooths by langauge x vlcLn and langauge x vht
+#   data = d_vl,
+#   #weights=d_vl$weight / mean(d_vl$weight),
+#   discrete = TRUE,
+#   nthreads = 8
+# )
+# 
+# saveRDS(vln_mod_mono_full, "vln_mod_mono_full.rds")
+# vln_mod_mono_full <- readRDS("vln_mod_mono_full.rds")
+# summary(vln_mod_mono_full)
+```
+Just reading the models from files
+
+```{r}
+vln_mod_mono_baseline <- readRDS("vln_mod_mono_baseline.rds")
+vln_mod_mono_height <- readRDS("vln_mod_mono_height.rds")
+vln_mod_mono_pos <- readRDS("vln_mod_mono_pos.rds")
+vln_mod_mono_full <- readRDS("vln_mod_mono_full.rds")
+
+# plot diff (check Marci's tutorial=evaluating GAMMs paper 2019 or other)
+# if you want to put a significance value, simultaneous confidence interval
+```
+
+
+## Model Predictions for VL Models
+
+Model predictions for all VL models
+
+
+```{r}
+newdat_vln_mono <- expand.grid(
+  phone_dur_uttr = seq(
+    min(d_vl$phone_dur_uttr),
+    max(d_vl$phone_dur_uttr),
+    length.out = 100
+  ),
+  vht = d_vl$segtype_vowel_height[1], #unique(d_vl$segtype_vowel_height)
+  syll_pos = unique(d_vl$syll_pos),
+  speaker = d_vl$speaker[1],
+  language = unique(d_vl$language),
+  vlcLn = unique(d_vl$vlcLn)
+) %>%
+  mutate(vowel_length_contrast = case_when(
+           language %in% languages_no_contrast ~ "none",
+           language %in% languages_restricted ~ "restricted",
+           language %in% languages_unrestricted ~ "unrestricted")) %>%
+  filter(vowel_length_contrast == "none" & vlcLn == "no_contrast" |
+           (vowel_length_contrast %in% c("unrestricted") &
+             vlcLn %in% c("contrast_long","contrast_short")) |
+           ((vowel_length_contrast %in% c("restricted") &
+             ((vlcLn %in% c("contrast_long","contrast_short") & syll_pos == "nonfinal") |
+                (vlcLn %in% c("no_contrast") & syll_pos == "final"))))
+         )
+
+newdat_vln_mono$vlcLn_o <- as.ordered(newdat_vln_mono$vlcLn)
+contrasts(newdat_vln_mono$vlcLn_o) <- "contr.treatment"
+
+newdat_vln_mono$vht_o <- as.ordered(newdat_vln_mono$vht)
+#contrasts(newdat_vln_mono$vht_o) <- "contr.treatment"
+
+newdat_vln_mono$syll_pos_o <- as.ordered(newdat_vln_mono$syll_pos)
+contrasts(newdat_vln_mono$syll_pos_o) <- "contr.treatment"
+
+newdat_vln_mono$language_f <- as.factor(newdat_vln_mono$language)
+newdat_vln_mono$speaker_f <- as.factor(newdat_vln_mono$speaker)
+
+preds_vln_mono_baseline <- predict(vln_mod_mono_baseline, newdat_vln_mono,
+  # the following is used when predicting without speakers
+  exclude=c("s(phone_dur_uttr,speaker_f)",
+            "s(phone_dur_uttr):vht_ononhigh"),
+  se.fit = TRUE
+)
+
+preds_vln_mono_height <- predict(vln_mod_mono_height, newdat_vln_mono,
+  # the following is used when predicting without speakers
+  exclude=c("s(phone_dur_uttr,speaker_f)",
+            "s(phone_dur_uttr):vht_ononhigh"),
+  se.fit = TRUE
+)
+
+preds_vln_mono_pos <- predict(vln_mod_mono_pos, newdat_vln_mono,
+  # the following is used when predicting without speakers
+  exclude=c("s(phone_dur_uttr,speaker_f)",
+            "s(phone_dur_uttr):vht_ononhigh"),
+  se.fit = TRUE
+)
+
+preds_vln_mono_full <- predict(vln_mod_mono_full, newdat_vln_mono,
+  # the following is used when predicting without speakers
+  exclude=c("s(phone_dur_uttr,speaker_f)",
+            "s(phone_dur_uttr):vht_ononhigh"
+            ),
+  se.fit = TRUE
+)
+
+# baseline
+
+newdat_vln_mono_baseline <- newdat_vln_mono
+
+newdat_vln_mono_baseline$dur <- preds_vln_mono_baseline$fit
+newdat_vln_mono_baseline$ul <- preds_vln_mono_baseline$fit + preds_vln_mono_baseline$se.fit * 1.96
+newdat_vln_mono_baseline$ll <- preds_vln_mono_baseline$fit - preds_vln_mono_baseline$se.fit * 1.96
+
+newdat_vln_mono_baseline$model <- "vln_mod_mono_baseline"
+
+# vowel height
+
+newdat_vln_mono_height <- newdat_vln_mono
+
+newdat_vln_mono_height$dur <- preds_vln_mono_height$fit
+newdat_vln_mono_height$ul <- preds_vln_mono_height$fit + preds_vln_mono_height$se.fit * 1.96
+newdat_vln_mono_height$ll <- preds_vln_mono_height$fit - preds_vln_mono_height$se.fit * 1.96
+
+newdat_vln_mono_height$model <- "vln_mod_mono_height"
+
+
+# syllable position
+
+newdat_vln_mono_pos <- newdat_vln_mono
+
+newdat_vln_mono_pos$dur <- preds_vln_mono_pos$fit
+newdat_vln_mono_pos$ul <- preds_vln_mono_pos$fit + preds_vln_mono_pos$se.fit * 1.96
+newdat_vln_mono_pos$ll <- preds_vln_mono_pos$fit - preds_vln_mono_pos$se.fit * 1.96
+
+newdat_vln_mono_pos$model <- "vln_mod_mono_pos"
+
+# syllable position and vowel height
+
+newdat_vln_mono_full <- newdat_vln_mono
+
+newdat_vln_mono_full$dur <- preds_vln_mono_full$fit
+newdat_vln_mono_full$ul <- preds_vln_mono_full$fit + preds_vln_mono_full$se.fit * 1.96
+newdat_vln_mono_full$ll <- preds_vln_mono_full$fit - preds_vln_mono_full$se.fit * 1.96
+
+newdat_vln_mono_full$model <- "vln_mod_mono_full"
+
+
+
+newdat_vln_mono_all <- bind_rows(
+  newdat_vln_mono_baseline,
+  newdat_vln_mono_height,
+  newdat_vln_mono_pos,
+  newdat_vln_mono_full
+)
+
+newdat_vln_mono_all %>% write_csv("./newdat_vln_mono_all.csv")
+newdat_vln_mono_all <- read_csv("./newdat_vln_mono_all.csv")
+
+
+newdat_vln_mono_all_nopos <- newdat_vln_mono_all %>%
+  filter(model %in% c("vln_mod_mono_baseline", "vln_mod_mono_height")) %>%
+  group_by(across(-c(syll_pos,syll_pos_o,
+                     dur,ul,ll))) %>%
+  summarize(dur = dur[1],
+            ul = ul[1],
+            ll = ll[1],
+            #count = n(),
+            )
+
+newdat_vln_mono_all_pos <- newdat_vln_mono_all %>%
+  filter(model %in% c("vln_mod_mono_pos", "vln_mod_mono_full"))
+
+```
+
+## Plotting VL Model Predictions
+
+New data with long, short, and no contrast averages by utterance
+
+```{r}
+d_uttr_vln_mono <- d_vl %>%
+  group_by(language,speaker,uttr_id) %>%
+  summarize(nocontrast_dur_uttr = mean(phone_dur[vlcLn == "no_contrast"]),
+            long_dur_uttr = mean(phone_dur[vlcLn == "contrast_long"]),
+            short_dur_uttr = mean(phone_dur[vlcLn == "contrast_short"]),
+            phone_dur_uttr = phone_dur_uttr[1],
+            vowel_length_contrast = vowel_length_contrast[1]
+  ) %>%
+  pivot_longer(c(nocontrast_dur_uttr, long_dur_uttr, short_dur_uttr),
+               names_to="measure",
+               values_to="value")
+```
+
+Plot VL model predictions
+
+```{r}
+
+newdat_vln_mono_all %>%
+  ggplot(data = ., aes(x = phone_dur_uttr)) +
+  facet_wrap(. ~ factor(language,
+                        levels=c(languages_no_contrast,
+                                 languages_restricted,
+                                 languages_unrestricted))) +
+  geom_point(data = d_uttr_vln_mono,
+             aes(y = value, col=measure), alpha = 0.1, pch=16) +
+  geom_line(aes(y = dur, lty=model, col = vlcLn_o, lwd = syll_pos_o)) +
+  # geom_ribbon(data = filter(newdat_cv_all,
+  #                          model == "cv_mod_baseline",
+  #                          segtype_o == "consonant"),
+  #           aes(ymin = ll, ymax = ul), col = NA, fill = "skyblue",
+  #           alpha = 0.5) +
+  # geom_ribbon(data = filter(newdat_cv_all,
+  #                          model == "cv_mod_baseline",
+  #                          segtype_o == "syllabic"),
+  #           aes(ymin = ll, ymax = ul), col = NA, fill = "yellow",
+  #           alpha = 0.5) +
+  scale_color_manual(values = c("no_contrast" = "magenta",
+                                "contrast_long" = "blue",
+                                "contrast_short" = "limegreen",
+                                "nocontrast_dur_uttr" = "hotpink", 
+                                "long_dur_uttr" = "cyan", 
+                                "short_dur_uttr" = "green"),
+                     guide = "none") +
+  scale_linetype_manual(values = c("vln_mod_mono_baseline" = "dotted",
+                                   "vln_mod_mono_height" = "dashed",
+                                   "vln_mod_mono_pos" = "longdash",
+                                   "vln_mod_mono_full" = "solid"
+                                   )) +
+  scale_linewidth_manual(values = c("final" = 1,
+                                    "nonfinal" = 0.5)) +
+  scale_x_log10(breaks = c(0.05, 0.07, 0.1, 0.14)) +
+  scale_y_log10(breaks = c(0.05, 0.07, 0.1, 0.14),
+                #limits = c(0.03, 0.2)
+                ) +
+  #scale_x_continuous(limits=c(0.035,0.145), 
+  #                   breaks=seq(0.04,0.14,0.02),
+  #                   labels=c(".04",".06",".08",".10",".12",".14")) +
+  #scale_y_continuous(breaks=seq(0.04,0.20,0.02)) +
+    # labels for axes
+  xlab("Average phone duration by utterance") +
+  labs(y = "Average C vs. V duration in s") +
+  #ylab("Average V vs. C duration in s") +
+  # remove clutter
+  theme_minimal() +
+  theme(panel.grid = element_blank(),
+        axis.line = element_line(size=0.8),
+        axis.ticks = element_line(size=0.8),
+        axis.text = element_text(size=16, colour="black"),
+        axis.title = element_text(size=18, face="bold"),
+        strip.background.y = element_blank(), 
+        strip.placement = "outside",
+        strip.text=element_text(size=18, face="bold"))
+  ggsave("doreco_graphs_v1/vl/vln_mod_mono_all.png", width=15, height=15, dpi=300)
+```
+
+# VL Model Predictions Aggregated over Languages.
+
+## VL Model Predictions Aggregated over All Languages
+
+```{r}
+
+eff_sizes_vln_mono_comb <- list()
+
+# model predictions for models with with segment inclusive speech rate measures
+newdat_vln_mono_comb <- expand.grid(
+  phone_dur_uttr = seq(
+    min(d_vl$phone_dur_uttr),
+    max(d_vl$phone_dur_uttr),
+    length.out = 100
+  ),
+  vht = d_vl$segtype_vowel_height[1],
+  syll_pos = unique(d_vl$syll_pos),
+  speaker = d_vl$speaker[1],
+  language = d_vl$language[1],
+  vlcLn = unique(d_vl$vlcLn)
+)
+
+
+newdat_vln_mono_comb$vlcLn_o <- as.ordered(newdat_vln_mono_comb$vlcLn)
+contrasts(newdat_vln_mono_comb$vlcLn_o) <- "contr.treatment"
+
+newdat_vln_mono_comb$vht_o <- as.ordered(newdat_vln_mono_comb$vht)
+#contrasts(newdat_vln_mono_comb$vht_o) <- "contr.treatment"
+
+newdat_vln_mono_comb$syll_pos_o <- as.ordered(newdat_vln_mono_comb$syll_pos)
+contrasts(newdat_vln_mono_comb$syll_pos_o) <- "contr.treatment"
+
+newdat_vln_mono_comb$language_f <- as.factor(newdat_vln_mono_comb$language)
+newdat_vln_mono_comb$speaker_f <- as.factor(newdat_vln_mono_comb$speaker)
+
+
+preds_vln_mono_comb_baseline <- predict(vln_mod_mono_baseline, newdat_vln_mono_comb,
+  # the following is used when predicting without speakers
+  exclude=c("s(phone_dur_uttr,speaker_f)",
+            "s(phone_dur_uttr,language_f)",
+            "s(phone_dur_uttr):vht_ononhigh"),
+  se.fit = TRUE
+)
+
+preds_vln_mono_comb_height <- predict(vln_mod_mono_height, newdat_vln_mono_comb,
+  # the following is used when predicting without speakers
+  exclude=c("s(phone_dur_uttr,speaker_f)",
+            "s(phone_dur_uttr,language_f)",
+            "s(phone_dur_uttr):vht_ononhigh"),
+  se.fit = TRUE
+)
+
+preds_vln_mono_comb_pos <- predict(vln_mod_mono_pos, newdat_vln_mono_comb,
+  # the following is used when predicting without speakers
+  exclude=c("s(phone_dur_uttr,speaker_f)",
+            "s(phone_dur_uttr,language_f)",
+            "s(phone_dur_uttr):vht_ononhigh"),
+  se.fit = TRUE
+)
+
+preds_vln_mono_comb_full <- predict(vln_mod_mono_full, newdat_vln_mono_comb,
+  # the following is used when predicting without speakers
+  exclude=c("s(phone_dur_uttr,speaker_f)",
+            "s(phone_dur_uttr,language_f)",
+            "s(phone_dur_uttr):vht_ononhigh"),
+  se.fit = TRUE
+)
+
+mods_vln_mono_nopos <- c("vln_mod_mono_baseline",
+                         "vln_mod_mono_height")
+mods_vln_mono_pos <- c("vln_mod_mono_pos",
+                       "vln_mod_mono_full")
+mods_vln_mono <- c(mods_vln_mono_nopos,mods_vln_mono_pos)
+
+# baseline
+
+newdat_vln_mono_comb_baseline <- newdat_vln_mono_comb
+
+newdat_vln_mono_comb_baseline$dur <- preds_vln_mono_comb_baseline$fit
+newdat_vln_mono_comb_baseline$ul <- preds_vln_mono_comb_baseline$fit + preds_vln_mono_comb_baseline$se.fit * 1.96
+newdat_vln_mono_comb_baseline$ll <- preds_vln_mono_comb_baseline$fit - preds_vln_mono_comb_baseline$se.fit * 1.96
+
+newdat_vln_mono_comb_baseline$model <- "vln_mod_mono_baseline"
+
+# vowel height
+
+newdat_vln_mono_comb_height <- newdat_vln_mono_comb
+
+newdat_vln_mono_comb_height$dur <- preds_vln_mono_comb_height$fit
+newdat_vln_mono_comb_height$ul <- preds_vln_mono_comb_height$fit + preds_vln_mono_comb_height$se.fit * 1.96
+newdat_vln_mono_comb_height$ll <- preds_vln_mono_comb_height$fit - preds_vln_mono_comb_height$se.fit * 1.96
+
+newdat_vln_mono_comb_height$model <- "vln_mod_mono_height"
+
+# syllable position
+
+newdat_vln_mono_comb_pos <- newdat_vln_mono_comb
+
+newdat_vln_mono_comb_pos$dur <- preds_vln_mono_comb_pos$fit
+newdat_vln_mono_comb_pos$ul <- preds_vln_mono_comb_pos$fit + preds_vln_mono_comb_pos$se.fit * 1.96
+newdat_vln_mono_comb_pos$ll <- preds_vln_mono_comb_pos$fit - preds_vln_mono_comb_pos$se.fit * 1.96
+
+newdat_vln_mono_comb_pos$model <- "vln_mod_mono_pos"
+
+# vowel height and syllable position
+
+newdat_vln_mono_comb_full <- newdat_vln_mono_comb
+
+newdat_vln_mono_comb_full$dur <- preds_vln_mono_comb_full$fit
+newdat_vln_mono_comb_full$ul <- preds_vln_mono_comb_full$fit + preds_vln_mono_comb_full$se.fit * 1.96
+newdat_vln_mono_comb_full$ll <- preds_vln_mono_comb_full$fit - preds_vln_mono_comb_full$se.fit * 1.96
+
+newdat_vln_mono_comb_full$model <- "vln_mod_mono_full"
+
+
+newdat_vln_mono_comb_all <- bind_rows(
+  newdat_vln_mono_comb_baseline,
+  newdat_vln_mono_comb_height,
+  newdat_vln_mono_comb_pos,
+  newdat_vln_mono_comb_full
+)
+
+newdat_vln_mono_comb_all %>% write_csv("./newdat_vln_mono_comb_all.csv")
+newdat_vln_mono_comb_all <- read_csv("./newdat_vln_mono_comb_all.csv")
+```
+
+
+Plotting model predictions aggregated over languages.
+
+
+```{r}
+for (m in mods_vln_mono) {
+  
+  eff_sizes_vln_mono_comb_m <- eff_sizes_vln_mono_comb[[m]]
+  eff_sizes_vln_mono_comb_m$phone_dur_uttr <- 0.05
+  eff_sizes_vln_mono_comb_m$value <- 0.13
+  
+  newdat_m <- filter(newdat_vln_mono_comb_all, model==m)
+  
+  plot_dat <- newdat_m
+  
+  plot_dat %>%
+  ggplot(data = ., aes(x = phone_dur_uttr)) +
+  geom_point(data = d_uttr_vln_mono,
+             aes(y = value, col=measure), alpha = 0.1, pch=16) +
+  geom_ribbon(data = filter(newdat_m,
+                            vlcLn == "no_contrast",
+                            syll_pos_o == "nonfinal"),
+            aes(ymin = ll, ymax = ul), col = NA, fill = "hotpink",
+            alpha = 0.25) +
+    geom_ribbon(data = filter(newdat_m,
+                            vlcLn == "no_contrast",
+                            syll_pos_o == "final"),
+            aes(ymin = ll, ymax = ul), col = NA, fill = "hotpink",
+            alpha = 0.5) +
+  geom_ribbon(data = filter(newdat_m,
+                            vlcLn == "contrast_long",
+                            syll_pos_o == "nonfinal"),
+            aes(ymin = ll, ymax = ul), col = NA, fill = "cyan",
+            alpha = 0.25) +
+  geom_ribbon(data = filter(newdat_m,
+                            vlcLn == "contrast_long",
+                            syll_pos_o == "final"),
+            aes(ymin = ll, ymax = ul), col = NA, fill = "cyan",
+            alpha = 0.5) +
+  geom_ribbon(data = filter(newdat_m,
+                            vlcLn == "contrast_short",
+                            syll_pos_o == "nonfinal"),
+            aes(ymin = ll, ymax = ul), col = NA, fill = "green",
+            alpha = 0.25) +
+  geom_ribbon(data = filter(newdat_m,
+                            vlcLn == "contrast_short",
+                            syll_pos_o == "final"),
+            aes(ymin = ll, ymax = ul), col = NA, fill = "green",
+            alpha = 0.5) +
+  geom_line(aes(y=dur, col = vlcLn_o, lwd = syll_pos_o)) +
+  # geom_text(data=eff_sizes_vln_mono_comb_m, 
+  #           aes(y=value*1.2*1.2*1.2,label=paste0("β_nc = ", round(derivative_nc,2))),
+  #           col="black", size=5) +
+  #   geom_text(data=eff_sizes_vln_mono_comb_m, 
+  #           aes(y=value*1.2*1.2,label=paste0("β_l = ", round(derivative_cl,2))),
+  #           col="black", size=5) +
+  #   geom_text(data=eff_sizes_vln_mono_comb_m, 
+  #           aes(y=value*1.2,label=paste0("β_s = ", round(derivative_cs,2))),
+  #           col="black", size=5) +
+  #   geom_text(data=eff_sizes_vln_mono_comb_m, 
+  #           aes(y=value,label=paste0("Δβ = ", round(eff_size,2))),
+  #           col="black", size=5) +
+  scale_color_manual(values = c("no_contrast" = "magenta",
+                                "contrast_long" = "blue",
+                                "contrast_short" = "limegreen",
+                                "nocontrast_dur_uttr" = "hotpink", 
+                                "long_dur_uttr" = "cyan", 
+                                "short_dur_uttr" = "green"),
+                     guide = "none") +
+  scale_linewidth_manual(values = c("final" = 1,
+                                    "nonfinal" = 0.5)) +
+  scale_x_log10(breaks = c(0.05, 0.07, 0.1, 0.14)) +
+  scale_y_log10(breaks = c(0.05, 0.07, 0.1, 0.14),
+                #limits = c(0.03, 0.2)
+                ) +
+  #scale_x_continuous(limits=c(0.035,0.145), 
+  #                   breaks=seq(0.04,0.14,0.02),
+  #                   labels=c(".04",".06",".08",".10",".12",".14")) +
+  #scale_y_continuous(breaks=seq(0.04,0.20,0.02)) +
+    # labels for axes
+  xlab("Average phone duration by utterance") +
+  labs(y = "Average long vs short vs no-contrast monophthong duration in s") +
+  #ylab("Average V vs. C duration in s") +
+  # remove clutter
+  theme_minimal() +
+  theme(panel.grid = element_blank(),
+        axis.line = element_line(size=0.8),
+        axis.ticks = element_line(size=0.8),
+        axis.text = element_text(size=16, colour="black"),
+        axis.title = element_text(size=18, face="bold"),
+        strip.background.y = element_blank(), 
+        strip.placement = "outside",
+        strip.text=element_text(size=18, face="bold"))
+  ggsave(paste0("doreco_graphs_v1/vl/comb/", m, "_comb.png"), width=9, height=9, dpi=300)
+}
+```
+
+## VL Model Predictions Aggregated by Vowel Contrast Type
+
+```{r}
+
+eff_sizes_vln_mono_comb2 <- list()
+
+# model predictions for models with with segment inclusive speech rate measures
+newdat_vln_mono_comb2 <- expand.grid(
+  phone_dur_uttr = seq(
+    min(d_vl$phone_dur_uttr),
+    max(d_vl$phone_dur_uttr),
+    length.out = 100
+  ),
+  vht = d_vl$segtype_vowel_height[1],
+  syll_pos = unique(d_vl$syll_pos),
+  speaker = d_vl$speaker[1],
+  language = d_vl$language[1],
+  vlcLn = unique(d_vl$vlcLn),
+  vowel_length_contrast = unique(d_vl$vowel_length_contrast)
+) %>%
+  filter(vowel_length_contrast == "none" & vlcLn == "no_contrast" |
+           (vowel_length_contrast %in% c("unrestricted") &
+             vlcLn %in% c("contrast_long","contrast_short")) |
+           ((vowel_length_contrast %in% c("restricted") &
+             ((vlcLn %in% c("contrast_long","contrast_short") & syll_pos == "nonfinal") |
+                (vlcLn %in% c("no_contrast") & syll_pos == "final"))))
+         )
+
+
+newdat_vln_mono_comb2$vlcLn_o <- as.ordered(newdat_vln_mono_comb2$vlcLn)
+contrasts(newdat_vln_mono_comb2$vlcLn_o) <- "contr.treatment"
+
+newdat_vln_mono_comb2$vht_o <- as.ordered(newdat_vln_mono_comb2$vht)
+#contrasts(newdat_vln_mono_comb2$vht_o) <- "contr.treatment"
+
+newdat_vln_mono_comb2$syll_pos_o <- as.ordered(newdat_vln_mono_comb2$syll_pos)
+contrasts(newdat_vln_mono_comb2$syll_pos_o) <- "contr.treatment"
+
+newdat_vln_mono_comb2$language_f <- as.factor(newdat_vln_mono_comb2$language)
+newdat_vln_mono_comb2$speaker_f <- as.factor(newdat_vln_mono_comb2$speaker)
+
+
+preds_vln_mono_comb2_baseline <- predict(vln_mod_mono_baseline, newdat_vln_mono_comb2,
+  # the following is used when predicting without speakers
+  exclude=c("s(phone_dur_uttr,speaker_f)",
+            "s(phone_dur_uttr,language_f)",
+            "s(phone_dur_uttr):vht_ononhigh"),
+  se.fit = TRUE
+)
+
+preds_vln_mono_comb2_height <- predict(vln_mod_mono_height, newdat_vln_mono_comb2,
+  # the following is used when predicting without speakers
+  exclude=c("s(phone_dur_uttr,speaker_f)",
+            "s(phone_dur_uttr,language_f)",
+            "s(phone_dur_uttr):vht_ononhigh"),
+  se.fit = TRUE
+)
+
+preds_vln_mono_comb2_pos <- predict(vln_mod_mono_pos, newdat_vln_mono_comb2,
+  # the following is used when predicting without speakers
+  exclude=c("s(phone_dur_uttr,speaker_f)",
+            "s(phone_dur_uttr,language_f)",
+            "s(phone_dur_uttr):vht_ononhigh"),
+  se.fit = TRUE
+)
+
+preds_vln_mono_comb2_full <- predict(vln_mod_mono_full, newdat_vln_mono_comb2,
+  # the following is used when predicting without speakers
+  exclude=c("s(phone_dur_uttr,speaker_f)",
+            "s(phone_dur_uttr,language_f)",
+            "s(phone_dur_uttr):vht_ononhigh"),
+  se.fit = TRUE
+)
+
+mods_vln_mono_nopos <- c("vln_mod_mono_baseline",
+                         "vln_mod_mono_height")
+mods_vln_mono_pos <- c("vln_mod_mono_pos",
+                       "vln_mod_mono_full")
+mods_vln_mono <- c(mods_vln_mono_nopos,mods_vln_mono_pos)
+
+# baseline
+
+newdat_vln_mono_comb2_baseline <- newdat_vln_mono_comb2
+
+newdat_vln_mono_comb2_baseline$dur <- preds_vln_mono_comb2_baseline$fit
+newdat_vln_mono_comb2_baseline$ul <- preds_vln_mono_comb2_baseline$fit + preds_vln_mono_comb2_baseline$se.fit * 1.96
+newdat_vln_mono_comb2_baseline$ll <- preds_vln_mono_comb2_baseline$fit - preds_vln_mono_comb2_baseline$se.fit * 1.96
+
+newdat_vln_mono_comb2_baseline$model <- "vln_mod_mono_baseline"
+
+# vowel height
+
+newdat_vln_mono_comb2_height <- newdat_vln_mono_comb2
+
+newdat_vln_mono_comb2_height$dur <- preds_vln_mono_comb2_height$fit
+newdat_vln_mono_comb2_height$ul <- preds_vln_mono_comb2_height$fit + preds_vln_mono_comb2_height$se.fit * 1.96
+newdat_vln_mono_comb2_height$ll <- preds_vln_mono_comb2_height$fit - preds_vln_mono_comb2_height$se.fit * 1.96
+
+newdat_vln_mono_comb2_height$model <- "vln_mod_mono_height"
+
+# syllable position
+
+newdat_vln_mono_comb2_pos <- newdat_vln_mono_comb2
+
+newdat_vln_mono_comb2_pos$dur <- preds_vln_mono_comb2_pos$fit
+newdat_vln_mono_comb2_pos$ul <- preds_vln_mono_comb2_pos$fit + preds_vln_mono_comb2_pos$se.fit * 1.96
+newdat_vln_mono_comb2_pos$ll <- preds_vln_mono_comb2_pos$fit - preds_vln_mono_comb2_pos$se.fit * 1.96
+
+newdat_vln_mono_comb2_pos$model <- "vln_mod_mono_pos"
+
+# vowel height and syllable position
+
+newdat_vln_mono_comb2_full <- newdat_vln_mono_comb2
+
+newdat_vln_mono_comb2_full$dur <- preds_vln_mono_comb2_full$fit
+newdat_vln_mono_comb2_full$ul <- preds_vln_mono_comb2_full$fit + preds_vln_mono_comb2_full$se.fit * 1.96
+newdat_vln_mono_comb2_full$ll <- preds_vln_mono_comb2_full$fit - preds_vln_mono_comb2_full$se.fit * 1.96
+
+newdat_vln_mono_comb2_full$model <- "vln_mod_mono_full"
+
+
+newdat_vln_mono_comb2_all <- bind_rows(
+  newdat_vln_mono_comb2_baseline,
+  newdat_vln_mono_comb2_height,
+  newdat_vln_mono_comb2_pos,
+  newdat_vln_mono_comb2_full
+)
+
+newdat_vln_mono_comb2_all %>% write_csv("./newdat_vln_mono_comb2_all.csv")
+newdat_vln_mono_comb2_all <- read_csv("./newdat_vln_mono_comb2_all.csv")
+```
+
+
+Plotting model predictions aggregated by contrast type.
+
+
+```{r}
+for (m in mods_vln_mono) {
+  
+  eff_sizes_vln_mono_comb_m <- eff_sizes_vln_mono_comb2[[m]]
+  eff_sizes_vln_mono_comb_m$phone_dur_uttr <- 0.05
+  eff_sizes_vln_mono_comb_m$value <- 0.13
+  
+  newdat_m <- filter(newdat_vln_mono_comb2_all, model==m)
+  
+  plot_dat <- newdat_m
+  
+  plot_dat %>%
+  ggplot(data = ., aes(x = phone_dur_uttr)) +
+  facet_wrap(~vowel_length_contrast,labeller=as_labeller(c("none"="No Contrast",
+                                                    "restricted" = "Restricted Contrast\n(Only in Nonfinal Position)",
+                                                    "unrestricted" = "Unrestricted Contrast"))) +
+  # geom_point(data = d_uttr_vln_mono,
+  #            aes(y = value, fill=measure), alpha = 0.1, pch = 21, stroke=NA) +
+  geom_ribbon(data = filter(newdat_m,
+                            vlcLn == "no_contrast",
+                            syll_pos_o == "nonfinal"),
+            aes(ymin = ll, ymax = ul), col = NA, fill = "magenta",
+            alpha = 0.25) +
+    geom_ribbon(data = filter(newdat_m,
+                            vlcLn == "no_contrast",
+                            syll_pos_o == "final"),
+            aes(ymin = ll, ymax = ul), col = NA, fill = "magenta",
+            alpha = 0.1) +
+  geom_ribbon(data = filter(newdat_m,
+                            vlcLn == "contrast_long",
+                            syll_pos_o == "nonfinal"),
+            aes(ymin = ll, ymax = ul), col = NA, fill = "blue",
+            alpha = 0.25) +
+  geom_ribbon(data = filter(newdat_m,
+                            vlcLn == "contrast_long",
+                            syll_pos_o == "final"),
+            aes(ymin = ll, ymax = ul), col = NA, fill = "blue",
+            alpha = 0.1) +
+  geom_ribbon(data = filter(newdat_m,
+                            vlcLn == "contrast_short",
+                            syll_pos_o == "nonfinal"),
+            aes(ymin = ll, ymax = ul), col = NA, fill = "limegreen",
+            alpha = 0.25) +
+  geom_ribbon(data = filter(newdat_m,
+                            vlcLn == "contrast_short",
+                            syll_pos_o == "final"),
+            aes(ymin = ll, ymax = ul), col = NA, fill = "limegreen",
+            alpha = 0.1) +
+  geom_segment(aes(y=min(d_vl$phone_dur_uttr),
+                   yend=max(d_vl$phone_dur_uttr),
+                   x=min(d_vl$phone_dur_uttr),
+                   xend=max(d_vl$phone_dur_uttr)),
+               col = "black",
+               lwd = 0.5,
+               linetype="dotted"
+               ) +
+  geom_line(aes(y=dur, col = vlcLn_o, lty = syll_pos_o)) +
+  # geom_text(data=eff_sizes_vln_mono_comb_m, 
+  #           aes(y=value*1.2*1.2*1.2,label=paste0("β_nc = ", round(derivative_nc,2))),
+  #           col="black", size=5) +
+  #   geom_text(data=eff_sizes_vln_mono_comb_m, 
+  #           aes(y=value*1.2*1.2,label=paste0("β_l = ", round(derivative_cl,2))),
+  #           col="black", size=5) +
+  #   geom_text(data=eff_sizes_vln_mono_comb_m, 
+  #           aes(y=value*1.2,label=paste0("β_s = ", round(derivative_cs,2))),
+  #           col="black", size=5) +
+  #   geom_text(data=eff_sizes_vln_mono_comb_m, 
+  #           aes(y=value,label=paste0("Δβ = ", round(eff_size,2))),
+  #           col="black", size=5) +
+  scale_color_manual(values = c("no_contrast" = "magenta",
+                                "contrast_long" = "blue",
+                                "contrast_short" = "limegreen"),
+                     labels = c("no_contrast" = "no contrast",
+                               "contrast_long" = "long",
+                               "contrast_short" = "short"),
+                     guide = "legend") +
+  scale_fill_manual(values = c("nocontrast_dur_uttr" = "hotpink", 
+                                "long_dur_uttr" = "cyan", 
+                                "short_dur_uttr" = "green"),
+                     guide = "none") +
+  scale_linetype_manual(values = c("nonfinal" = "solid",
+                                    "final" = "dashed")) +
+  scale_x_log10(breaks = c(0.03, 0.05, 0.07, 0.1, 0.14, 0.2)) +
+  scale_y_log10(breaks = c(0.03, 0.05, 0.07, 0.1, 0.14, 0.2)) +
+  coord_fixed() +
+  #scale_x_continuous(limits=c(0.035,0.145), 
+  #                   breaks=seq(0.04,0.14,0.02),
+  #                   labels=c(".04",".06",".08",".10",".12",".14")) +
+  #scale_y_continuous(breaks=seq(0.04,0.20,0.02)) +
+  labs(title = "Duration-Rate Curves by Type of Vowel Length Contrast",
+       x = "Average phone duration by utterance (inverse rate) (s)",
+       y = "Phone duration (s)") +
+  guides(col = guide_legend(title = "Vowel Length"),
+         lty = guide_legend(title = "Position in Word")) +
+  #ylab("Average V vs. C duration in s") +
+  # remove clutter
+  theme_minimal() +
+  theme(plot.title = element_text(size=24, face="bold"),
+        panel.grid = element_blank(),
+        axis.line = element_line(size=0.8),
+        axis.ticks = element_line(size=0.8),
+        axis.text = element_text(size=16, colour="black"),
+        axis.title = element_text(size=18, face="bold"),
+        strip.background.y = element_blank(), 
+        strip.placement = "outside",
+        strip.text=element_text(size=18, face="bold"))
+  ggsave(paste0("doreco_graphs_v1/vl/comb/", m, "_comb2.png"), width=12, height=9, dpi=300)
+}
+```
+
+# VL Model Effect Sizes at Medians
+
+Measuring and comparing derivatives at the medians for VL models
+
+```{r}
+eff_sizes_vln_mono <- list()   
+eff_sizes_vln_mono_nopos <- list()       
+
+# model predictions
+newdat_vln_mono_deriv <- expand.grid(
+  vht_o = d_vl$vht_o[1],
+  speaker = d_vl$speaker[1],
+  syll_pos = unique(d_vl$syll_pos),
+  language = unique(d_vl$language),
+  vlcLn = unique(d_vl$vlcLn)
+) %>%
+  mutate(vowel_length_contrast = case_when(
+           language %in% languages_no_contrast ~ "none",
+           language %in% languages_restricted ~ "restricted",
+           language %in% languages_unrestricted ~ "unrestricted")) %>%
+  filter(vowel_length_contrast == "none" & vlcLn == "no_contrast" |
+           (vowel_length_contrast %in% c("unrestricted") &
+             vlcLn %in% c("contrast_long","contrast_short")) |
+           ((vowel_length_contrast %in% c("restricted") &
+             ((vlcLn %in% c("contrast_long","contrast_short") & syll_pos == "nonfinal") |
+                (vlcLn %in% c("no_contrast") & syll_pos == "final"))))
+         )
+
+newdat_vln_mono_deriv$vlcLn_o <- as.ordered(newdat_vln_mono_deriv$vlcLn)
+contrasts(newdat_vln_mono_deriv$vlcLn_o) <- "contr.treatment"
+
+newdat_vln_mono_deriv$syll_pos_o <- as.ordered(newdat_vln_mono_deriv$syll_pos)
+contrasts(newdat_vln_mono_deriv$syll_pos_o) <- "contr.treatment"
+
+newdat_vln_mono_deriv$language_f <- as.factor(newdat_vln_mono_deriv$language)
+newdat_vln_mono_deriv$speaker_f <- as.factor(newdat_vln_mono_deriv$speaker)
+
+language_med_durs <- d_all %>%
+  group_by(language) %>%
+  summarise(phone_dur_uttr = median(phone_dur_uttr)) %>%
+  ungroup()
+
+newdat_vln_mono_deriv <- left_join(
+  newdat_vln_mono_deriv,
+  language_med_durs,
+  by = "language"
+)
+
+eps <- 0.001
+
+newdat_vln_mono_deriv_1 <- newdat_vln_mono_deriv %>%
+  mutate(phone_dur_uttr = exp(log(phone_dur_uttr) - (eps/2)))
+newdat_vln_mono_deriv_2 <- newdat_vln_mono_deriv %>%
+  mutate(phone_dur_uttr = exp(log(phone_dur_uttr) + (eps/2)))
+
+mods_vln_mono_nopos <- c("vln_mod_mono_baseline",
+                         "vln_mod_mono_height")
+mods_vln_mono_pos <- c("vln_mod_mono_pos",
+                       "vln_mod_mono_full")
+mods_vln_mono <- c(mods_vln_mono_nopos,mods_vln_mono_pos)
+
+for (m in mods_vln_mono) {
+X1 <- predict(get(m), 
+              newdat_vln_mono_deriv_1,
+              exclude=c(
+                "s(phone_dur_uttr,speakerSegtype)",
+                "s(phone_dur_uttr,speaker_f)",
+                "s(phone_dur_uttr,speaker_f):segtype_ovowel_dur_uttr",
+                "s(phone_dur_uttr,vht_o)"
+              )
+) %>% log()
+X2 <- predict(get(m), 
+              newdat_vln_mono_deriv_2,
+              exclude=c(
+                "s(phone_dur_uttr,speakerSegtype)",
+                "s(phone_dur_uttr,speaker_f)",
+                "s(phone_dur_uttr,speaker_f):segtype_ovowel_dur_uttr",
+                "s(phone_dur_uttr,vht_o)"
+              )
+) %>% log()
+
+X0 <- predict(get(m),
+              newdat_vln_mono_deriv,
+              exclude=c(
+                "s(phone_dur_uttr,speakerSegtype)",
+                "s(phone_dur_uttr,speaker_f)",
+                "s(phone_dur_uttr,speaker_f):segtype_ovowel_dur_uttr",
+                "s(phone_dur_uttr,vht_o)"
+              )
+)
+
+# finite difference approximation of first derivative
+# the design matrix
+first_deriv <- (X2 - X1) / eps
+#first_deriv <- Xp %*% coef(get(m))
+
+newdat_vln_mono_deriv$derivative <- first_deriv
+newdat_vln_mono_deriv$model <- m
+
+newdat_vln_mono_deriv$phone_dur <- X0
+
+eff_sizes_vln_mono_contrast <- newdat_vln_mono_deriv %>%
+  dplyr::select(vowel_length_contrast, language, vlcLn, syll_pos,
+                phone_dur_uttr, model, phone_dur, derivative) %>%
+  filter(vlcLn != "no_contrast") %>%
+  group_by(vowel_length_contrast, language, phone_dur_uttr, model, syll_pos) %>%
+  summarise(derivative_cs = derivative[vlcLn == "contrast_short"],
+            derivative_cl = derivative[vlcLn == "contrast_long"],
+            eff_size = derivative_cl - derivative_cs,
+            phone_dur_cs = phone_dur[vlcLn == "contrast_short"],
+            phone_dur_cl = phone_dur[vlcLn == "contrast_long"]) %>%
+  ungroup() %>%
+  arrange(desc(eff_size))
+
+derivs_vln_mono_nocontrast <- newdat_vln_mono_deriv %>%
+  dplyr::select(vowel_length_contrast, language, vlcLn, syll_pos,
+                phone_dur_uttr, model, phone_dur, derivative) %>%
+  filter(vowel_length_contrast != "unrestricted") %>%
+  group_by(vowel_length_contrast, language, phone_dur_uttr, model, syll_pos) %>%
+  summarise(derivative_nc = derivative[vlcLn == "no_contrast"],
+            phone_dur_nc = phone_dur[vlcLn == "no_contrast"]) %>%
+  ungroup() %>%
+  arrange(desc(derivative_nc))
+
+eff_sizes_vln_mono[[m]] <- full_join(eff_sizes_vln_mono_contrast,
+                                     derivs_vln_mono_nocontrast,
+                                     by=c("vowel_length_contrast",
+                                          "language",
+                                          "phone_dur_uttr",
+                                          "model",
+                                          "syll_pos"))
+if (m %in% mods_vln_mono_nopos){
+  eff_sizes_vln_mono_nopos[[m]] <- eff_sizes_vln_mono[[m]] %>%
+  group_by(across(-c(syll_pos,
+                   eff_size,
+                   derivative_cs,derivative_cl,derivative_nc,
+                   phone_dur_cs,phone_dur_cl,phone_dur_nc))) %>%
+  summarize(eff_size = eff_size[1],
+            derivative_cs = derivative_cs[1],
+            derivative_cl = derivative_cl[1],
+            derivative_nc = derivative_nc[1],
+            phone_dur_cs = phone_dur_cs[1],
+            phone_dur_cl = phone_dur_cl[1],
+            phone_dur_nc = phone_dur_nc[1],
+            )
+  }
+}
+
+eff_sizes_vln_mono_df <- bind_rows(eff_sizes_vln_mono)
+eff_sizes_vln_mono_df %>% write_csv("eff_sizes_vln_mono_df.csv")
+eff_sizes_vln_mono_df <- read_csv("./eff_sizes_vln_mono_df.csv")
+
+eff_sizes_vln_mono_nopos_df <- bind_rows(eff_sizes_vln_mono_nopos)
+eff_sizes_vln_mono_nopos_df %>% write_csv("eff_sizes_vln_mono_nopos_df.csv")
+eff_sizes_vln_mono_nopos_df <- read_csv("./eff_sizes_vln_mono_nopos_df.csv")
+```
+## Making VL Prediction Plots Showing Effect Sizes at Medians
+
+Ordering by effect size at medians & showing this number in the plot of VL model predictions.
+
+```{r}
+
+for (m in mods_vln_mono) {
+  eff_sizes_vln_mono_m <- eff_sizes_vln_mono[[m]]
+  eff_sizes_vln_mono_m$language <- factor(eff_sizes_vln_mono_m$language,
+                                          levels=unique(eff_sizes_vln_mono_m$language))
+  eff_sizes_vln_mono_m$phone_dur_uttr_median <- eff_sizes_vln_mono_m$phone_dur_uttr
+  eff_sizes_vln_mono_m$phone_dur_uttr <- 0.05
+  eff_sizes_vln_mono_m$value <- 0.13
+  
+  newdat_m <- filter(newdat_vln_mono_all, model==m)
+  newdat_m$language <- factor(newdat_m$language, levels=unique(eff_sizes_vln_mono_m$language))
+  
+  plot_dat <- newdat_m
+  plot_dat$language <- factor(plot_dat$language, levels=unique(eff_sizes_vln_mono_m$language))
+  
+  d_uttr_vln_mono$language <- factor(d_uttr_vln_mono$language, levels=unique(eff_sizes_vln_mono_m$language))
+  
+  plot_dat %>%
+  #filter(vowel_length_contrast != "none") %>%
+  ggplot(data = ., aes(x = phone_dur_uttr, y=value)) +
+  facet_wrap(. ~ language) +
+  geom_point(data = d_uttr_vln_mono,
+             aes(y = value, col=measure), alpha = 0.3, pch=16) +
+  geom_line(aes(y = dur, col = vlcLn_o, lwd = syll_pos_o)) +
+  # geom_ribbon(data = filter(newdat_cv_all,
+  #                          model == "cv_mod_baseline",
+  #                          segtype_o == "consonant"),
+  #           aes(ymin = ll, ymax = ul), col = NA, fill = "skyblue",
+  #           alpha = 0.5) +
+  # geom_ribbon(data = filter(newdat_cv_all,
+  #                          model == "cv_mod_baseline",
+  #                          segtype_o == "syllabic"),
+  #           aes(ymin = ll, ymax = ul), col = NA, fill = "yellow",
+  #           alpha = 0.5) +
+  geom_text(data=filter(eff_sizes_vln_mono_m,!is.na(derivative_cs),syll_pos=='nonfinal'), 
+            aes(y=value,label=paste0("Δβ = ", round(eff_size,2))),
+            col="black", size=5) +
+    geom_text(data=filter(eff_sizes_vln_mono_m,!is.na(derivative_cs),syll_pos=='nonfinal'), 
+            aes(y=value*1.4,label=paste0("β_s = ", round(derivative_cs,2))),
+            col="black", size=5) +
+    geom_text(data=filter(eff_sizes_vln_mono_m,!is.na(derivative_cl),syll_pos=='nonfinal'), 
+            aes(y=value*1.4*1.4,label=paste0("β_l = ", round(derivative_cl,2))),
+            col="black", size=5) +
+    geom_text(data=filter(eff_sizes_vln_mono_m,!is.na(derivative_nc),syll_pos=='nonfinal'), 
+            aes(y=value*1.4*1.4*1.4,label=paste0("β = ", round(derivative_nc,2))),
+            col="black", size=5) +
+  geom_text(data=filter(eff_sizes_vln_mono_m,!is.na(derivative_cs),syll_pos=='final'), 
+            aes(x=phone_dur_uttr*2,
+                y=value,
+                label=paste0("Δβ = ", round(eff_size,2))),
+            col="black", size=5) +
+    geom_text(data=filter(eff_sizes_vln_mono_m,!is.na(derivative_cs),syll_pos=='final'), 
+            aes(x=phone_dur_uttr*2,
+                y=value*1.4,
+                label=paste0("β_s = ", round(derivative_cs,2))),
+            col="black", size=5) +
+    geom_text(data=filter(eff_sizes_vln_mono_m,!is.na(derivative_cl),syll_pos=='final'), 
+            aes(x=phone_dur_uttr*2,
+                y=value*1.4*1.4,
+                label=paste0("β_l = ", round(derivative_cl,2))),
+            col="black", size=5) +
+    geom_text(data=filter(eff_sizes_vln_mono_m,!is.na(derivative_nc),syll_pos=='final'), 
+            aes(x=phone_dur_uttr*2,
+                y=value*1.4*1.4*1.4,
+                label=paste0("β = ", round(derivative_nc,2))),
+            col="black", size=5) +
+  geom_text(data=eff_sizes_vln_mono_m,
+            aes(x=phone_dur_uttr*1.4,
+                y=value/1.4/1.4/1.4,label=paste0("med = ", round(phone_dur_uttr_median,2))),
+            col="black", size=5) +
+  scale_color_manual(values = c("no_contrast" = "magenta",
+                                "contrast_long" = "blue",
+                                "contrast_short" = "limegreen",
+                                "nocontrast_dur_uttr" = "hotpink", 
+                                "long_dur_uttr" = "cyan", 
+                                "short_dur_uttr" = "green"),
+                     guide = "none") +
+  # scale_linetype_manual(values = c("high" = "dashed",
+  #                                  "nonhigh" = "solid"
+  #                                  )) +
+  scale_linewidth_manual(values = c("final" = 1,
+                                    "nonfinal" = 0.5)) +
+  scale_x_log10(breaks = c(0.05, 0.07, 0.1, 0.14)) +
+  scale_y_log10(breaks = c(0.05, 0.07, 0.1, 0.14),
+                #limits = c(0.03, 0.2)
+                ) +
+  #scale_x_continuous(limits=c(0.035,0.145), 
+  #                   breaks=seq(0.04,0.14,0.02),
+  #                   labels=c(".04",".06",".08",".10",".12",".14")) +
+  #scale_y_continuous(breaks=seq(0.04,0.20,0.02)) +
+    # labels for axes
+  xlab("Average phone duration by utterance") +
+  labs(y = "Average long vs short or no-contrast monophthong duration in s") +
+  #ylab("Average V vs. C duration in s") +
+  # remove clutter
+  theme_minimal() +
+  theme(panel.grid = element_blank(),
+        axis.line = element_line(size=0.8),
+        axis.ticks = element_line(size=0.8),
+        axis.text = element_text(size=16, colour="black"),
+        axis.title = element_text(size=18, face="bold"),
+        strip.background.y = element_blank(), 
+        strip.placement = "outside",
+        strip.text=element_text(size=18, face="bold"))
+  ggsave(paste0("doreco_graphs_v1/vl/", m, ".png"), width=15, height=15, dpi=300)
+}
+
+
+```
+
+## Comparing CV Model Effect Sizes at Medians
+
+Comparing effect sizes / slopes and medians for VL models
+
+```{r}
+for (m in mods_vln_mono) {
+  eff_sizes_vln_mono_m <- eff_sizes_vln_mono[[m]] %>%
+    filter(vowel_length_contrast != "none") %>%
+  ggplot(aes(x=phone_dur_uttr,y=eff_size)) +
+    geom_point(aes(col=vowel_length_contrast,shape=syll_pos)) +
+    scale_color_manual(values = c("unrestricted" = "black",
+                                "restricted" = "red")) +
+    xlab("Median average phone duration by utterance") +
+    labs(y = "Δβ ") +
+    theme_minimal() +
+    theme(panel.grid = element_blank(),
+        axis.line = element_line(size=0.8),
+        axis.ticks = element_line(size=0.8),
+        axis.text = element_text(size=16, colour="black"),
+        axis.title = element_text(size=18, face="bold"),
+        strip.background.y = element_blank(), 
+        strip.placement = "outside",
+        strip.text=element_text(size=18, face="bold"))
+  ggsave(paste0("doreco_graphs_v1/vl/vl_eff_size_comp_contrast_", m, ".png"), width=8, height=5, dpi=300)
+  
+  
+  
+  eff_sizes_vln_mono_m <- eff_sizes_vln_mono[[m]] %>%
+  ggplot(aes(x=phone_dur_uttr)) +
+    geom_point(aes(y=derivative_nc,shape=syll_pos),col="magenta") +
+    geom_point(aes(y=derivative_cl,shape=syll_pos),col="blue") +
+    geom_point(aes(y=derivative_cs,shape=syll_pos),col="limegreen") +
+    geom_segment(aes(y = derivative_cs, yend=derivative_cl,
+                     col = vowel_length_contrast)) +
+    geom_segment(aes(y = derivative_nc, yend=derivative_cs,
+                     col = vowel_length_contrast),
+                 linetype = "dashed") +
+    geom_segment(aes(y = derivative_nc, yend=derivative_cl,
+                     col = vowel_length_contrast),
+                 linetype = "dashed") +
+    scale_color_manual(values = c("unrestricted" = "black",
+                                "restricted" = "red")) +
+    xlab("Median average phone duration by utterance") +
+    labs(y = "β") +
+    theme_minimal() +
+    theme(panel.grid = element_blank(),
+        axis.line = element_line(size=0.8),
+        axis.ticks = element_line(size=0.8),
+        axis.text = element_text(size=16, colour="black"),
+        axis.title = element_text(size=18, face="bold"),
+        strip.background.y = element_blank(), 
+        strip.placement = "outside",
+        strip.text=element_text(size=18, face="bold"))
+  ggsave(paste0("doreco_graphs_v1/vl/vl_deriv_comp_all_", m, ".png"), width=8, height=5, dpi=300)
+}
+```
+
+
+Comparing predicted phone durations and slopes for VL models
+
+```{r}
+for (m in mods_vln_mono) {
+  eff_sizes_vln_mono_m <- eff_sizes_vln_mono[[m]] %>%
+  ggplot(aes(x=phone_dur_uttr)) +
+    geom_point(aes(y=phone_dur_nc),col="magenta") +
+    geom_point(aes(y=phone_dur_cl),col="blue") +
+    geom_point(aes(y=phone_dur_cs),col="limegreen") +
+    geom_segment(aes(y = phone_dur_cs, yend=phone_dur_cl,
+                     col = vowel_length_contrast)) +
+    geom_segment(aes(y = phone_dur_nc, yend=phone_dur_cs,
+                     col = vowel_length_contrast),
+                 linetype = "dashed") +
+    geom_segment(aes(y = phone_dur_nc, yend=phone_dur_cl,
+                     col = vowel_length_contrast),
+                 linetype = "dashed") +
+    scale_color_manual(values = c("unrestricted" = "black",
+                                "restricted" = "red")) +
+    labs(x = "Median average phone duration by utterance",
+         y = "Predicted individual phone duration at median") +
+    theme_minimal() +
+    theme(panel.grid = element_blank(),
+        axis.line = element_line(size=0.8),
+        axis.ticks = element_line(size=0.8),
+        axis.text = element_text(size=16, colour="black"),
+        axis.title = element_text(size=18, face="bold"),
+        strip.background.y = element_blank(), 
+        strip.placement = "outside",
+        strip.text=element_text(size=18, face="bold"))
+  ggsave(paste0("doreco_graphs_v1/vl/vl_medians_rate_vs_dur_all_", m, ".png"), width=8, height=5, dpi=300)
+  
+  eff_sizes_vln_mono_m <- eff_sizes_vln_mono[[m]] %>%
+  ggplot() +
+    geom_point(aes(x=phone_dur_nc,y=derivative_nc),col="magenta") +
+    geom_point(aes(x=phone_dur_cl,y=derivative_cl),col="blue") +
+    geom_point(aes(x=phone_dur_cs,y=derivative_cs),col="limegreen") +
+    geom_segment(aes(x = phone_dur_cs, xend=phone_dur_cl,
+                     y = derivative_cs, yend=derivative_cl,
+                     col = vowel_length_contrast)) +
+    geom_segment(aes(x = phone_dur_nc, xend=phone_dur_cs,
+                     y = derivative_nc, yend=derivative_cs,
+                     col = vowel_length_contrast),
+                 linetype = "dashed") +
+    geom_segment(aes(x = phone_dur_nc, xend=phone_dur_cl,
+                     y = derivative_nc, yend=derivative_cl,
+                     col = vowel_length_contrast),
+                 linetype = "dashed") +
+    scale_color_manual(values = c("unrestricted" = "black",
+                                "restricted" = "red")) +
+    xlab("Predicted individual phone duration at median") +
+    labs(y = "β") +
+    theme_minimal() +
+    theme(panel.grid = element_blank(),
+        axis.line = element_line(size=0.8),
+        axis.ticks = element_line(size=0.8),
+        axis.text = element_text(size=16, colour="black"),
+        axis.title = element_text(size=18, face="bold"),
+        strip.background.y = element_blank(), 
+        strip.placement = "outside",
+        strip.text=element_text(size=18, face="bold"))
+  ggsave(paste0("doreco_graphs_v1/vl/vl_deriv_preds_all_", m, ".png"), width=8, height=5, dpi=300)
+}
+```
+
+
+Comparing effect sizes and medians for VL models
+
+```{r}
+for (m in mods_vln_mono) {
+  eff_sizes_vln_mono_pos_m <- eff_sizes_vln_mono[[m]]
+  
+  eff_sizes_vln_mono_pos_m_wider <- eff_sizes_vln_mono_pos_m %>%
+  pivot_wider(names_from = syll_pos,
+              values_from = c(eff_size,
+                              derivative_nc,
+                              derivative_cs,
+                              derivative_cl,
+                              phone_dur_nc,
+                              phone_dur_cs,
+                              phone_dur_cl))
+  
+  eff_sizes_vln_mono_pos_m %>%
+    filter(vowel_length_contrast != "none") %>%
+  ggplot(aes(x=phone_dur_uttr)) +
+    geom_point(aes(y=eff_size,col=vowel_length_contrast,shape=syll_pos)) +
+    geom_segment(data = eff_sizes_vln_mono_pos_m_wider,
+                 aes(y=eff_size_final,
+                     yend=eff_size_nonfinal,
+                     col = vowel_length_contrast),
+                 linetype="dashed") +
+    scale_color_manual(values = c("unrestricted" = "black",
+                                "restricted" = "red")) +
+    scale_x_log10(breaks=c(0.05,0.06,0.07,0.08,0.09,0.1,0.11,0.125,0.15)) +
+    xlab("Median average phone duration by utterance") +
+    labs(y = "Δβ ") +
+    theme_minimal() +
+    theme(panel.grid = element_blank(),
+        axis.line = element_line(size=0.8),
+        axis.ticks = element_line(size=0.8),
+        axis.text = element_text(size=16, colour="black"),
+        axis.title = element_text(size=18, face="bold"),
+        strip.background.y = element_blank(), 
+        strip.placement = "outside",
+        strip.text=element_text(size=18, face="bold"))
+  ggsave(paste0("doreco_graphs_v1/vl/vl_eff_size_comp_contrast_", m, ".png"), width=8, height=5, dpi=300)
+
+  eff_sizes_vln_mono_pos_m %>%
+  ggplot(aes(x=phone_dur_uttr)) +
+    geom_point(aes(y=derivative_nc,shape=syll_pos),col="magenta") +
+    geom_point(aes(y=derivative_cl,shape=syll_pos),col="blue") +
+    geom_point(aes(y=derivative_cs,shape=syll_pos),col="limegreen") +
+    geom_segment(aes(y = derivative_cs, yend=derivative_cl,
+                     col = vowel_length_contrast)) +
+    # geom_segment(aes(y = derivative_nc, yend=derivative_cs,
+    #                  col = vowel_length_contrast),
+    #              linetype = "dashed") +
+    # geom_segment(aes(y = derivative_nc, yend=derivative_cl,
+    #                  col = vowel_length_contrast),
+    #              linetype = "dashed") +
+    geom_segment(data = eff_sizes_vln_mono_pos_m_wider,
+                 aes(y=derivative_nc_final,
+                     yend=derivative_nc_nonfinal,
+                     col = vowel_length_contrast),
+                 linetype="dashed") +
+    scale_color_manual(values = c("unrestricted" = "black",
+                                "restricted" = "red")) +
+    scale_x_log10(breaks=c(0.05,0.06,0.07,0.08,0.09,0.1,0.11,0.125,0.15)) +
+    xlab("Median average phone duration by utterance") +
+    labs(y = "β") +
+    theme_minimal() +
+    theme(panel.grid = element_blank(),
+        axis.line = element_line(size=0.8),
+        axis.ticks = element_line(size=0.8),
+        axis.text = element_text(size=16, colour="black"),
+        axis.title = element_text(size=18, face="bold"),
+        strip.background.y = element_blank(), 
+        strip.placement = "outside",
+        strip.text=element_text(size=18, face="bold"))
+  ggsave(paste0("doreco_graphs_v1/vl/vl_deriv_comp_all_", m, ".png"), width=8, height=5, dpi=300)
+}
+```
+
+```{r}
+for (m in mods_vln_mono) {
+  eff_sizes_vln_mono_pos_m <- eff_sizes_vln_mono[[m]]
+  
+  eff_sizes_vln_mono_pos_m_wider <- eff_sizes_vln_mono_pos_m %>%
+  pivot_wider(names_from = syll_pos,
+              values_from = c(eff_size,
+                              derivative_nc,
+                              derivative_cs,
+                              derivative_cl,
+                              phone_dur_nc,
+                              phone_dur_cs,
+                              phone_dur_cl))
+  
+  eff_sizes_vln_mono_pos_m %>%
+  ggplot(aes(x=phone_dur_uttr)) +
+    geom_point(aes(y=phone_dur_nc,shape=syll_pos),col="magenta") +
+    geom_point(aes(y=phone_dur_cl,shape=syll_pos),col="blue") +
+    geom_point(aes(y=phone_dur_cs,shape=syll_pos),col="limegreen") +
+    geom_segment(aes(y = phone_dur_cs, yend=phone_dur_cl,
+                     col = vowel_length_contrast)) +
+    geom_segment(aes(y = phone_dur_nc, yend=phone_dur_cs,
+                     col = vowel_length_contrast),
+                 linetype = "dashed") +
+    geom_segment(aes(y = phone_dur_nc, yend=phone_dur_cl,
+                     col = vowel_length_contrast),
+                 linetype = "dashed") +
+    scale_color_manual(values = c("unrestricted" = "black",
+                                "restricted" = "red")) +
+    scale_x_log10(breaks=c(0.067,0.1,0.15)) +
+    scale_y_log10(breaks=c(0.067,0.1,0.15)) +
+    labs(x = "Median average phone duration by utterance",
+         y = "Predicted individual phone duration at median") +
+    theme_minimal() +
+    theme(panel.grid = element_blank(),
+        axis.line = element_line(size=0.8),
+        axis.ticks = element_line(size=0.8),
+        axis.text = element_text(size=16, colour="black"),
+        axis.title = element_text(size=18, face="bold"),
+        strip.background.y = element_blank(), 
+        strip.placement = "outside",
+        strip.text=element_text(size=18, face="bold"))
+  ggsave(paste0("doreco_graphs_v1/vl/vl_medians_rate_vs_dur_all_", m, ".png"), width=8, height=5, dpi=300)
+  
+  eff_sizes_vln_mono_pos_m %>%
+  ggplot() +
+    facet_wrap(~vowel_length_contrast) +
+    geom_point(aes(x=phone_dur_nc,y=derivative_nc,shape=syll_pos),col="magenta") +
+    geom_point(aes(x=phone_dur_cl,y=derivative_cl,shape=syll_pos),col="blue") +
+    geom_point(aes(x=phone_dur_cs,y=derivative_cs,shape=syll_pos),col="limegreen") +
+    geom_segment(aes(x = phone_dur_cs, xend=phone_dur_cl,
+                     y = derivative_cs, yend=derivative_cl,
+                     col = vowel_length_contrast)) +
+    geom_segment(data = eff_sizes_vln_mono_pos_m_wider,
+                   aes(x = phone_dur_nc_final, xend=phone_dur_cs_nonfinal,
+                     y = derivative_nc_final, yend=derivative_cs_nonfinal,
+                     col = vowel_length_contrast),
+                 linetype="dashed") +
+    geom_segment(data = eff_sizes_vln_mono_pos_m_wider,
+                 aes(x = phone_dur_nc_final, xend=phone_dur_cl_nonfinal,
+                     y = derivative_nc_final, yend=derivative_cl_nonfinal,
+                     col = vowel_length_contrast),
+                 linetype="dashed") +
+    geom_segment(data = eff_sizes_vln_mono_pos_m_wider,
+                   aes(x = phone_dur_nc_final, xend=phone_dur_nc_nonfinal,
+                     y = derivative_nc_final, yend=derivative_nc_nonfinal),
+                 linetype="dashed") +
+    geom_segment(data = eff_sizes_vln_mono_pos_m_wider,
+                   aes(x = phone_dur_cl_final, xend=phone_dur_cl_nonfinal,
+                     y = derivative_cl_final, yend=derivative_cl_nonfinal),
+                 linetype="dashed") +
+    geom_segment(data = eff_sizes_vln_mono_pos_m_wider,
+                   aes(x = phone_dur_cs_final, xend=phone_dur_cs_nonfinal,
+                     y = derivative_cs_final, yend=derivative_cs_nonfinal),
+                 linetype="dashed") +
+    scale_color_manual(values = c("unrestricted" = "black",
+                                "restricted" = "red")) +
+    scale_x_log10(breaks=c(0.067,0.1,0.15)) +
+    xlab("Predicted individual phone duration at median") +
+    labs(y = "β") +
+    theme_minimal() +
+    theme(panel.grid = element_blank(),
+        axis.line = element_line(size=0.8),
+        axis.ticks = element_line(size=0.8),
+        axis.text = element_text(size=16, colour="black"),
+        axis.title = element_text(size=18, face="bold"),
+        strip.background.y = element_blank(), 
+        strip.placement = "outside",
+        strip.text=element_text(size=18, face="bold"))
+  ggsave(paste0("doreco_graphs_v1/vl/vl_deriv_preds_all_", m, ".png"), width=12, height=5, dpi=300)
+}
+```
+
+
+
+
+
+
+
+
+
+# VL Model Density-Weighted Effect Sizes
+
+## Computing VL Model Effect Curves and Density-Weighted Effect Sizes
+
+```{r}
+eff_curves_vln_mono_contrast <- list()
+deriv_curves_vln_mono_nocontrast <- list()
+
+eff_curves_vln_mono <- list()
+eff_sizes_dw_vln_mono <- list()
+
+newdat_vl_deriv_curve <- expand.grid(
+  phone_dur_uttr = seq(
+    min(d_vl$phone_dur_uttr),
+    max(d_vl$phone_dur_uttr),
+    length.out = 100
+  ),
+  vht = d_vl$segtype_vowel_height[1], #unique(d_vl$segtype_vowel_height)
+  syll_pos = unique(d_vl$syll_pos),
+  speaker = d_vl$speaker[1],
+  language = unique(d_vl$language),
+  vlcLn = unique(d_vl$vlcLn)
+) %>%
+  mutate(vowel_length_contrast = case_when(
+           language %in% languages_no_contrast ~ "none",
+           language %in% languages_restricted ~ "restricted",
+           language %in% languages_unrestricted ~ "unrestricted")) %>%
+  filter(vowel_length_contrast == "none" & vlcLn == "no_contrast" |
+           (vowel_length_contrast %in% c("unrestricted") &
+             vlcLn %in% c("contrast_long","contrast_short")) |
+           ((vowel_length_contrast %in% c("restricted") &
+             ((vlcLn %in% c("contrast_long","contrast_short") & syll_pos == "nonfinal") |
+                (vlcLn %in% c("no_contrast") & syll_pos == "final"))))
+         )
+
+newdat_vl_deriv_curve$vlcLn_o <- as.ordered(newdat_vl_deriv_curve$vlcLn)
+contrasts(newdat_vl_deriv_curve$vlcLn_o) <- "contr.treatment"
+
+newdat_vl_deriv_curve$vht_o <- as.ordered(newdat_vl_deriv_curve$vht)
+#contrasts(newdat_vl_deriv_curve$vht_o) <- "contr.treatment"
+
+newdat_vl_deriv_curve$syll_pos_o <- as.ordered(newdat_vl_deriv_curve$syll_pos)
+contrasts(newdat_vl_deriv_curve$syll_pos_o) <- "contr.treatment"
+
+newdat_vl_deriv_curve$language_f <- as.factor(newdat_vl_deriv_curve$language)
+newdat_vl_deriv_curve$speaker_f <- as.factor(newdat_vl_deriv_curve$speaker)
+
+
+language_dist_stats <- d_vl %>%
+  select(language,phone_dur_uttr) %>%
+  group_by(language) %>%
+  nest() %>%
+  mutate(
+    phone_dur_uttr_med = as.numeric(map(data,~median(.x$phone_dur_uttr))),
+    dens_data = map(data,~broom::tidy(density(.x$phone_dur_uttr,
+                                              n = 100,
+                                              from = min(d_vl$phone_dur_uttr),
+                                              to = max(d_vl$phone_dur_uttr))))
+         ) %>%
+  unnest(dens_data) %>%
+  mutate(phone_dur_uttr = x,
+         density = y/max(y)) %>%
+  ungroup() %>%
+  select(language,phone_dur_uttr_med,phone_dur_uttr,density)
+  
+
+newdat_vl_deriv_curve <- left_join(
+  mutate(newdat_vl_deriv_curve,
+         phone_dur_uttr = round(phone_dur_uttr,15)),
+  mutate(language_dist_stats,
+         phone_dur_uttr = round(phone_dur_uttr,15)),
+  by = c("language","phone_dur_uttr")
+)
+
+
+eps <- 0.001
+
+newdat_vl_deriv_curve_1 <- newdat_vl_deriv_curve %>%
+  mutate(phone_dur_uttr = exp(log(phone_dur_uttr) - (eps/2)))
+newdat_vl_deriv_curve_2 <- newdat_vl_deriv_curve %>%
+  mutate(phone_dur_uttr = exp(log(phone_dur_uttr) + (eps/2)))
+
+mods_cv <- c("cv_mod_baseline", "cv_mod_type"
+             #, "cv_mod_type2"
+             )
+
+for (m in mods_vln_mono) {
+X1_curve <- predict(get(m), 
+              newdat_vl_deriv_curve_1,
+              exclude=c(
+                "s(phone_dur_uttr,speakerSegtype)",
+                "s(phone_dur_uttr,speaker_f)",
+                "s(phone_dur_uttr,speaker_f):segtype_ovowel_dur_uttr",
+                "s(phone_dur_uttr,phone_type_f)"
+                #"s(phone_dur_uttr,phone_type_new_f)"
+              )
+) %>% log()
+X2_curve <- predict(get(m), 
+              newdat_vl_deriv_curve_2,
+              exclude=c(
+                "s(phone_dur_uttr,speakerSegtype)",
+                "s(phone_dur_uttr,speaker_f)",
+                "s(phone_dur_uttr,speaker_f):segtype_ovowel_dur_uttr",
+                "s(phone_dur_uttr,phone_type_f)"
+                #"s(phone_dur_uttr,phone_type_new_f)"
+              )
+) %>% log()
+
+X0_curve <- predict(get(m), 
+              newdat_vl_deriv_curve,
+              exclude=c(
+                "s(phone_dur_uttr,speakerSegtype)",
+                "s(phone_dur_uttr,speaker_f)",
+                "s(phone_dur_uttr,speaker_f):segtype_ovowel_dur_uttr",
+                "s(phone_dur_uttr,phone_type_f)"
+                #"s(phone_dur_uttr,phone_type_new_f)"
+              )
+)
+
+# finite difference approximation of first derivative
+# the design matrix
+first_deriv_curve <- (X2_curve - X1_curve) / eps
+#first_deriv <- Xp %*% coef(get(m))
+
+
+
+newdat_vl_deriv_curve$derivative <- first_deriv_curve
+newdat_vl_deriv_curve$model <- m
+
+newdat_vl_deriv_curve$phone_dur <- X0_curve
+
+
+
+
+
+
+eff_sizes_vln_mono_contrast <- newdat_vln_mono_deriv %>%
+  dplyr::select(vowel_length_contrast, language, vlcLn, syll_pos,
+                phone_dur_uttr, model, phone_dur, derivative) %>%
+  filter(vlcLn != "no_contrast") %>%
+  group_by(vowel_length_contrast, language, phone_dur_uttr, model, syll_pos) %>%
+  summarise(derivative_cs = derivative[vlcLn == "contrast_short"],
+            derivative_cl = derivative[vlcLn == "contrast_long"],
+            eff_size = derivative_cl - derivative_cs,
+            phone_dur_cs = phone_dur[vlcLn == "contrast_short"],
+            phone_dur_cl = phone_dur[vlcLn == "contrast_long"]) %>%
+  ungroup() %>%
+  arrange(desc(eff_size))
+
+derivs_vln_mono_nocontrast <- newdat_vln_mono_deriv %>%
+  dplyr::select(vowel_length_contrast, language, vlcLn, syll_pos,
+                phone_dur_uttr, model, phone_dur, derivative) %>%
+  filter(vowel_length_contrast != "unrestricted") %>%
+  group_by(vowel_length_contrast, language, phone_dur_uttr, model, syll_pos) %>%
+  summarise(derivative_nc = derivative[vlcLn == "no_contrast"],
+            phone_dur_nc = phone_dur[vlcLn == "no_contrast"]) %>%
+  ungroup() %>%
+  arrange(desc(derivative_nc))
+
+eff_sizes_vln_mono[[m]] <- full_join(eff_sizes_vln_mono_contrast,
+                                     derivs_vln_mono_nocontrast,
+                                     by=c("vowel_length_contrast",
+                                          "language",
+                                          "phone_dur_uttr",
+                                          "model",
+                                          "syll_pos"))
+
+
+
+
+
+
+eff_curves_vln_mono_contrast[[m]] <- newdat_vl_deriv_curve %>%
+  dplyr::select(vowel_length_contrast, language, vlcLn, syll_pos,
+                phone_dur_uttr, model, phone_dur, derivative,
+                phone_dur_uttr_med, density) %>%
+  filter(vlcLn != "no_contrast") %>%
+  group_by(vowel_length_contrast, language, phone_dur_uttr_med, phone_dur_uttr, density, model, syll_pos) %>%
+  summarise(derivative_cs = derivative[vlcLn == "contrast_short"],
+            derivative_cl = derivative[vlcLn == "contrast_long"],
+            delta_deriv = derivative_cl - derivative_cs,
+            phone_dur_cs = phone_dur[vlcLn == "contrast_short"],
+            phone_dur_cl = phone_dur[vlcLn == "contrast_long"]) %>%
+  group_by(language) %>%
+  mutate(derivative_cs_w = derivative_cs*density,
+         derivative_cl_w = derivative_cl*density,
+         delta_deriv_w = delta_deriv*density,
+         phone_dur_cs_w = phone_dur_cs*density,
+         phone_dur_cl_w = phone_dur_cl*density) %>%
+  ungroup()
+deriv_curves_vln_mono_nocontrast[[m]] <- newdat_vl_deriv_curve %>%
+  dplyr::select(vowel_length_contrast, language, vlcLn, syll_pos,
+                phone_dur_uttr, model, phone_dur, derivative,
+                phone_dur_uttr_med, density) %>%
+  filter(vowel_length_contrast != "unrestricted") %>%
+  group_by(vowel_length_contrast, language, phone_dur_uttr_med, phone_dur_uttr, density, model, syll_pos) %>%
+  summarise(derivative_nc = derivative[vlcLn == "no_contrast"],
+            phone_dur_nc = phone_dur[vlcLn == "no_contrast"]) %>%
+  group_by(language) %>%
+  mutate(derivative_nc_w = derivative_nc*density,
+         phone_dur_nc_w = phone_dur_nc*density) %>%
+  ungroup()
+eff_curves_vln_mono[[m]] <- full_join(eff_curves_vln_mono_contrast[[m]],
+                                deriv_curves_vln_mono_nocontrast[[m]],
+                                by=c("vowel_length_contrast",
+                                     "language",
+                                     "phone_dur_uttr",
+                                     "phone_dur_uttr_med",
+                                     "density",
+                                     "model",
+                                     "syll_pos"))
+
+
+
+eff_sizes_dw_vln_mono[[m]] <- eff_curves_vln_mono[[m]] %>%
+  group_by(language,syll_pos) %>%
+  summarize(density_area = sum(density),
+            derivative_cs_w_area = sum(derivative_cs_w),
+            derivative_cl_w_area = sum(derivative_cl_w),
+            derivative_nc_w_area = sum(derivative_nc_w),
+            delta_deriv_w_area = sum(delta_deriv_w),
+            phone_dur_cl_w_area = sum(phone_dur_cl_w),
+            phone_dur_cs_w_area = sum(phone_dur_cs_w),
+            phone_dur_nc_w_area = sum(phone_dur_nc_w),
+            eff_size_dw = delta_deriv_w_area/density_area,
+            derivative_cs_dw = derivative_cs_w_area/density_area,
+            derivative_cl_dw = derivative_cl_w_area/density_area,
+            derivative_nc_dw = derivative_nc_w_area/density_area,
+            phone_dur_cl_dw = phone_dur_cl_w_area/density_area,
+            phone_dur_cs_dw = phone_dur_cs_w_area/density_area,
+            phone_dur_nc_dw = phone_dur_nc_w_area/density_area
+            ) %>%
+  select(-c(density_area,
+                   derivative_cs_w_area,
+                   derivative_cl_w_area,
+                   derivative_nc_w_area,
+                   delta_deriv_w_area,
+                   phone_dur_cl_w_area,
+                   phone_dur_cs_w_area,
+                   phone_dur_nc_w_area,
+                   ))
+
+
+
+
+eff_sizes_dw_vln_mono[[m]] <- left_join(
+  eff_sizes_dw_vln_mono[[m]],
+  rename(eff_sizes_vln_mono[[m]],eff_size_med = eff_size),
+  by = c("language","syll_pos")
+)
+
+eff_sizes_dw_vln_mono[[m]] <- eff_sizes_dw_vln_mono[[m]] %>%
+  arrange(desc(eff_size_dw))
+}
+
+eff_curves_vln_mono_df <- bind_rows(eff_curves_vln_mono)
+eff_curves_vln_mono_df %>% write_csv("eff_curves_vln_mono_df.csv")
+eff_curves_vln_mono_df <- read_csv("./eff_curves_vln_mono_df.csv")
+
+eff_sizes_dw_vln_mono_df <- bind_rows(eff_sizes_dw_vln_mono)
+eff_sizes_dw_vln_mono_df %>% write_csv("eff_sizes_dw_vln_mono_df.csv")
+eff_sizes_dw_vln_mono_df <- read_csv("./eff_sizes_dw_vln_mono_df.csv")
+```
+
+
+
+## Making VL Prediction Plots Showing Density-Weighted Effect Sizes
+
+Ordering by effect size at medians & showing this number in the plot of VL model predictions.
+
+```{r}
+
+for (m in mods_vln_mono) {
+  eff_sizes_dw_vln_mono_m <- eff_sizes_dw_vln_mono[[m]]
+  eff_sizes_dw_vln_mono_m$language <- factor(eff_sizes_dw_vln_mono_m$language,
+                                          levels=unique(eff_sizes_dw_vln_mono_m$language))
+  eff_sizes_dw_vln_mono_m$phone_dur_uttr_median <- eff_sizes_dw_vln_mono_m$phone_dur_uttr
+  eff_sizes_dw_vln_mono_m$phone_dur_uttr <- 0.05
+  eff_sizes_dw_vln_mono_m$value <- 0.13
+  
+  newdat_m <- filter(newdat_vln_mono_all, model==m)
+  newdat_m$language <- factor(newdat_m$language, levels=unique(eff_sizes_dw_vln_mono_m$language))
+  
+  plot_dat <- newdat_m
+  plot_dat$language <- factor(plot_dat$language, levels=unique(eff_sizes_dw_vln_mono_m$language))
+  
+  d_uttr_vln_mono$language <- factor(d_uttr_vln_mono$language, levels=unique(eff_sizes_dw_vln_mono_m$language))
+  
+  plot_dat %>%
+  #filter(vowel_length_contrast != "none") %>%
+  ggplot(data = ., aes(x = phone_dur_uttr, y=value)) +
+  facet_wrap(. ~ language) +
+  geom_point(data = d_uttr_vln_mono,
+             aes(y = value, col=measure), alpha = 0.3, pch=16) +
+  geom_line(aes(y = dur, col = vlcLn_o, lwd = syll_pos_o)) +
+  # geom_ribbon(data = filter(newdat_cv_all,
+  #                          model == "cv_mod_baseline",
+  #                          segtype_o == "consonant"),
+  #           aes(ymin = ll, ymax = ul), col = NA, fill = "skyblue",
+  #           alpha = 0.5) +
+  # geom_ribbon(data = filter(newdat_cv_all,
+  #                          model == "cv_mod_baseline",
+  #                          segtype_o == "syllabic"),
+  #           aes(ymin = ll, ymax = ul), col = NA, fill = "yellow",
+  #           alpha = 0.5) +
+  geom_text(data=filter(eff_sizes_dw_vln_mono_m,!is.na(derivative_cs),syll_pos=='nonfinal'), 
+            aes(y=value,label=paste0("Δβ = ", round(eff_size_dw,2))),
+            col="black", size=5) +
+    geom_text(data=filter(eff_sizes_dw_vln_mono_m,!is.na(derivative_cs),syll_pos=='nonfinal'), 
+            aes(y=value*1.4,label=paste0("β_s = ", round(derivative_cs_dw,2))),
+            col="black", size=5) +
+    geom_text(data=filter(eff_sizes_dw_vln_mono_m,!is.na(derivative_cl),syll_pos=='nonfinal'), 
+            aes(y=value*1.4*1.4,label=paste0("β_l = ", round(derivative_cl_dw,2))),
+            col="black", size=5) +
+    geom_text(data=filter(eff_sizes_dw_vln_mono_m,!is.na(derivative_nc),syll_pos=='nonfinal'), 
+            aes(y=value*1.4*1.4*1.4,label=paste0("β = ", round(derivative_nc_dw,2))),
+            col="black", size=5) +
+  geom_text(data=filter(eff_sizes_dw_vln_mono_m,!is.na(derivative_cs_dw),syll_pos=='final'), 
+            aes(x=phone_dur_uttr*2,
+                y=value,
+                label=paste0("Δβ = ", round(eff_size,2))),
+            col="black", size=5) +
+    geom_text(data=filter(eff_sizes_dw_vln_mono_m,!is.na(derivative_cs_dw),syll_pos=='final'), 
+            aes(x=phone_dur_uttr*2,
+                y=value*1.4,
+                label=paste0("β_s = ", round(derivative_cs_dw,2))),
+            col="black", size=5) +
+    geom_text(data=filter(eff_sizes_dw_vln_mono_m,!is.na(derivative_cl_dw),syll_pos=='final'), 
+            aes(x=phone_dur_uttr*2,
+                y=value*1.4*1.4,
+                label=paste0("β_l = ", round(derivative_cl_dw,2))),
+            col="black", size=5) +
+    geom_text(data=filter(eff_sizes_dw_vln_mono_m,!is.na(derivative_nc_dw),syll_pos=='final'), 
+            aes(x=phone_dur_uttr*2,
+                y=value*1.4*1.4*1.4,
+                label=paste0("β = ", round(derivative_nc_dw,2))),
+            col="black", size=5) +
+  # geom_text(data=eff_sizes_dw_vln_mono_m,
+  #           aes(x=phone_dur_uttr*1.4,
+  #               y=value/1.4/1.4/1.4,label=paste0("med = ", round(phone_dur_uttr,2))),
+  #           col="black", size=5) +
+  scale_color_manual(values = c("no_contrast" = "magenta",
+                                "contrast_long" = "blue",
+                                "contrast_short" = "limegreen",
+                                "nocontrast_dur_uttr" = "hotpink", 
+                                "long_dur_uttr" = "cyan", 
+                                "short_dur_uttr" = "green"),
+                     guide = "none") +
+  # scale_linetype_manual(values = c("high" = "dashed",
+  #                                  "nonhigh" = "solid"
+  #                                  )) +
+  scale_linewidth_manual(values = c("final" = 1,
+                                    "nonfinal" = 0.5)) +
+  scale_x_log10(breaks = c(0.05, 0.07, 0.1, 0.14)) +
+  scale_y_log10(breaks = c(0.05, 0.07, 0.1, 0.14),
+                #limits = c(0.03, 0.2)
+                ) +
+  #scale_x_continuous(limits=c(0.035,0.145), 
+  #                   breaks=seq(0.04,0.14,0.02),
+  #                   labels=c(".04",".06",".08",".10",".12",".14")) +
+  #scale_y_continuous(breaks=seq(0.04,0.20,0.02)) +
+    # labels for axes
+  xlab("Average phone duration by utterance") +
+  labs(y = "Average long vs short or no-contrast monophthong duration in s") +
+  #ylab("Average V vs. C duration in s") +
+  # remove clutter
+  theme_minimal() +
+  theme(panel.grid = element_blank(),
+        axis.line = element_line(size=0.8),
+        axis.ticks = element_line(size=0.8),
+        axis.text = element_text(size=16, colour="black"),
+        axis.title = element_text(size=18, face="bold"),
+        strip.background.y = element_blank(), 
+        strip.placement = "outside",
+        strip.text=element_text(size=18, face="bold"))
+  ggsave(paste0("doreco_graphs_v1/vl/", m, ".png"), width=15, height=15, dpi=300)
+}
+
+
+```
+
+## Plotting VL Model Effect Curves
+
+```{r}
+for (m in mods_vln_mono) {
+
+  eff_curves_vln_mono_m <- eff_curves_vln_mono[[m]]
+  eff_sizes_dw_vln_mono_m <- eff_sizes_dw_vln_mono[[m]]
+  
+  eff_sizes_dw_vln_mono_m$language <- factor(eff_sizes_dw_vln_mono_m$language,
+                                             levels=unique(eff_sizes_dw_vln_mono_m$language))
+  eff_curves_vln_mono_m$language <- factor(eff_curves_vln_mono_m$language,
+                                           levels=unique(eff_curves_vln_mono_m$language))
+  
+  eff_curves_vln_mono_m %>%
+    ggplot(data = ., aes(x = phone_dur_uttr)) +
+    facet_wrap(. ~ language) +
+    #geom_ribbon(data = filter(newdat_cv_all,
+    #                          model == "dur",
+    #                          segtype_o == "vowel_dur_uttr"),
+    #            aes(ymin = ll, ymax = ul), col = NA, fill = "grey",
+    #            alpha = 0.5) +
+    #geom_ribbon(data = filter(newdat_cv,
+    #                          measure_type == "dur",
+    #                          segtype_o == "cons_dur_uttr"),
+    #            aes(ymin = ll, ymax = ul), col = NA, fill = "grey",
+    #            alpha = 0.5) +
+    # geom_density(data = d_cv,
+    #              aes(x = phone_dur_uttr, after_stat(scaled)),
+    #              n = 100, trim = FALSE, #bounds = c(min(d_cv$phone_dur_uttr),max(d_cv$phone_dur_uttr)),
+    #              fill = "forestgreen",lwd=0, alpha=0.3) +
+    geom_area(aes(y = density),
+              fill = "darkgreen",alpha=0.3) +
+    # geom_line(aes(y = derivative_v),
+    #           col = "orange", lwd = 1) +
+    # geom_line(aes(y = derivative_c),
+    #           col = "purple", lwd = 1) +
+    geom_line(aes(y = delta_deriv,lwd = syll_pos),
+              col = "darkblue") +
+    # geom_line(aes(y = delta_deriv_w),
+    #           col = "firebrick", lwd = 1) +
+    geom_text(data = eff_sizes_dw_vln_mono_m,
+              aes(label=paste0("Δβ[w] == ", round(eff_size_dw,2)),
+                  x = 0.05, y = 0.9),
+              col="darkblue", size=5, parse=TRUE) +
+    geom_text(data = eff_sizes_dw_vln_mono_m,
+              aes(label=paste0("Δβ[m] == ", round(eff_size_med,2)),
+                  x = 0.05, y = 0.75),
+              col="red", size=5, parse=TRUE) +
+    geom_hline(data = eff_sizes_dw_vln_mono_m,
+               aes(yintercept = eff_size_dw),
+               linetype = 'dashed',
+               col = "darkblue") +
+    geom_hline(data = eff_sizes_dw_vln_mono_m,
+               aes(yintercept = eff_size_med),
+               linetype = 'dashed',
+               col = "red") +
+    geom_hline(yintercept = 0, linetype = 'dashed') +
+    geom_vline(aes(xintercept = phone_dur_uttr_med),
+               col = 'red') +
+    scale_linewidth_manual(values = c("final" = 1,
+                                      "nonfinal" = 0.5)) +
+    scale_x_log10(breaks = c(0.05, 0.07, 0.1, 0.14)) +
+    scale_y_continuous(
+      limits=c(-0.2,1.1)
+      ) +
+    labs(title = "Effect Curves",
+         x = "Average segment duration in s (inverse speech rate)",
+         y = "Delta derivative") +
+    theme_minimal() +
+    theme(panel.grid = element_blank(),
+        title = element_text(size=24, face="bold"),
+        axis.line = element_line(size=0.8),
+        axis.ticks = element_line(size=0.8),
+        axis.text = element_text(size=16, colour="black"),
+        axis.title = element_text(size=18, face="bold"),
+        strip.background.y = element_blank(), 
+        strip.placement = "outside",
+        strip.text=element_text(size=18, face="bold"))
+  ggsave(paste0("doreco_graphs_v1/vl/effect_curves_", m, ".png"), width=15, height=15, dpi=300)
+}
+```
+
+Derivative curves
+
+```{r}
+for (m in mods_vln_mono) {
+
+  eff_curves_vln_mono_m <- eff_curves_vln_mono[[m]]
+  eff_sizes_dw_vln_mono_m <- eff_sizes_dw_vln_mono[[m]]
+  
+  eff_sizes_dw_vln_mono_m$language <- factor(eff_sizes_dw_vln_mono_m$language,
+                                     levels=unique(eff_sizes_dw_vln_mono_m$language))
+  eff_curves_vln_mono_m$language <- factor(eff_curves_vln_mono_m$language,
+                                     levels=unique(eff_sizes_dw_vln_mono_m$language))
+  
+  eff_curves_vln_mono_m %>%
+    ggplot(data = ., aes(x = phone_dur_uttr)) +
+    facet_wrap(. ~ language) +
+    #geom_ribbon(data = filter(newdat_cv_all,
+    #                          model == "dur",
+    #                          segtype_o == "vowel_dur_uttr"),
+    #            aes(ymin = ll, ymax = ul), col = NA, fill = "grey",
+    #            alpha = 0.5) +
+    #geom_ribbon(data = filter(newdat_cv,
+    #                          measure_type == "dur",
+    #                          segtype_o == "cons_dur_uttr"),
+    #            aes(ymin = ll, ymax = ul), col = NA, fill = "grey",
+    #            alpha = 0.5) +
+    # geom_density(data = d_cv,
+    #              aes(x = phone_dur_uttr, after_stat(scaled)),
+    #              n = 100, trim = FALSE, #bounds = c(min(d_cv$phone_dur_uttr),max(d_cv$phone_dur_uttr)),
+    #              fill = "forestgreen",lwd=0, alpha=0.3) +
+    # geom_line(aes(y = density),
+    #           col = "darkgreen", lwd = 0.5) +
+    geom_area(aes(y = density/2+1),
+              fill = "darkgreen",alpha=0.3) +
+    geom_line(aes(y = derivative_nc,lwd = syll_pos),
+              col = "magenta") +
+    geom_line(aes(y = derivative_cl,lwd = syll_pos),
+              col = "blue") +
+    geom_line(aes(y = derivative_cs,lwd = syll_pos),
+              col = "limegreen") +
+    scale_linewidth_manual(values = c("final" = 1,
+                                      "nonfinal" = 0.5)) +
+    geom_hline(yintercept = 1, linetype = 'dashed') +
+    # geom_line(aes(y = delta_deriv),
+    #           col = "darkblue", lwd = 1) +
+    geom_vline(aes(xintercept = phone_dur_uttr_med),
+               col = 'red') +
+    scale_x_log10(breaks = c(0.05, 0.07, 0.1, 0.14)) +
+    scale_y_log10(n.breaks = 8) +
+    labs(title = "Derivative Curves",
+         x = "Average segment duration in s (inverse speech rate)",
+         y = "Predicted phone duration") +
+    theme_minimal() +
+    theme(panel.grid = element_blank(),
+        title = element_text(size=24, face="bold"),
+        axis.line = element_line(size=0.8),
+        axis.ticks = element_line(size=0.8),
+        axis.text = element_text(size=16, colour="black"),
+        axis.title = element_text(size=18, face="bold"),
+        strip.background.y = element_blank(), 
+        strip.placement = "outside",
+        strip.text=element_text(size=18, face="bold"))
+  ggsave(paste0("doreco_graphs_v1/vl/derivative_curves_", m, ".png"), width=15, height=15, dpi=300)
+}
+```
+
+## Comparing VL Model Density-Weighted Effect Sizes
+
+Comparing predicted phone durations and slopes for VL models
+
+```{r}
+for (m in mods_vln_mono_pos) {
+  eff_sizes_vln_mono_pos_m <- eff_sizes_dw_vln_mono[[m]]
+  
+  eff_sizes_vln_mono_pos_m_wider <- eff_sizes_vln_mono_pos_m %>%
+  pivot_wider(names_from = syll_pos,
+              values_from = c(eff_size_med,
+                              derivative_nc,
+                              derivative_cs,
+                              derivative_cl,
+                              phone_dur_nc,
+                              phone_dur_cs,
+                              phone_dur_cl,
+                              eff_size_dw,
+                              derivative_nc_dw,
+                              derivative_cs_dw,
+                              derivative_cl_dw,
+                              phone_dur_nc_dw,
+                              phone_dur_cs_dw,
+                              phone_dur_cl_dw))
+  
+  eff_sizes_vln_mono_pos_m %>%
+  ggplot() +
+    facet_wrap(~vowel_length_contrast) +
+    geom_point(aes(x=phone_dur_nc_dw,y=derivative_nc_dw,shape=syll_pos),col="magenta") +
+    geom_point(aes(x=phone_dur_cl_dw,y=derivative_cl_dw,shape=syll_pos),col="blue") +
+    geom_point(aes(x=phone_dur_cs_dw,y=derivative_cs_dw,shape=syll_pos),col="limegreen") +
+    geom_segment(aes(x = phone_dur_cs_dw, xend=phone_dur_cl_dw,
+                     y = derivative_cs_dw, yend=derivative_cl_dw,
+                     col = vowel_length_contrast)) +
+    geom_segment(data = eff_sizes_vln_mono_pos_m_wider,
+                   aes(x = phone_dur_nc_dw_final, xend=phone_dur_cs_dw_nonfinal,
+                     y = derivative_nc_dw_final, yend=derivative_cs_dw_nonfinal,
+                     col = vowel_length_contrast),
+                 linetype="dashed") +
+    geom_segment(data = eff_sizes_vln_mono_pos_m_wider,
+                 aes(x = phone_dur_nc_dw_final, xend=phone_dur_cl_dw_nonfinal,
+                     y = derivative_nc_dw_final, yend=derivative_cl_dw_nonfinal,
+                     col = vowel_length_contrast),
+                 linetype="dashed") +
+    geom_segment(data = eff_sizes_vln_mono_pos_m_wider,
+                   aes(x = phone_dur_nc_dw_final, xend=phone_dur_nc_dw_nonfinal,
+                     y = derivative_nc_dw_final, yend=derivative_nc_dw_nonfinal),
+                 linetype="dashed") +
+    geom_segment(data = eff_sizes_vln_mono_pos_m_wider,
+                   aes(x = phone_dur_cl_dw_final, xend=phone_dur_cl_dw_nonfinal,
+                     y = derivative_cl_dw_final, yend=derivative_cl_dw_nonfinal),
+                 linetype="dashed") +
+    geom_segment(data = eff_sizes_vln_mono_pos_m_wider,
+                   aes(x = phone_dur_cs_dw_final, xend=phone_dur_cs_dw_nonfinal,
+                     y = derivative_cs_dw_final, yend=derivative_cs_dw_nonfinal),
+                 linetype="dashed") +
+    scale_color_manual(values = c("unrestricted" = "black",
+                                "restricted" = "red")) +
+    scale_x_log10(breaks=c(0.067,0.1,0.15)) +
+    xlab("Predicted individual phone duration (density weighted)") +
+    labs(y = "β_dw") +
+    theme_minimal() +
+    theme(panel.grid = element_blank(),
+        axis.line = element_line(size=0.8),
+        axis.ticks = element_line(size=0.8),
+        axis.text = element_text(size=16, colour="black"),
+        axis.title = element_text(size=18, face="bold"),
+        strip.background.y = element_blank(), 
+        strip.placement = "outside",
+        strip.text=element_text(size=18, face="bold"))
+  ggsave(paste0("doreco_graphs_v1/vl/vl_deriv_preds_all_dw_", m, ".png"), width=12, height=5, dpi=300)
+}
+```
+
+```{r warning=FALSE}
+m<-"vln_mod_mono_full"
+
+eff_sizes_vln_mono_pos_m <- eff_sizes_dw_vln_mono[[m]]
+  
+eff_sizes_vln_mono_pos_m_wider <- eff_sizes_vln_mono_pos_m %>%
+pivot_wider(names_from = syll_pos,
+            values_from = c(eff_size_med,
+                            derivative_nc,
+                            derivative_cs,
+                            derivative_cl,
+                            phone_dur_nc,
+                            phone_dur_cs,
+                            phone_dur_cl,
+                            eff_size_dw,
+                            derivative_nc_dw,
+                            derivative_cs_dw,
+                            derivative_cl_dw,
+                            phone_dur_nc_dw,
+                            phone_dur_cs_dw,
+                            phone_dur_cl_dw))
+
+eff_sizes_vln_mono_pos_m_wider %>%
+  ggplot() +
+  #facet_wrap(~vowel_length_contrast) +
+  geom_vline(aes(xintercept=1), color="red") +
+  geom_boxplot(aes(x=phone_dur_nc_dw_final/phone_dur_nc_dw_nonfinal,
+                   y="no_contrast",
+                   fill = vowel_length_contrast),alpha=0.25) +
+  geom_point(aes(x=phone_dur_nc_dw_final/phone_dur_nc_dw_nonfinal,
+                   y="no_contrast",
+                   fill = vowel_length_contrast),shape=21) +
+  geom_boxplot(aes(x=phone_dur_cl_dw_final/phone_dur_cl_dw_nonfinal,
+                   y="contrast_long",
+                   fill = vowel_length_contrast),alpha=0.25) +
+  geom_point(aes(x=phone_dur_cl_dw_final/phone_dur_cl_dw_nonfinal,
+                   y="contrast_long",
+                   fill = vowel_length_contrast),shape=21) +
+  geom_boxplot(aes(x=phone_dur_cs_dw_final/phone_dur_cs_dw_nonfinal,
+                   y="contrast_short",
+                   fill = vowel_length_contrast),alpha=0.25) +
+  geom_point(aes(x=phone_dur_cs_dw_final/phone_dur_cs_dw_nonfinal,
+                   y="contrast_short",
+                   fill = vowel_length_contrast),shape=21) +
+  geom_boxplot(aes(x=phone_dur_nc_dw_final/phone_dur_cs_dw_nonfinal,
+                   y="no_contrast vs contrast_short",
+                   fill = vowel_length_contrast),alpha=0.25) +
+  geom_point(aes(x=phone_dur_nc_dw_final/phone_dur_cs_dw_nonfinal,
+                   y="no_contrast vs contrast_short",
+                   fill = vowel_length_contrast),shape=21) +
+  scale_fill_manual(values = c("unrestricted" = "blue",
+                               "restricted" = "red",
+                               "none" = "magenta")) +
+  labs(title = "Final Lengthening")
+
+eff_sizes_vln_mono_pos_m_wider %>%
+  ggplot() +
+  #facet_wrap(~vowel_length_contrast) +
+  geom_vline(aes(xintercept=0), color="red") +
+  geom_boxplot(aes(x=derivative_nc_dw_final-derivative_nc_dw_nonfinal,
+                   y="no_contrast",
+                   fill = vowel_length_contrast),alpha=0.25) +
+  geom_point(aes(x=derivative_nc_dw_final-derivative_nc_dw_nonfinal,
+                   y="no_contrast",
+                   fill = vowel_length_contrast),shape=21) +
+  geom_boxplot(aes(x=derivative_cl_dw_final-derivative_cl_dw_nonfinal,
+                   y="contrast_long",
+                   fill = vowel_length_contrast),alpha=0.25) +
+  geom_point(aes(x=derivative_cl_dw_final-derivative_cl_dw_nonfinal,
+                   y="contrast_long",
+                   fill = vowel_length_contrast),shape=21) +
+  geom_boxplot(aes(x=derivative_cs_dw_final-derivative_cs_dw_nonfinal,
+                   y="contrast_short",
+                   fill = vowel_length_contrast),alpha=0.25) +
+  geom_point(aes(x=derivative_cs_dw_final-derivative_cs_dw_nonfinal,
+                   y="contrast_short",
+                   fill = vowel_length_contrast),shape=21) +
+  geom_boxplot(aes(x=derivative_nc_dw_final-derivative_cs_dw_nonfinal,
+                   y="no_contrast vs contrast_short",
+                   fill = vowel_length_contrast),alpha=0.25) +
+  geom_point(aes(x=derivative_nc_dw_final-derivative_cs_dw_nonfinal,
+                   y="no_contrast vs contrast_short",
+                   fill = vowel_length_contrast),shape=21) +
+  scale_fill_manual(values = c("unrestricted" = "blue",
+                               "restricted" = "red",
+                               "none" = "magenta")) +
+  labs(title = "Final Stretchening")
+
+eff_sizes_vln_mono_pos_m_wider %>%
+  ggplot() +
+  #facet_wrap(~vowel_length_contrast) +
+  geom_vline(aes(xintercept=1), color="red") +
+  geom_point(aes(x=phone_dur_cl_dw_final/phone_dur_cs_dw_final,
+                   y="final",
+                   fill = vowel_length_contrast),shape=21) +
+  geom_boxplot(aes(x=phone_dur_cl_dw_final/phone_dur_cs_dw_final,
+                   y="final",
+                   fill = vowel_length_contrast),alpha=0.25) +
+  geom_point(aes(x=phone_dur_cl_dw_nonfinal/phone_dur_cs_dw_nonfinal,
+                   y="nonfinal",
+                   fill = vowel_length_contrast),shape=21) +
+  geom_boxplot(aes(x=phone_dur_cl_dw_nonfinal/phone_dur_cs_dw_nonfinal,
+                   y="nonfinal",
+                   fill = vowel_length_contrast),alpha=0.25) +
+  scale_fill_manual(values = c("unrestricted" = "blue",
+                               "restricted" = "red",
+                               "none" = "magenta")) +
+  labs(title = "Long Lengthening")
+
+eff_sizes_vln_mono_pos_m_wider %>%
+  ggplot() +
+  #facet_wrap(~vowel_length_contrast) +
+  geom_vline(aes(xintercept=0), color="red") +
+  geom_point(aes(x=derivative_cl_dw_final-derivative_cs_dw_final,
+                   y="final",
+                   fill = vowel_length_contrast),shape=21) +
+  geom_boxplot(aes(x=derivative_cl_dw_final-derivative_cs_dw_final,
+                   y="final",
+                   fill = vowel_length_contrast),alpha=0.25) +
+  geom_point(aes(x=derivative_cl_dw_nonfinal-derivative_cs_dw_nonfinal,
+                   y="nonfinal",
+                   fill = vowel_length_contrast),shape=21) +
+  geom_boxplot(aes(x=derivative_cl_dw_nonfinal-derivative_cs_dw_nonfinal,
+                   y="nonfinal",
+                   fill = vowel_length_contrast),alpha=0.25) +
+  scale_fill_manual(values = c("unrestricted" = "blue",
+                               "restricted" = "red",
+                               "none" = "magenta")) +
+  labs(title = "Long Stretchening")
+```
+```{r}
+m<-"vln_mod_mono_full"
+
+eff_sizes_vln_mono_pos_m <- eff_sizes_dw_vln_mono[[m]]
+  
+eff_sizes_vln_mono_pos_m_wider <- eff_sizes_vln_mono_pos_m %>%
+pivot_wider(names_from = syll_pos,
+            values_from = c(eff_size_med,
+                            derivative_nc,
+                            derivative_cs,
+                            derivative_cl,
+                            phone_dur_nc,
+                            phone_dur_cs,
+                            phone_dur_cl,
+                            eff_size_dw,
+                            derivative_nc_dw,
+                            derivative_cs_dw,
+                            derivative_cl_dw,
+                            phone_dur_nc_dw,
+                            phone_dur_cs_dw,
+                            phone_dur_cl_dw))
+
+eff_sizes_vln_mono_pos_m_wider %>%
+  ggplot() +
+  #facet_wrap(~vowel_length_contrast) +
+  geom_vline(aes(xintercept=0), color="red") +
+  geom_boxplot(aes(x=derivative_nc_dw_nonfinal,
+                   y="no_contrast",
+                   fill = vowel_length_contrast),alpha=0.25) +
+  geom_point(aes(x=derivative_nc_dw_nonfinal,
+                   y="no_contrast",
+                   fill = vowel_length_contrast),shape=21) +
+  geom_boxplot(aes(x=derivative_cl_dw_nonfinal,
+                   y="contrast_long",
+                   fill = vowel_length_contrast),alpha=0.25) +
+  geom_point(aes(x=derivative_cl_dw_nonfinal,
+                   y="contrast_long",
+                   fill = vowel_length_contrast),shape=21) +
+  geom_boxplot(aes(x=derivative_cs_dw_nonfinal,
+                   y="contrast_short",
+                   fill = vowel_length_contrast),alpha=0.25) +
+  geom_point(aes(x=derivative_cs_dw_nonfinal,
+                   y="contrast_short",
+                   fill = vowel_length_contrast),shape=21) +
+  scale_fill_manual(values = c("unrestricted" = "blue",
+                               "restricted" = "red",
+                               "none" = "magenta")) +
+  labs(title = "Stretchiness by Vowel Length")
+```
+

@@ -1,0 +1,582 @@
+---
+title: "doreco_stretchiness_analysis_labphon_plots"
+author: "Noah Luntzlara"
+date: "2025-12-02"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Set Up
+
+Load packages.
+
+```{r}
+library(tidyverse)
+# library(ggbeeswarm)
+# library(ggpubr)
+library(forcats)
+
+library(mgcv)
+library(itsadug)
+
+library(geomtextpath)
+library(RColorBrewer)
+library(viridis)
+
+library(broom)
+```
+
+Read in the data.
+
+```{r}
+
+d_all <- read_csv("../doreco_data/combined_doreco_durations_filtered.csv") %>%
+  mutate(language = str_replace(language,'English','Southern_English')) %>%
+  mutate(language = str_replace(language,'_','\n'))
+
+# d_all_unfilt <- read_csv("../doreco_data/combined_doreco_durations_unfiltered.csv")
+
+newdat_cv_all <- read_csv("./newdat_cv_all.csv") %>%
+  mutate(language = str_replace(language,'English','Southern_English')) %>%
+  mutate(language = str_replace(language,'_','\n'))
+
+newdat_vln_mono_all <- read_csv("./newdat_vln_mono_all.csv") %>%
+  mutate(language = str_replace(language,'English','Southern_English')) %>%
+  mutate(language = str_replace(language,'_','\n'))
+
+newdat_vln_mono_comb_all <- read_csv("./newdat_vln_mono_comb_all.csv") %>%
+  mutate(language = str_replace(language,'English','Southern_English')) %>%
+  mutate(language = str_replace(language,'_','\n'))
+
+
+
+```
+Lists of languages by vowel length typology
+```{r}
+d_vl_language_types <- d_all %>%
+  group_by(language,vowel_length_contrast) %>%
+  summarize()
+
+languages <-d_vl_language_types$language
+
+languages_no_contrast <- filter(d_vl_language_types,
+                                vowel_length_contrast=="none")$language
+
+languages_restricted <- filter(d_vl_language_types,
+                                vowel_length_contrast=="restricted")$language
+
+languages_unrestricted <- filter(d_vl_language_types,
+                                vowel_length_contrast=="unrestricted")$language
+
+
+languages_ordered <- c(languages_unrestricted,
+                       languages_restricted,
+                       languages_no_contrast)
+```
+
+
+Data frames for plotting raw data
+
+```{r}
+d_all$language <- factor(d_all$language, levels = languages_ordered)
+
+d_all <- d_all %>%
+  mutate(dur=phone_dur)
+
+d_all_no3vl <- d_all %>%
+  filter(!(vowel_length_contrast == 'restricted' & vlcLn == 'no_contrast'))
+
+d_cv <- d_all_no3vl %>%
+  filter(phone_type != "syllabic_consonant")
+
+d_vl <- d_all_no3vl %>%
+  filter(segtype_syllabic == "vowel",
+         segtype_vowel_dipthongality == "monophthong")
+
+d_cv_vl <- d_all_no3vl %>%
+  filter(!(phone_type %in% c("syllabic_consonant",'vowel_diph'))) %>%
+  mutate(segtype_cvl = case_when(segtype=='consonant'~'consonant',
+                                 segtype_vowel_dipthongality=='monophthong'~vlcLn)) %>%
+  mutate(segtype_cvl = factor(segtype_cvl, levels = c("contrast_short",
+                                                      "contrast_long",
+                                                      "consonant",
+                                                      "no_contrast")))
+
+#New data with averages by utterance
+
+d_uttr_cv <- d_cv %>%
+  group_by(language,speaker,uttr_id) %>%
+  summarize(syllabic = mean(phone_dur[segtype == "syllabic"]),
+            consonant = mean(phone_dur[segtype == "consonant"]),
+            phone_dur_uttr = phone_dur_uttr[1]
+  ) %>%
+  pivot_longer(c(syllabic, consonant),
+               names_to="segtype",
+               values_to="dur") %>%
+  mutate(segtype_o = as.ordered(segtype))
+
+d_uttr_vl <- d_vl %>%
+  group_by(language,speaker,uttr_id) %>%
+  summarize(no_contrast = mean(phone_dur[vlcLn == "no_contrast"]),
+            contrast_long = mean(phone_dur[vlcLn == "contrast_long"]),
+            contrast_short = mean(phone_dur[vlcLn == "contrast_short"]),
+            phone_dur_uttr = phone_dur_uttr[1],
+            vowel_length_contrast = vowel_length_contrast[1]
+  ) %>%
+  pivot_longer(c(no_contrast, contrast_long, contrast_short),
+               names_to="vlcLn",
+               values_to="dur") %>%
+  mutate(vlcLn_o = as.ordered(vlcLn))
+
+d_uttr_cv_vl <- d_cv_vl %>%
+  group_by(language,speaker,uttr_id) %>%
+  summarize(consonant = mean(phone_dur[segtype_cvl == "consonant"]),
+            no_contrast = mean(phone_dur[segtype_cvl == "no_contrast"]),
+            contrast_long = mean(phone_dur[segtype_cvl == "contrast_long"]),
+            contrast_short = mean(phone_dur[segtype_cvl == "contrast_short"]),
+            phone_dur_uttr = phone_dur_uttr[1],
+            vowel_length_contrast = vowel_length_contrast[1]
+  ) %>%
+  pivot_longer(c(consonant, no_contrast, contrast_long, contrast_short),
+               names_to="segtype_cvl",
+               values_to="dur") %>%
+  mutate(segtype_cvl_o = as.ordered(segtype_cvl))
+
+```
+Dataframes for plotting model predictions
+```{r}
+q_1 <- 0.01
+q_2 <- 0.25
+
+d_vl_limits <- d_vl %>%
+  mutate(x_min = min(phone_dur_uttr),
+        x_lolo = quantile(phone_dur_uttr,q_1),
+        x_lo = quantile(phone_dur_uttr,q_2),
+        x_hi = quantile(phone_dur_uttr,1-q_2),
+        x_hihi = quantile(phone_dur_uttr,1-q_1),
+        x_max = max(phone_dur_uttr),
+        y_min = min(dur),
+        y_lolo = quantile(dur,q_1),
+        y_lo = quantile(dur,q_2),
+        y_hi = quantile(dur,1-q_2),
+        y_hihi = quantile(dur,1-q_1),
+        y_max = max(dur)) %>%
+  group_by(language) %>%
+  summarize(x_min = x_min[1],
+            x_lolo = x_lolo[1],
+            x_lo = x_lo[1],
+            x_hi = x_hi[1],
+            x_hihi = x_hihi[1],
+            x_max = x_max[1],
+            y_min = y_min[1],
+            y_lolo = y_lolo[1],
+            y_lo = y_lo[1],
+            y_hi = y_hi[1],
+            y_hihi = y_hihi[1],
+            y_max = y_max[1],
+            x_min_bylang = min(phone_dur_uttr),
+            x_lolo_bylang = quantile(phone_dur_uttr,q_1),
+            x_lo_bylang = quantile(phone_dur_uttr,q_2),
+            x_hi_bylang = quantile(phone_dur_uttr,1-q_2),
+            x_hihi_bylang = quantile(phone_dur_uttr,1-q_1),
+            x_max_bylang = max(phone_dur_uttr),
+            y_min_bylang = min(dur),
+            y_lolo_bylang = quantile(dur,q_1),
+            y_lo_bylang = quantile(dur,q_2),
+            y_hi_bylang = quantile(dur,1-q_2),
+            y_hihi_bylang = quantile(dur,q_1),
+            y_max_bylang = max(dur))
+
+y_min <- d_vl_limits$y_min[1]
+y_lo <- d_vl_limits$y_lo[1]
+y_hi <- d_vl_limits$y_hi[1]
+y_max <- d_vl_limits$y_max[1]
+
+x_min <- d_vl_limits$x_min[1]
+x_lolo <- d_vl_limits$x_lolo[1]
+x_lo <- d_vl_limits$x_lo[1]
+x_hi <- d_vl_limits$x_hi[1]
+x_hihi <- d_vl_limits$x_hihi[1]
+x_max <- d_vl_limits$x_max[1]
+
+newdat_cv_all$language <- factor(newdat_cv_all$language, levels = languages_ordered)
+newdat_vln_mono_all$language <- factor(newdat_vln_mono_all$language, levels = languages_ordered)
+
+newdat_cv_all_filt <- newdat_cv_all %>%
+  left_join(d_vl_limits,by = "language")
+newdat_cv_all_filt <- newdat_cv_all_filt %>%
+  filter(phone_dur_uttr >= x_lolo_bylang,
+         phone_dur_uttr <= x_hihi_bylang)
+
+newdat_vln_mono_all_filt <- newdat_vln_mono_all %>%
+  left_join(d_vl_limits,by = "language")
+newdat_vln_mono_all_filt <- newdat_vln_mono_all_filt %>%
+  filter(!(vowel_length_contrast == 'restricted' & vlcLn == 'no_contrast')) %>%
+  filter(phone_dur_uttr >= x_lolo_bylang,
+         phone_dur_uttr <= x_hihi_bylang)
+
+newdat_vln_mono_comb_all_filt <- newdat_vln_mono_comb_all %>%
+  left_join(d_vl_limits,by = "language")
+newdat_vln_mono_comb_all_filt <- newdat_vln_mono_comb_all_filt %>%
+  filter(phone_dur_uttr >= x_lolo,
+         phone_dur_uttr <= x_hihi)
+  
+
+
+
+
+newdat_vln_mono_all_nopos <- newdat_vln_mono_all_filt %>%
+  filter(model %in% c("vln_mod_mono_baseline", "vln_mod_mono_height")) %>%
+  group_by(across(-c(syll_pos,syll_pos_o,
+                     dur,ul,ll))) %>%
+  summarize(dur = dur[1],
+            ul = ul[1],
+            ll = ll[1],
+            #count = n(),
+            )
+
+newdat_vln_mono_all_pos <- newdat_vln_mono_all_filt %>%
+  filter(model %in% c("vln_mod_mono_pos", "vln_mod_mono_full"))
+```
+
+
+# Plot of CV model predictions
+
+```{r}
+cv_model <- 'cv_mod_type'
+
+newdat_cv_all_filt %>%
+  filter(model==cv_model) %>%
+  ggplot(data = ., aes(x = phone_dur_uttr, y = dur, col = segtype_o, fill = segtype_o)) +
+  facet_wrap(. ~ language) +
+  geom_point(data = d_uttr_cv,
+             alpha = 0.1, pch = 21, stroke=NA) +
+  # geom_segment(aes(y=min(d_vl$phone_dur_uttr),
+  #                  yend=max(d_vl$phone_dur_uttr),
+  #                  x=min(d_vl$phone_dur_uttr),
+  #                  xend=max(d_vl$phone_dur_uttr)),
+  #              col = "black",
+  #              lwd = 0.5,
+  #              linetype="dashed"
+  #              ) +
+  geom_line(lwd = 1) +
+  # geom_ribbon(aes(ymin = ll, ymax = ul),
+  #             col = NA,  alpha = 0.25) +
+  scale_color_manual(values = c("consonant" = "purple4", "syllabic" = "darkorange"),
+                     labels = c("consonant" = "Consonant", "syllabic" = "Vowel"),
+                     guide = "legend") +
+  scale_fill_manual(values = c("consonant" = "purple", "syllabic" = "orange"),
+                    guide = "none") +
+  scale_x_log10(breaks = c(0.05, 0.07, 0.1, 0.14)) +
+  scale_y_log10(breaks = c(0.05, 0.07, 0.1, 0.14),
+                limits = c(min(d_uttr_cv$dur),max(d_uttr_cv$dur))) +
+  #coord_fixed() +
+  labs(title = "Duration-Rate Curves by Phone Type",
+       x = "Average phone duration by utterance (inverse rate) (s)",
+       y = "Individual phone duration (s)") +
+  guides(col = guide_legend(title = "Phone Type")) +
+  theme_minimal() +
+  theme(plot.title = element_text(size=24, face="bold"),
+        panel.grid = element_blank(),
+        axis.line = element_line(size=0.8),
+        axis.ticks = element_line(size=0.8),
+        axis.text = element_text(size=16, colour="black"),
+        axis.title = element_text(size=18, face="bold"),
+        strip.background.y = element_blank(), 
+        strip.placement = "outside",
+        strip.text=element_text(size=18, face="bold"))
+  ggsave("../labphon_plots/cv_model_predictions.png", width=14, height=18, dpi=300)
+```
+
+# Plot of VL Model Predictions
+
+```{r}
+vl_model <- 'vln_mod_mono_height'
+
+newdat_vln_mono_all_nopos %>%
+  filter(model==vl_model) %>%
+  ggplot(data = ., aes(x = phone_dur_uttr, y = dur, col = vlcLn_o, fill = vlcLn_o)) +
+  facet_wrap(. ~ language) +
+  geom_point(data = d_uttr_vl,
+             alpha = 0.1, pch = 21, stroke=NA) +
+  # geom_segment(aes(y=min(d_vl$phone_dur_uttr),
+  #                  yend=max(d_vl$phone_dur_uttr),
+  #                  x=min(d_vl$phone_dur_uttr),
+  #                  xend=max(d_vl$phone_dur_uttr)),
+  #              col = "black",
+  #              lwd = 0.5,
+  #              linetype="dashed"
+  #              ) +
+  geom_line(lwd = 1) +
+  #geom_ribbon(aes(ymin = ll, ymax = ul),col = NA,  alpha = 0.25) +
+  scale_color_manual(values = c("no_contrast" = "magenta",
+                                "contrast_long" = "blue",
+                                "contrast_short" = "limegreen"),
+                     labels = c("no_contrast" = "No Contrast Vowel",
+                               "contrast_long" = "Long Vowel",
+                               "contrast_short" = "Short Vowel"),
+                     guide = "legend") +
+  scale_fill_manual(values = c("nocontrast_dur_uttr" = "hotpink", 
+                                "long_dur_uttr" = "royalblue", 
+                                "short_dur_uttr" = "green",
+                               "no_contrast" = "hotpink",
+                                "contrast_long" = "royalblue",
+                                "contrast_short" = "green"),
+                     guide = "none") +
+  scale_x_log10(breaks = c(0.05, 0.07, 0.1, 0.14)) +
+  scale_y_log10(breaks = c(0.05, 0.07, 0.1, 0.14)) +
+  #coord_fixed() +
+  labs(title = "Duration-Rate Curves by Vowel Length",
+       x = "Average phone duration by utterance (inverse rate) (s)",
+       y = "Individual phone duration (s)") +
+  guides(col = guide_legend(title = "Vowel Length")) +
+  theme_minimal() +
+  theme(plot.title = element_text(size=24, face="bold"),
+        panel.grid = element_blank(),
+        axis.line = element_line(size=0.8),
+        axis.ticks = element_line(size=0.8),
+        axis.text = element_text(size=16, colour="black"),
+        axis.title = element_text(size=18, face="bold"),
+        strip.background.y = element_blank(), 
+        strip.placement = "outside",
+        strip.text=element_text(size=18, face="bold"))
+  ggsave("../labphon_plots/vl_model_predictions.png", width=14, height=18, dpi=300)
+```
+
+# Plot of VL Model Predictions on CV data
+
+```{r}
+vl_model <- 'vln_mod_mono_height'
+cv_model <- 'cv_mod_type'
+newdat_vln_mono_all_nopos %>%
+  filter(model==vl_model) %>%
+  ggplot(data = ., aes(x = phone_dur_uttr, y = dur)) +
+  facet_wrap(. ~ language) +
+  geom_point(data = d_uttr_cv_vl,
+             aes(fill = segtype_cvl),
+             size = 1, alpha = 0.05, pch = 21, stroke=NA) +
+  geom_line(data = filter(newdat_cv_all_filt,model=='cv_mod_type',segtype_o=='consonant'),
+            aes(col=segtype_o),lwd = 1, alpha = 0.25) +
+  geom_line(aes(col=vlcLn_o),lwd = 1) +
+  # geom_segment(aes(y=min(d_vl$phone_dur_uttr),
+  #                  yend=max(d_vl$phone_dur_uttr),
+  #                  x=min(d_vl$phone_dur_uttr),
+  #                  xend=max(d_vl$phone_dur_uttr)),
+  #              col = "black",
+  #              lwd = 0.5,
+  #              linetype="dashed"
+  #              ) +
+  # geom_ribbon(aes(ymin = ll, ymax = ul, fill = vlcLn_o),col = NA,  alpha = 0.25) +
+  # geom_ribbon(data = filter(newdat_cv_all_filt,model=='cv_mod_type',segtype_o=='consonant'),
+  #             aes(ymin = ll, ymax = ul, fill=segtype_o),
+  #             col = NA,  alpha = 0.25) +
+  scale_color_manual(values = c("no_contrast" = "magenta",
+                                "contrast_long" = "blue",
+                                "contrast_short" = "limegreen",
+                                "consonant" = "darkorange"),
+                     labels = c("no_contrast" = "No Contrast Vowel",
+                               "contrast_long" = "Long Vowel",
+                               "contrast_short" = "Short Vowel",
+                               "consonant" = "Consonant"),
+                     guide = "none") +
+  scale_fill_manual(values = c("no_contrast" = "hotpink",
+                                "contrast_long" = "royalblue",
+                                "contrast_short" = "green",
+                                "consonant" = "orange",
+                                "syllabic" = "purple"),
+                    labels = c("no_contrast" = "No Contrast Vowel",
+                               "contrast_long" = "Long Vowel",
+                               "contrast_short" = "Short Vowel",
+                               "consonant" = "Consonant"),
+                     guide = "none") +
+  scale_x_log10(breaks = c(".03"=0.03, ".05"=0.05, ".07"=0.07, ".10"=0.1, ".14"=0.14, ".20"=0.2, ".30"=0.3)) +
+  scale_y_log10(breaks = c(".03"=0.03, ".05"=0.05, ".07"=0.07, ".10"=0.1, ".14"=0.14, ".20"=0.2, ".30"=0.3)) +
+  #coord_fixed(0.5) +
+  labs(#title = "Duration-Rate Curves by Vowel Length",
+       x = "Average phone duration by utterance (inverse rate) (s)",
+       y = "Individual phone duration (s)") +
+  # guides(col = guide_legend(title = "Phoneme Class",
+  #                           #override.aes = list(lwd = 1)
+  #                           ),
+  #        #fill = guide_legend(title = "Phone Type",
+  #        #                    override.aes = list(alpha = 1, size=4))
+  #        ) +
+  theme_minimal() +
+  theme(plot.title = element_text(size=24, face="bold"),
+        legend.title = element_text(size=30),
+        legend.text = element_text(size=30),
+        panel.grid = element_blank(),
+        axis.line = element_line(size=0.8),
+        axis.ticks = element_line(size=0.8),
+        axis.text = element_text(size=24, colour="black"),
+        axis.title = element_text(size=42, face="bold"),
+        strip.background.y = element_blank(), 
+        strip.placement = "outside",
+        strip.text=element_text(size=36, face="bold"))
+  ggsave("../labphon_plots/vl_model_predictions+cvl_data.png", width=18, height=18, dpi=300)
+```
+
+
+
+# VL model predictions aggregated over languages.
+
+```{r}
+vl_model <- 'vln_mod_mono_height'
+
+newdat_vln_mono_comb_all_filt %>%
+  filter(model == vl_model) %>%
+  ggplot(data = ., aes(x = phone_dur_uttr, y = dur)) +
+  geom_segment(aes(x=x_lo,y=0.053,yend=0.15),linetype='dashed',linewidth=0.25) +
+  geom_segment(aes(x=x_hi,y=0.053,yend=0.15),linetype='dashed',linewidth=0.25) +
+  geom_text(aes(x=x_lo+0.0005,y=0.05,label="Q[1]"),
+            col="black", size=10, parse=TRUE) +
+  geom_text(aes(x=x_hi+0.0005,y=0.05,label="Q[3]"),
+            col="black", size=10, parse=TRUE) +
+  # geom_point(data = d_uttr_vl,
+  #            aes(y = dur, fill=vlcLn_o),
+  #            size = 3, alpha = 0.01, pch = 21, stroke=NA) +
+  geom_ribbon(aes(ymin = ll, ymax = ul, fill = vlcLn_o,), col = NA, 
+            alpha = 0.25) +
+  geom_line(aes(col=vlcLn_o),lwd = 1) +
+  # geom_text(data=eff_sizes_vln_mono_comb_m, 
+  #           aes(y=value*1.2*1.2*1.2,label=paste0("β_nc = ", round(derivative_nc,2))),
+  #           col="black", size=5) +
+  #   geom_text(data=eff_sizes_vln_mono_comb_m, 
+  #           aes(y=value*1.2*1.2,label=paste0("β_l = ", round(derivative_cl,2))),
+  #           col="black", size=5) +
+  #   geom_text(data=eff_sizes_vln_mono_comb_m, 
+  #           aes(y=value*1.2,label=paste0("β_s = ", round(derivative_cs,2))),
+  #           col="black", size=5) +
+  #   geom_text(data=eff_sizes_vln_mono_comb_m, 
+  #           aes(y=value,label=paste0("Δβ = ", round(eff_size,2))),
+  #           col="black", size=5) +
+  scale_color_manual(values = c("no_contrast" = "magenta",
+                                "contrast_long" = "blue",
+                                "contrast_short" = "limegreen",
+                                "consonant" = "darkorange"),
+                     labels = c("no_contrast" = "No Contrast",
+                               "contrast_long" = "Long",
+                               "contrast_short" = "Short",
+                               "consonant" = "Consonant"),
+                     guide = "legend"
+                     ) +
+  scale_fill_manual(values = c("no_contrast" = "hotpink",
+                                "contrast_long" = "royalblue",
+                                "contrast_short" = "green",
+                                "consonant" = "orange",
+                                "syllabic" = "purple"),
+                    labels = c("no_contrast" = "No Contrast",
+                               "contrast_long" = "Long",
+                               "contrast_short" = "Short",
+                               "consonant" = "Consonant"),
+                     guide = "none") +
+  scale_x_log10(breaks = c(".03"=0.03, ".05"=0.05, ".07"=0.07, ".10"=0.1, ".14"=0.14, ".20"=0.2, ".30"=0.3),
+                limits = c(x_lolo,0.14)
+                ) +
+  scale_y_log10(breaks = c(".03"=0.03, ".05"=0.05, ".07"=0.07, ".10"=0.1, ".14"=0.14, ".20"=0.2, ".30"=0.3)) +
+  #coord_fixed() +
+  guides(col = guide_legend(title = "Vowel Length",
+                            #override.aes = list(lwd = 1)
+                            ),
+         #fill = guide_legend(title = "Phone Type",
+         #                    override.aes = list(alpha = 1, size=4))
+         ) +
+  #scale_x_continuous(limits=c(0.035,0.145), 
+  #                   breaks=seq(0.04,0.14,0.02),
+  #                   labels=c(".04",".06",".08",".10",".12",".14")) +
+  #scale_y_continuous(breaks=seq(0.04,0.20,0.02)) +
+    # labels for axes
+  labs(#title = "Duration-Rate Curves by Vowel Length",
+       x = "Average phone duration by utterance (inverse rate) (s)",
+       y = "Individual phone duration (s)") +
+  #ylab("Average V vs. C duration in s") +
+  # remove clutter
+  theme_minimal() +
+  theme(plot.title = element_text(size=24, face="bold"),
+        legend.title = element_text(size=30),
+        legend.text = element_text(size=30),
+        panel.grid = element_blank(),
+        axis.line = element_line(size=0.8),
+        axis.ticks = element_line(size=0.8),
+        axis.text = element_text(size=30, colour="black"),
+        axis.title = element_text(size=42, face="bold"),
+        strip.background.y = element_blank(), 
+        strip.placement = "outside",
+        strip.text=element_text(size=36, face="bold"))
+  ggsave("../labphon_plots/vl_model_predictions_comb.png", width=18, height=18, dpi=300)
+```
+
+
+# Plot of VL Model Predictions on raw CV data
+
+
+```{r}
+
+filter(newdat_vln_mono_all_nopos,model==vl_model) %>%
+  ggplot(data = ., aes(x = phone_dur_uttr, y = dur)) +
+  facet_wrap(. ~ language) +
+  geom_point(data = d_cv_vl,
+             aes(fill = segtype_cvl),
+             size = 1, alpha = 0.05, pch = 21, stroke=NA) +
+  geom_line(data = filter(newdat_cv_all_filt,model=='cv_mod_type',segtype_o=='consonant'),
+            aes(col=segtype_o),lwd = 1, alpha = 0.25) +
+  geom_line(aes(col=vlcLn_o),lwd = 1) +
+  # geom_segment(aes(y=min(d_vl$phone_dur_uttr),
+  #                  yend=max(d_vl$phone_dur_uttr),
+  #                  x=min(d_vl$phone_dur_uttr),
+  #                  xend=max(d_vl$phone_dur_uttr)),
+  #              col = "black",
+  #              lwd = 0.5,
+  #              linetype="dashed"
+  #              ) +
+  # geom_ribbon(aes(ymin = ll, ymax = ul, fill = vlcLn_o),col = NA,  alpha = 0.25) +
+  # geom_ribbon(data = filter(newdat_cv_all,model=='cv_mod_type',segtype_o=='consonant'),
+  #             aes(ymin = ll, ymax = ul, fill=segtype_o),
+  #             col = NA,  alpha = 0.25) +
+  scale_color_manual(values = c("no_contrast" = "magenta",
+                                "contrast_long" = "blue",
+                                "contrast_short" = "limegreen",
+                                "consonant" = "darkorange"),
+                     labels = c("no_contrast" = "No Contrast Vowel",
+                               "contrast_long" = "Long Vowel",
+                               "contrast_short" = "Short Vowel",
+                               "consonant" = "Consonant"),
+                     guide = "legend") +
+  scale_fill_manual(values = c("no_contrast" = "hotpink",
+                                "contrast_long" = "royalblue",
+                                "contrast_short" = "green",
+                                "consonant" = "orange",
+                                "syllabic" = "purple"),
+                    labels = c("no_contrast" = "No Contrast Vowel",
+                               "contrast_long" = "Long Vowel",
+                               "contrast_short" = "Short Vowel",
+                               "consonant" = "Consonant"),
+                     guide = "none") +
+  scale_x_log10(breaks = c(0.05, 0.07, 0.1, 0.14)) +
+  scale_y_log10(breaks = c(0.03, 0.05, 0.07, 0.1, 0.14, 0.2, 0.3)) +
+  #coord_fixed(0.6) +
+  labs(#title = "Duration-Rate Curves by Vowel Length",
+       x = "Average phone duration by utterance (inverse rate) (s)",
+       y = "Individual phone duration (s)") +
+  guides(col = guide_legend(title = "Phoneme Class",
+                            override.aes = list(lwd = 1)),
+         #fill = guide_legend(title = "Phone Type",
+         #                    override.aes = list(alpha = 1, size=4))
+         ) +
+  theme_minimal() +
+  theme(plot.title = element_text(size=24, face="bold"),
+        legend.title = element_text(size=30),
+        legend.text = element_text(size=30),
+        panel.grid = element_blank(),
+        axis.line = element_line(size=0.8),
+        axis.ticks = element_line(size=0.8),
+        axis.text = element_text(size=20, colour="black"),
+        axis.title = element_text(size=18, face="bold"),
+        strip.background.y = element_blank(), 
+        strip.placement = "outside",
+        strip.text=element_text(size=36, face="bold"))
+  ggsave("../labphon_plots/vl_model_predictions+cvl_data_raw.png", width=18, height=18, dpi=300)
+```
