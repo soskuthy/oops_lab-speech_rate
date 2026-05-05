@@ -1,181 +1,187 @@
 library(tidyverse)
 library(mgcv)
-library(itsadug)
+library(geomtextpath)
+#library(itsadug)
 
-apah <- read_csv(
-  "../doreco_data/doreco_apah1238_durations.csv",
-  col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")
-) %>%
-  mutate(language="Yali") %>%
-  arrange(speaker, discourse, phone_start)
+setwd("/home/roger/Documents/RA/oops_lab-speech_rate/prelim_analysis/")
 
-arap <- read_csv(
-  "../doreco_data/doreco_arap1274_durations.csv",
-  col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")
-) %>%
-  mutate(language="Arapaho") %>%
-  arrange(speaker, discourse, phone_start)
+`%ni%` <- Negate(`%in%`)
 
-bain <- read_csv(
-  "../doreco_data/doreco_bain1259_durations.csv",
-  col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")
-) %>%
-  mutate(language="Gubeeher") %>%
-  arrange(speaker, discourse, phone_start)
+# apah <- read_csv(
+#   "../doreco_data/doreco_apah1238_durations.csv",
+#   col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")
+# ) %>%
+#   mutate(language="Yali") %>%
+#   arrange(speaker, discourse, phone_start)
 
-beja <- read_csv(
-  "../doreco_data/doreco_beja1238_durations.csv",
-  col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")
-) %>%
-  mutate(language="Beja") %>%
-  arrange(speaker, discourse, phone_start)
+# arap <- read_csv(
+#   "../doreco_data/doreco_arap1274_durations.csv",
+#   col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")
+# ) %>%
+#   mutate(language="Arapaho") %>%
+#   arrange(speaker, discourse, phone_start)
 
-bora <- read_csv(
-  "../doreco_data/doreco_bora1263_durations.csv",
-  col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")
-) %>%
-  mutate(language="Bora") %>%
-  arrange(speaker, discourse, phone_start)
+# bain <- read_csv(
+#   "../doreco_data/doreco_bain1259_durations.csv",
+#   col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")
+# ) %>%
+#   mutate(language="Gubeeher") %>%
+#   arrange(speaker, discourse, phone_start)
 
-dolg <- read_csv(
-  "../doreco_data/doreco_dolg1241_durations.csv",
-  col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")
-) %>%
-  mutate(language="Dolgan") %>%
-  arrange(speaker, discourse, phone_start)
+# beja <- read_csv(
+#   "../doreco_data/doreco_beja1238_durations.csv",
+#   col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")
+# ) %>%
+#   mutate(language="Beja") %>%
+#   arrange(speaker, discourse, phone_start)
 
-even <- read_csv(
-  "../doreco_data/doreco_even1259_durations.csv",
-  col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")
-) %>%
-  mutate(language="Evenki") %>%
-  arrange(speaker, discourse, phone_start)
+# bora <- read_csv(
+#   "../doreco_data/doreco_bora1263_durations.csv",
+#   col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")
+# ) %>%
+#   mutate(language="Bora") %>%
+#   arrange(speaker, discourse, phone_start)
 
-guri <- read_csv(
-  "../doreco_data/doreco_guri1247_durations.csv",
-  col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")
-) %>%
-  mutate(language="Gurindji") %>%
-  arrange(speaker, discourse, phone_start)
+# dolg <- read_csv(
+#   "../doreco_data/doreco_dolg1241_durations.csv",
+#   col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")
+# ) %>%
+#   mutate(language="Dolgan") %>%
+#   arrange(speaker, discourse, phone_start)
 
-jeju <- read_csv(
-  "../doreco_data/doreco_jeju1234_durations.csv",
-  col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")
-) %>%
-  mutate(language="Jejuan") %>%
-  arrange(speaker, discourse, phone_start)
+# even <- read_csv(
+#   "../doreco_data/doreco_even1259_durations.csv",
+#   col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")
+# ) %>%
+#   mutate(language="Evenki") %>%
+#   arrange(speaker, discourse, phone_start)
 
-kama <- read_csv(
-  "../doreco_data/doreco_kama1351_durations.csv",
-  col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")
-) %>%
-  mutate(language="Kamas") %>%
-  arrange(speaker, discourse, phone_start)
+# guri <- read_csv(
+#   "../doreco_data/doreco_guri1247_durations.csv",
+#   col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")
+# ) %>%
+#   mutate(language="Gurindji") %>%
+#   arrange(speaker, discourse, phone_start)
 
-lowe <- read_csv("../doreco_data/doreco_lowe1385_durations.csv",
-                 col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
-  mutate(language="Lower_Sorbian") %>%
-  arrange(speaker, discourse, phone_start)
+# jeju <- read_csv(
+#   "../doreco_data/doreco_jeju1234_durations.csv",
+#   col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")
+# ) %>%
+#   mutate(language="Jejuan") %>%
+#   arrange(speaker, discourse, phone_start)
 
-movi <- read_csv("../doreco_data/doreco_movi1243_durations.csv",
-                 col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
-  mutate(language="Movima") %>%
-  arrange(speaker, discourse, phone_start)
+# kama <- read_csv(
+#   "../doreco_data/doreco_kama1351_durations.csv",
+#   col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")
+# ) %>%
+#   mutate(language="Kamas") %>%
+#   arrange(speaker, discourse, phone_start)
 
-ngal <- read_csv("../doreco_data/doreco_ngal1292_durations.csv",
-                 col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
-  mutate(language="Dalabon") %>%
-  arrange(speaker, discourse, phone_start)
+# lowe <- read_csv("../doreco_data/doreco_lowe1385_durations.csv",
+#                  col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+#   mutate(language="Lower_Sorbian") %>%
+#   arrange(speaker, discourse, phone_start)
 
-nngg <- read_csv("../doreco_data/doreco_nngg1234_durations.csv",
-                 col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
-  mutate(language="Nuu") %>%
-  arrange(speaker, discourse, phone_start)
+# movi <- read_csv("../doreco_data/doreco_movi1243_durations.csv",
+#                  col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+#   mutate(language="Movima") %>%
+#   arrange(speaker, discourse, phone_start)
 
-orko <- read_csv("../doreco_data/doreco_orko1234_durations.csv",
-                 col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
-  mutate(language="Fanbyak") %>%
-  arrange(speaker, discourse, phone_start)
+# ngal <- read_csv("../doreco_data/doreco_ngal1292_durations.csv",
+#                  col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+#   mutate(language="Dalabon") %>%
+#   arrange(speaker, discourse, phone_start)
 
-resi <- read_csv("../doreco_data/doreco_resi1247_durations.csv",
-                 col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
-  mutate(language="Resigaro") %>%
-  arrange(speaker, discourse, phone_start)
+# nngg <- read_csv("../doreco_data/doreco_nngg1234_durations.csv",
+#                  col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+#   mutate(language="Nuu") %>%
+#   arrange(speaker, discourse, phone_start)
 
-ruul <- read_csv("../doreco_data/doreco_ruul1235_durations.csv",
-                 col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
-  mutate(language="Ruuli") %>%
-  arrange(speaker, discourse, phone_start)
+# orko <- read_csv("../doreco_data/doreco_orko1234_durations.csv",
+#                  col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+#   mutate(language="Fanbyak") %>%
+#   arrange(speaker, discourse, phone_start)
 
-sadu <- read_csv("../doreco_data/doreco_sadu1234_durations.csv",
-                 col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
-  mutate(language="Sadu") %>%
-  arrange(speaker, discourse, phone_start)
+# resi <- read_csv("../doreco_data/doreco_resi1247_durations.csv",
+#                  col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+#   mutate(language="Resigaro") %>%
+#   arrange(speaker, discourse, phone_start)
 
-sanz <- read_csv("../doreco_data/doreco_sanz1248_durations.csv",
-                 col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
-  mutate(language="Sanzhi_Dargwa") %>%
-  arrange(speaker, discourse, phone_start)
+# ruul <- read_csv("../doreco_data/doreco_ruul1235_durations.csv",
+#                  col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+#   mutate(language="Ruuli") %>%
+#   arrange(speaker, discourse, phone_start)
 
-sout <- read_csv("../doreco_data/doreco_sout3282_durations.csv",
-                 col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
-  mutate(language="English") %>%
-  arrange(speaker, discourse, phone_start)
+# sadu <- read_csv("../doreco_data/doreco_sadu1234_durations.csv",
+#                  col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+#   mutate(language="Sadu") %>%
+#   arrange(speaker, discourse, phone_start)
 
-svan <- read_csv("../doreco_data/doreco_svan1243_durations.csv",
-                 col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
-  mutate(language="Svan") %>%
-  arrange(speaker, discourse, phone_start)
+# sanz <- read_csv("../doreco_data/doreco_sanz1248_durations.csv",
+#                  col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+#   mutate(language="Sanzhi_Dargwa") %>%
+#   arrange(speaker, discourse, phone_start)
 
-trin <- read_csv("../doreco_data/doreco_trin1278_durations.csv",
-                 col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
-  mutate(language="Mojeno_Trinitario") %>%
-  arrange(speaker, discourse, phone_start)
+# sout <- read_csv("../doreco_data/doreco_sout3282_durations.csv",
+#                  col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+#   mutate(language="English") %>%
+#   arrange(speaker, discourse, phone_start)
 
-urum <- read_csv("../doreco_data/doreco_urum1249_durations.csv",
-                 col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
-  mutate(language="Urum") %>%
-  arrange(speaker, discourse, phone_start)
+# svan <- read_csv("../doreco_data/doreco_svan1243_durations.csv",
+#                  col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+#   mutate(language="Svan") %>%
+#   arrange(speaker, discourse, phone_start)
 
-vera <- read_csv("../doreco_data/doreco_vera1241_durations.csv",
-                 col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
-  mutate(language="Veraa") %>%
-  arrange(speaker, discourse, phone_start)
+# trin <- read_csv("../doreco_data/doreco_trin1278_durations.csv",
+#                  col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+#   mutate(language="Mojeno_Trinitario") %>%
+#   arrange(speaker, discourse, phone_start)
 
-yong <- read_csv("../doreco_data/doreco_yong1270_durations.csv",
-                 col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
-  mutate(language="Yongning_Na") %>%
-  arrange(speaker, discourse, phone_start)
+# urum <- read_csv("../doreco_data/doreco_urum1249_durations.csv",
+#                  col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+#   mutate(language="Urum") %>%
+#   arrange(speaker, discourse, phone_start)
 
-df.drc <- bind_rows(
-  apah,
-  arap,
-  bain,
-  beja,
-  bora,
-  dolg,
-  even,
-  guri,
-  jeju,
-  kama,
-  lowe,
-  movi,
-  ngal,
-  nngg,
-  orko,
-  resi,
-  ruul,
-  sadu,
-  sanz,
-  sout,
-  svan,
-  trin,
-  urum,
-  vera,
-  yong
-)
+# vera <- read_csv("../doreco_data/doreco_vera1241_durations.csv",
+#                  col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+#   mutate(language="Veraa") %>%
+#   arrange(speaker, discourse, phone_start)
+
+# yong <- read_csv("../doreco_data/doreco_yong1270_durations.csv",
+#                  col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+#   mutate(language="Yongning_Na") %>%
+#   arrange(speaker, discourse, phone_start)
+
+# df.drc <- bind_rows(
+#   apah,
+#   arap,
+#   bain,
+#   beja,
+#   bora,
+#   dolg,
+#   even,
+#   guri,
+#   jeju,
+#   kama,
+#   lowe,
+#   movi,
+#   ngal,
+#   nngg,
+#   orko,
+#   resi,
+#   ruul,
+#   sadu,
+#   sanz,
+#   sout,
+#   svan,
+#   trin,
+#   urum,
+#   vera,
+#   yong
+# )
 
 df.drc <- read_csv("../data/DoReCo.csv")
+saveRDS(df.drc, "../data/DoReCo.rds")
 df.mapping <- read_csv("../data/phone_mapping.csv")
 
 df.raw <- df.drc %>%
@@ -459,6 +465,7 @@ d_seg <- df %>%
     num_segments_uttr = n(),
     segment_dur_uttr = uttr_dur / num_segments_uttr,
     syllable_dur_uttr = uttr_dur / num_syllables_uttr,
+    segment_type = recode(segment_type, syllabic = "vowel")
   ) %>%
   ungroup()
 
@@ -543,6 +550,324 @@ cv_mod_baseline <- bam(phone_dur ~
                        discrete = TRUE,
                        nthreads = 8
 )
-saveRDS(cv_mod_baseline, "cv_mod_baseline.rds")
-cv_mod_baseline <- readRDS("cv_mod_baseline.rds")
+saveRDS(cv_mod_baseline, "../model/cv_mod_baseline.rds")
+cv_mod_baseline <- readRDS("../model/cv_mod_baseline.rds")
 summary(cv_mod_baseline)
+
+cv_mod_type <- bam(phone_dur ~
+  segment_type_o +
+  s(segment_dur_uttr, bs = "cr") +
+  s(segment_dur_uttr, by = segment_type_o, bs = "cr") +
+  s(segment_dur_uttr, c_type_f, bs = "fs", m = 1, xt = list("cr")) +
+  s(segment_dur_uttr, speakerSegtype, bs = "fs", m = 1, xt = list("cr")) +
+  s(segment_dur_uttr, languageSegtype, bs = "fs", m = 1, xt = list("cr")),
+  data = d_seg,
+  discrete = TRUE,
+  nthreads = 8
+)
+saveRDS(cv_mod_type, "../model/cv_mod_type.rds")
+cv_mod_type <- readRDS("../model/cv_mod_type.rds")
+summary(cv_mod_type)
+
+
+d_uttr_plot <- d_seg %>%
+  group_by(language, speaker, uttr_id) %>%
+  summarise(
+    # duration of segmental material only
+    uttr_dur = sum(phone_dur),
+    num_syllables_uttr = sum(segment_type == "vowel" | segment_type == "syllabic" | c_type == "syllabic C"),
+    num_segments_uttr = n(),
+    segment_dur_uttr = uttr_dur / num_segments_uttr,
+    syllable_dur_uttr = uttr_dur / num_syllables_uttr,
+    vowel_dur_uttr = mean(phone_dur[segment_type %in% c("vowel", "syllabic")]),
+    cons_dur_uttr = mean(phone_dur[segment_type == "consonant"]),
+  ) %>%
+  ungroup() %>%
+  pivot_longer(c(vowel_dur_uttr, cons_dur_uttr),
+               names_to="measure",
+               values_to="value")
+
+
+newdat_cv <- expand.grid(
+  segment_dur_uttr = seq(
+    min(d_seg$segment_dur_uttr),
+    max(d_seg$segment_dur_uttr),
+    length.out = 100
+  ),
+  c_type_f = d_seg$c_type_f[1],
+  speakerSegtype = d_seg$speakerSegtype[1],
+  languageSegtype = d_seg$languageSegtype[1],
+  segment_type_o = unique(d_seg$segment_type_o)
+)
+
+newdat_cv$segment_type_o <- as.ordered(newdat_cv$segment_type_o)
+contrasts(newdat_cv$segment_type_o) <- "contr.treatment"
+
+preds_full <- predict(cv_mod_type, newdat_cv,
+  exclude = c(
+    "s(segment_dur_uttr,c_type_f)",
+    "s(segment_dur_uttr,speakerSegtype)",
+    "s(segment_dur_uttr,languageSegtype)"
+  ),
+  se.fit = TRUE
+)
+
+newdat_cv$dur <- preds_full$fit
+newdat_cv$ul <- preds_full$fit + preds_full$se.fit * 1.96
+newdat_cv$ll <- preds_full$fit - preds_full$se.fit * 1.96
+
+p <- newdat_cv %>%
+  ggplot(aes(x = segment_dur_uttr, y = dur, color = segment_type_o)) +
+    geom_ribbon(aes(ymin = ll, ymax = ul, group = segment_type_o), color = NA, fill = "grey", alpha = 0.25) +
+    geom_textline(aes(label = segment_type_o), size = 10, linewidth = 2.5, hjust = 0.75) +
+    scale_x_log10(breaks = c(0.05, 0.07, 0.1, 0.14), labels = c(".05", ".07", ".10", ".14")) +
+    scale_y_log10(breaks = c(0.03, 0.04, 0.05, 0.07, 0.1, 0.14), labels = c(".03", ".04", ".05", ".07", ".10", ".14")) +
+    scale_color_manual(values=c("#56B4E9", "#e69f00"), guide="none") +
+    xlab("Average segment dur. in s (inverse speech rate)") +
+    ylab("Average duration in s") +
+    theme(
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank(),
+      plot.background = element_rect(fill = "transparent", color = NA),
+      panel.background = element_rect(fill = "transparent", color = NA),
+      legend.position = "none"
+    )
+p
+ggsave(filename = "./graphs/pop_lang_talk.png", plot = p, width = 9.42, height = 9)
+
+# origin
+# model predictions
+newdat_cv <- expand.grid(
+  segment_dur_uttr = seq(
+    min(d_seg$segment_dur_uttr),
+    max(d_seg$segment_dur_uttr),
+    length.out = 100
+  ),
+  c_type_f = d_seg$c_type_f[1],
+  speakerSegtype = d_seg$speakerSegtype[1],
+  #language_f=unique(d_uttr_cv$language_f),
+  languageSegtype = unique(d_seg$languageSegtype)
+)
+
+newdat_cv$segment_type_o <- str_extract(newdat_cv$languageSegtype, "[^.]*$")
+newdat_cv$segment_type_o <- as.ordered(newdat_cv$segment_type_o)
+contrasts(newdat_cv$segment_type_o) <- "contr.treatment"
+
+newdat_cv$language <- str_extract(newdat_cv$languageSegtype, "^[^.]*")
+newdat_cv$language_f <- as.factor(newdat_cv$language)
+newdat_cv$speaker_f <- as.factor(str_extract(newdat_cv$speakerSegtype, "^[^.]*"))
+#newdat_cv$speaker_f <- d_uttr_cv$speaker_f[1]
+
+preds_baseline <- predict(cv_mod_baseline, newdat_cv,
+  # the following is used when predicting without speakers
+  exclude=c("s(segment_dur_uttr,speakerSegtype)",
+            "s(segment_dur_uttr,speaker_f)",
+            "s(segment_dur_uttr,speaker_f):segment_type_ovowel_dur_uttr",
+            "s(segment_dur_uttr,c_type_f)"),
+  se.fit = TRUE
+)
+
+preds_full <- predict(cv_mod_type, newdat_cv,
+  # the following is used when predicting without speakers
+  exclude=c("s(segment_dur_uttr,speakerSegtype)",
+            "s(segment_dur_uttr,speaker_f)",
+            "s(segment_dur_uttr,speaker_f):segment_type_ovowel_dur_uttr",
+            "s(segment_dur_uttr,c_type_f)"),
+  se.fit = TRUE
+)
+
+# baseline
+
+newdat_cv_baseline <- newdat_cv
+
+newdat_cv_baseline$dur <- preds_baseline$fit
+newdat_cv_baseline$ul <- preds_baseline$fit + preds_baseline$se.fit * 1.96
+newdat_cv_baseline$ll <- preds_baseline$fit - preds_baseline$se.fit * 1.96
+
+newdat_cv_baseline$model <- "cv_mod_baseline"
+
+# full
+
+newdat_cv_full <- newdat_cv
+
+newdat_cv_full$dur <- preds_full$fit
+newdat_cv_full$ul <- preds_full$fit + preds_full$se.fit * 1.96
+newdat_cv_full$ll <- preds_full$fit - preds_full$se.fit * 1.96
+
+newdat_cv_full$model <- "cv_mod_type"
+
+newdat_all <- bind_rows(
+  newdat_cv_baseline,
+  newdat_cv_full
+)
+
+d_uttr_plot %>%
+  ggplot(data = ., aes(x = segment_dur_uttr, y = value, col = measure)) +
+  facet_wrap(. ~ language) +
+  geom_point(alpha = 0.1, pch=16) +
+  #geom_ribbon(data = filter(newdat_cv_all,
+  #                          model == "dur",
+  #                          segment_type_o == "vowel_dur_uttr"),
+  #            aes(ymin = ll, ymax = ul), col = NA, fill = "grey",
+  #            alpha = 0.5) +
+  #geom_ribbon(data = filter(newdat_cv,
+  #                          measure_type == "dur",
+  #                          segment_type_o == "cons_dur_uttr"),
+   #           aes(ymin = ll, ymax = ul), col = NA, fill = "grey",
+   #           alpha = 0.5) +
+  geom_line(data = filter(newdat_all,
+                          segment_type_o == "vowel"),
+            aes(lty=model, y=dur),
+            col = "darkorange1", lwd = 1) +
+  geom_line(data = filter(newdat_all,
+                          segment_type_o == "consonant"),
+            aes(lty=model, y=dur),
+            col = "purple4", lwd = 1) +
+  scale_x_log10(breaks = c(0.05, 0.07, 0.1, 0.14)) +
+  scale_y_log10(breaks = c(0.05, 0.07, 0.1, 0.14),
+                limits = c(0.03, 0.19)) +
+  #scale_x_continuous(limits=c(0.035,0.145), 
+  #                   breaks=seq(0.04,0.14,0.02),
+  #                   labels=c(".04",".06",".08",".10",".12",".14")) +
+  scale_colour_manual(values = c("purple", "orange"), guide = "none") +
+  #scale_y_continuous(breaks=seq(0.04,0.20,0.02)) +
+    # labels for axes
+  xlab("Average segment duration in s (inverse speech rate)") +
+  labs(y = "Average C vs. V duration in s") +
+  #ylab("Average V vs. C duration in s") +
+  # remove clutter
+  theme_minimal()
+
+
+eff_sizes <- list()
+
+# model predictions
+newdat_deriv <- expand.grid(
+  speakerSegtype = d_seg$speakerSegtype[1],
+  languageSegtype = unique(d_seg$languageSegtype),
+  measure_type = "dur",
+  c_type_f = d_seg$c_type_f[1]
+)
+
+newdat_deriv$segment_type_o <- str_extract(newdat_deriv$languageSegtype,
+                                        "[^.]*$")
+newdat_deriv$segment_type_o <- as.ordered(newdat_deriv$segment_type_o)
+contrasts(newdat_deriv$segment_type_o) <- "contr.treatment"
+
+newdat_deriv$language <- str_extract(newdat_deriv$languageSegtype,
+                                        "^[^.]*")
+newdat_deriv$language_f <- as.factor(newdat_deriv$language)
+newdat_deriv$speaker_f <- newdat_cv$speaker_f[1]
+
+language_med_durs <- d_seg %>%
+  group_by(language) %>%
+  summarise(segment_dur_uttr = median(segment_dur_uttr)) %>%
+  ungroup()
+
+newdat_deriv <- left_join(
+  newdat_deriv,
+  language_med_durs,
+  by = "language"
+)
+
+eps <- 0.001
+
+newdat_deriv_1 <- newdat_deriv %>%
+  mutate(segment_dur_uttr = exp(log(segment_dur_uttr) - (eps/2)))
+newdat_deriv_2 <- newdat_deriv %>%
+  mutate(segment_dur_uttr = exp(log(segment_dur_uttr) + (eps/2)))
+
+mods <- c("cv_mod_baseline", "cv_mod_type")
+for (m in mods) {
+X0 <- predict(get(m), 
+              newdat_deriv_1,
+              exclude=c(
+                "s(segment_dur_uttr,speakerSegtype)",
+                "s(segment_dur_uttr,speaker_f)",
+                "s(segment_dur_uttr,speaker_f):segment_type_ovowel_dur_uttr",
+                "s(segment_dur_uttr,c_type_f)"
+              )
+) %>% log()
+X1 <- predict(get(m), 
+              newdat_deriv_2,
+              exclude=c(
+                "s(segment_dur_uttr,speakerSegtype)",
+                "s(segment_dur_uttr,speaker_f)",
+                "s(segment_dur_uttr,speaker_f):segment_type_ovowel_dur_uttr",
+                "s(segment_dur_uttr,c_type_f)"
+              )
+) %>% log()
+
+# finite difference approximation of first derivative
+# the design matrix
+first_deriv <- (X1 - X0) / eps
+#first_deriv <- Xp %*% coef(get(m))
+
+newdat_deriv$derivative <- first_deriv
+newdat_deriv$model <- m
+
+eff_sizes[[m]] <- newdat_deriv %>%
+  dplyr::select(language, segment_type_o, segment_dur_uttr, model, derivative) %>%
+  group_by(language, segment_dur_uttr, model) %>%
+  summarise(eff_size = derivative[segment_type_o == "vowel"] - derivative[segment_type_o == "consonant"]) %>%
+  ungroup() %>%
+  arrange(desc(eff_size))
+}
+
+eff_sizes_df <- bind_rows(eff_sizes)
+
+for (m in mods) {
+  
+  eff_sizes_m <- eff_sizes[[m]]
+  eff_sizes_m$language <- factor(eff_sizes_m$language, levels=eff_sizes_m$language)
+  eff_sizes_m$segment_dur_uttr <- 0.05
+  eff_sizes_m$value <- 0.13
+  
+  newdat_m <- filter(newdat_all, model==m)
+  newdat_m$language <- factor(newdat_m$language, levels=eff_sizes_m$language)
+  
+  plot_dat <- d_uttr_plot
+  plot_dat$language <- factor(plot_dat$language, levels=eff_sizes_m$language)
+  
+  plot_dat %>%
+    ggplot(data = ., aes(x = segment_dur_uttr, y = value, col = measure)) +
+    facet_wrap(. ~ language) +
+    geom_point(alpha = 0.1, pch=16) +
+    #geom_ribbon(data = filter(newdat_cv_all,
+    #                          model == "dur",
+    #                          segment_type_o == "vowel_dur_uttr"),
+    #            aes(ymin = ll, ymax = ul), col = NA, fill = "grey",
+    #            alpha = 0.5) +
+    #geom_ribbon(data = filter(newdat_cv,
+    #                          measure_type == "dur",
+    #                          segment_type_o == "cons_dur_uttr"),
+    #            aes(ymin = ll, ymax = ul), col = NA, fill = "grey",
+    #            alpha = 0.5) +
+    geom_line(data = filter(newdat_m,
+                            segment_type_o == "vowel"),
+              aes(lty=model, y=dur),
+              col = "darkorange1", lwd = 1) +
+    geom_line(data = filter(newdat_m,
+                            segment_type_o == "consonant"),
+              aes(lty=model, y=dur),
+              col = "purple4", lwd = 1) +
+    geom_text(data=eff_sizes_m, 
+              aes(label=paste0("Δβ = ", round(eff_size,2))),
+              col="black", size=5) +
+    scale_x_log10(breaks = c(0.05, 0.07, 0.1, 0.14)) +
+    scale_y_log10(breaks = c(0.05, 0.07, 0.1, 0.14),
+                  limits = c(0.03, 0.19)) +
+    scale_colour_manual(values = c("purple", "orange"), guide = "none") +
+    xlab("Average segment duration in s (inverse speech rate)") +
+    labs(y = "Average C vs. V duration in s") +
+    theme_minimal() +
+    theme(panel.grid = element_blank(),
+        axis.line = element_line(size=0.8),
+        axis.ticks = element_line(size=0.8),
+        axis.text = element_text(size=16, colour="black"),
+        axis.title = element_text(size=18, face="bold"),
+        strip.background.y = element_blank(), 
+        strip.placement = "outside",
+        strip.text=element_text(size=18, face="bold"))
+  ggsave(paste0("graphs/", m, ".png"), width=9, height=9, dpi=300)
+}
