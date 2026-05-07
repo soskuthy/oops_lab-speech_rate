@@ -1,1093 +1,1093 @@
 lang,phone,phone_ipa,c_type
-Yali,k,k,stop
-Yali,b,b,stop
-Yali,j,j,approximant
-Yali,<<ui>angkila>,,
-Yali,a,a,non-high monophthong
-Yali,R,ʁ,liquid
-Yali,p\,ɸ,fricative
-Yali,tS,tʃ,affricate
-Yali,t,t,stop
-Yali,<<fs>mai>,,
-Yali,n,n,nasal
-Yali,l,l,liquid
-Yali,g,ɡ,stop
-Yali,w,w,approximant
-Yali,m,m,nasal
-Yali,d,d,stop
-Yali,r,r,liquid
-Yali,X,χ,fricative
-Yali,i,i,high monophthong
-Yali,<<fm>alkitab>,,
-Yali,o,o,non-high monophthong
-Yali,B,β,fricative
-Yali,dZ,dʒ,affricate
-Yali,e,e,non-high monophthong
-Yali,s,s,fricative
-Yali,N,ŋ,nasal
-Yali,u,u,high monophthong
 Yali,p,p,stop
-Arapaho,E,ɛ,non-high monophthong
-Arapaho,}:,ʉː,high monophthong
-Arapaho,k,k,stop
-Arapaho,x,x,fricative
-Arapaho,?,ʔ,stop
-Arapaho,O,ɔ,non-high monophthong
-Arapaho,I,ɪ,high monophthong
-Arapaho,j,j,approximant
-Arapaho,b,b,stop
-Arapaho,o},oʉ,diphthong
-Arapaho,O:,ɔː,non-high monophthong
-Arapaho,tS,tʃ,affricate
-Arapaho,t,t,stop
+Yali,k,k,stop
+Yali,m,m,nasal
+Yali,B,β,fricative
+Yali,j,j,approximant
+Yali,p\,ɸ,fricative
+Yali,R,ʁ,liquid
+Yali,N,ŋ,nasal
+Yali,w,w,approximant
+Yali,<<fm>alkitab>,,
+Yali,t,t,stop
+Yali,n,n,nasal
+Yali,b,b,stop
+Yali,X,χ,fricative
+Yali,e,e,non-high monophthong
+Yali,dZ,dʒ,affricate
+Yali,l,l,liquid
+Yali,u,u,high monophthong
+Yali,d,d,stop
+Yali,o,o,non-high monophthong
+Yali,<<fs>mai>,,
+Yali,g,ɡ,stop
+Yali,a,a,non-high monophthong
+Yali,s,s,fricative
+Yali,r,r,liquid
+Yali,tS,tʃ,affricate
+Yali,i,i,high monophthong
+Yali,<<ui>angkila>,,
 Arapaho,E:,ɛː,non-high monophthong
-Arapaho,n,n,nasal
-Arapaho,Ai,ɑi,diphthong
+Arapaho,E,ɛ,non-high monophthong
+Arapaho,k,k,stop
 Arapaho,ei:,eiː,diphthong
+Arapaho,j,j,approximant
+Arapaho,o}:,oʉː,diphthong
+Arapaho,o},oʉ,diphthong
+Arapaho,T,θ,fricative
 Arapaho,w,w,approximant
-Arapaho,Ai:,ɑiː,diphthong
+Arapaho,t,t,stop
+Arapaho,O,ɔ,non-high monophthong
+Arapaho,},ʉ,high monophthong
+Arapaho,n,n,nasal
+Arapaho,?,ʔ,stop
+Arapaho,b,b,stop
+Arapaho,I,ɪ,high monophthong
+Arapaho,x,x,fricative
+Arapaho,}:,ʉː,high monophthong
+Arapaho,h,h,fricative
 Arapaho,f,f,fricative
+Arapaho,O:,ɔː,non-high monophthong
 Arapaho,I:,ɪː,high monophthong
 Arapaho,ei,ei,diphthong
-Arapaho,T,θ,fricative
-Arapaho,h,h,fricative
-Arapaho,},ʉ,high monophthong
-Arapaho,o}:,oʉː,diphthong
 Arapaho,s,s,fricative
-Gubeeher,E,ɛ,non-high monophthong
-Gubeeher,@:,əː,non-high monophthong
-Gubeeher,k,k,stop
-Gubeeher,x,x,fricative
-Gubeeher,O,ɔ,non-high monophthong
-Gubeeher,b,b,stop
-Gubeeher,j,j,approximant
-Gubeeher,I,ɪ,high monophthong
-Gubeeher,a,a,non-high monophthong
+Arapaho,tS,tʃ,affricate
+Arapaho,Ai,ɑi,diphthong
+Arapaho,Ai:,ɑiː,diphthong
 Gubeeher,u:,uː,high monophthong
-Gubeeher,O:,ɔː,non-high monophthong
-Gubeeher,t,t,stop
-Gubeeher,E:,ɛː,non-high monophthong
-Gubeeher,U:,ʊː,high monophthong
-Gubeeher,o:,oː,non-high monophthong
-Gubeeher,S,ʃ,fricative
-Gubeeher,n,n,nasal
-Gubeeher,l,l,liquid
-Gubeeher,g,ɡ,stop
-Gubeeher,w,w,approximant
-Gubeeher,@,ə,non-high monophthong
-Gubeeher,m,m,nasal
-Gubeeher,f,f,fricative
-Gubeeher,J,ɲ,nasal
-Gubeeher,J\,ɟ,stop
-Gubeeher,d,d,stop
-Gubeeher,i:,iː,high monophthong
-Gubeeher,a:,aː,non-high monophthong
-Gubeeher,v,v,fricative
-Gubeeher,I:,ɪː,high monophthong
-Gubeeher,e:,eː,non-high monophthong
-Gubeeher,r,r,liquid
-Gubeeher,i,i,high monophthong
-Gubeeher,o,o,non-high monophthong
-Gubeeher,h,h,fricative
-Gubeeher,e,e,non-high monophthong
-Gubeeher,s,s,fricative
-Gubeeher,N,ŋ,nasal
-Gubeeher,ts\,tɕ,affricate
-Gubeeher,U,ʊ,high monophthong
-Gubeeher,u,u,high monophthong
 Gubeeher,p,p,stop
+Gubeeher,E:,ɛː,non-high monophthong
+Gubeeher,E,ɛ,non-high monophthong
+Gubeeher,k,k,stop
+Gubeeher,m,m,nasal
+Gubeeher,v,v,fricative
+Gubeeher,j,j,approximant
+Gubeeher,@,ə,non-high monophthong
+Gubeeher,N,ŋ,nasal
+Gubeeher,e:,eː,non-high monophthong
+Gubeeher,w,w,approximant
+Gubeeher,t,t,stop
+Gubeeher,O,ɔ,non-high monophthong
+Gubeeher,U,ʊ,high monophthong
+Gubeeher,J,ɲ,nasal
+Gubeeher,n,n,nasal
+Gubeeher,J\,ɟ,stop
+Gubeeher,ts\,tɕ,affricate
+Gubeeher,b,b,stop
+Gubeeher,o:,oː,non-high monophthong
+Gubeeher,I,ɪ,high monophthong
+Gubeeher,x,x,fricative
+Gubeeher,e,e,non-high monophthong
+Gubeeher,h,h,fricative
+Gubeeher,S,ʃ,fricative
+Gubeeher,f,f,fricative
+Gubeeher,l,l,liquid
+Gubeeher,u,u,high monophthong
+Gubeeher,O:,ɔː,non-high monophthong
+Gubeeher,I:,ɪː,high monophthong
+Gubeeher,d,d,stop
+Gubeeher,o,o,non-high monophthong
+Gubeeher,@:,əː,non-high monophthong
+Gubeeher,U:,ʊː,high monophthong
+Gubeeher,g,ɡ,stop
 Gubeeher,z,z,fricative
-Beja,g:,ɡː,stop
-Beja,g:_w,ɡːʷ,stop
-Beja,t:`,tː,stop
-Beja,w:,wː,approximant
-Beja,k,k,stop
-Beja,x,x,fricative
-Beja,?,ʔ,stop
-Beja,b,b,stop
-Beja,j,j,approximant
-Beja,a,a,non-high monophthong
+Gubeeher,a,a,non-high monophthong
+Gubeeher,a:,aː,non-high monophthong
+Gubeeher,s,s,fricative
+Gubeeher,r,r,liquid
+Gubeeher,i:,iː,high monophthong
+Gubeeher,i,i,high monophthong
 Beja,u:,uː,high monophthong
-Beja,m:,mː,nasal
-Beja,t,t,stop
-Beja,j:,jː,approximant
-Beja,r:,rː,liquid
-Beja,s:,sː,fricative
-Beja,d:`,dː,stop
-Beja,S:,ʃː,fricative
-Beja,o:,oː,non-high monophthong
-Beja,S,ʃ,fricative
-Beja,t`,ʈ,stop
-Beja,n,n,nasal
-Beja,d:,dː,stop
-Beja,l,l,liquid
-Beja,J\:,ɟː,stop
-Beja,g,ɡ,stop
-Beja,G,ɣ,fricative
-Beja,w,w,approximant
-Beja,b:,bː,stop
-Beja,g_w,ɡʷ,stop
-Beja,k:,kː,stop
-Beja,m,m,nasal
-Beja,f,f,fricative
-Beja,J\,ɟ,stop
-Beja,i:,iː,high monophthong
-Beja,d,d,stop
-Beja,a:,aː,non-high monophthong
-Beja,l:,lː,liquid
-Beja,e:,eː,non-high monophthong
-Beja,r,r,liquid
-Beja,t:,tː,stop
 Beja,d`,ɖ,stop
-Beja,i,i,high monophthong
-Beja,o,o,non-high monophthong
-Beja,h,h,fricative
-Beja,n:,nː,nasal
+Beja,m:,mː,nasal
+Beja,t:,tː,stop
+Beja,d:,dː,stop
+Beja,S:,ʃː,fricative
+Beja,k,k,stop
+Beja,m,m,nasal
 Beja,k:_w,kːʷ,stop
-Beja,k_w,kʷ,stop
-Beja,e,e,non-high monophthong
-Beja,s,s,fricative
+Beja,t:`,tː,stop
+Beja,j,j,approximant
+Beja,j:,jː,approximant
+Beja,w:,wː,approximant
+Beja,g:_w,ɡːʷ,stop
+Beja,J\:,ɟː,stop
+Beja,e:,eː,non-high monophthong
 Beja,N,ŋ,nasal
-Beja,f:,fː,fricative
+Beja,g:,ɡː,stop
+Beja,r:,rː,liquid
+Beja,w,w,approximant
+Beja,t,t,stop
+Beja,?,ʔ,stop
+Beja,n,n,nasal
+Beja,J\,ɟ,stop
+Beja,o:,oː,non-high monophthong
+Beja,b,b,stop
+Beja,b:,bː,stop
+Beja,x,x,fricative
+Beja,t`,ʈ,stop
+Beja,e,e,non-high monophthong
+Beja,h,h,fricative
+Beja,S,ʃ,fricative
+Beja,s:,sː,fricative
+Beja,f,f,fricative
+Beja,l,l,liquid
 Beja,u,u,high monophthong
+Beja,k_w,kʷ,stop
+Beja,d,d,stop
+Beja,d:`,dː,stop
+Beja,k:,kː,stop
+Beja,o,o,non-high monophthong
+Beja,l:,lː,liquid
+Beja,g_w,ɡʷ,stop
+Beja,g,ɡ,stop
 Beja,z,z,fricative
-Bora,E,ɛ,non-high monophthong
-Bora,p_j_h,pʲʰ,stop
-Bora,k,k,stop
-Bora,?,ʔ,stop
-Bora,j,j,approximant
-Bora,p_j,pʲ,stop
-Bora,k_j_h,kʲʰ,stop
-Bora,M:,ɯː,high monophthong
-Bora,k_h,kʰ,stop
-Bora,a,a,non-high monophthong
-Bora,tS,tʃ,affricate
-Bora,t,t,stop
-Bora,t_j,tʲ,stop
+Beja,f:,fː,fricative
+Beja,a,a,non-high monophthong
+Beja,a:,aː,non-high monophthong
+Beja,n:,nː,nasal
+Beja,s,s,fricative
+Beja,r,r,liquid
+Beja,i:,iː,high monophthong
+Beja,G,ɣ,fricative
+Beja,i,i,high monophthong
 Bora,E:,ɛː,non-high monophthong
-Bora,t_j_h,tʲʰ,stop
-Bora,o:,oː,non-high monophthong
-Bora,n,n,nasal
-Bora,ts_h,tsʰ,affricate
-Bora,?_j,ʔʲ,stop
-Bora,1,ɨ,high monophthong
-Bora,m_j,mʲ,nasal
-Bora,m,m,nasal
-Bora,J,ɲ,nasal
-Bora,1:,ɨː,high monophthong
-Bora,C,ç,fricative
-Bora,i:,iː,high monophthong
-Bora,p_h,pʰ,stop
-Bora,a:,aː,non-high monophthong
-Bora,B_j,βʲ,fricative
-Bora,i,i,high monophthong
-Bora,o,o,non-high monophthong
-Bora,h,h,fricative
-Bora,B,β,fricative
-Bora,M,ɯ,high monophthong
-Bora,t_h,tʰ,stop
-Bora,k_w,kʷ,stop
-Bora,s,s,fricative
-Bora,k_j,kʲ,stop
-Bora,ts,ts,affricate
-Bora,tS_h,tʃʰ,affricate
 Bora,p,p,stop
+Bora,E,ɛ,non-high monophthong
+Bora,k,k,stop
+Bora,m,m,nasal
+Bora,B,β,fricative
+Bora,j,j,approximant
+Bora,p_j_h,pʲʰ,stop
+Bora,t_j,tʲ,stop
+Bora,t_j_h,tʲʰ,stop
+Bora,p_h,pʰ,stop
+Bora,C,ç,fricative
+Bora,ts_h,tsʰ,affricate
+Bora,1:,ɨː,high monophthong
+Bora,t,t,stop
+Bora,J,ɲ,nasal
+Bora,n,n,nasal
+Bora,?,ʔ,stop
+Bora,ts,ts,affricate
+Bora,k_j,kʲ,stop
+Bora,B_j,βʲ,fricative
+Bora,o:,oː,non-high monophthong
+Bora,m_j,mʲ,nasal
+Bora,h,h,fricative
+Bora,?_j,ʔʲ,stop
+Bora,k_w,kʷ,stop
 Bora,4,ɾ,liquid
-Dolgan,tS_j,tʃʲ,affricate
-Dolgan,S_j,ʃʲ,fricative
-Dolgan,y2,yø,diphthong
-Dolgan,k,k,stop
-Dolgan,x,x,fricative
-Dolgan,z_j,zʲ,fricative
-Dolgan,b,b,stop
-Dolgan,1a,ɨa,diphthong
-Dolgan,j,j,approximant
-Dolgan,p_j,pʲ,stop
-Dolgan,f_j,fʲ,fricative
-Dolgan,p:,pː,stop
-Dolgan,a,a,non-high monophthong
+Bora,M:,ɯː,high monophthong
+Bora,M,ɯ,high monophthong
+Bora,o,o,non-high monophthong
+Bora,p_j,pʲ,stop
+Bora,t_h,tʰ,stop
+Bora,a,a,non-high monophthong
+Bora,k_j_h,kʲʰ,stop
+Bora,a:,aː,non-high monophthong
+Bora,s,s,fricative
+Bora,tS,tʃ,affricate
+Bora,i:,iː,high monophthong
+Bora,tS_h,tʃʰ,affricate
+Bora,i,i,high monophthong
+Bora,1,ɨ,high monophthong
+Bora,k_h,kʰ,stop
 Dolgan,u:,uː,high monophthong
-Dolgan,tS,tʃ,affricate
-Dolgan,t,t,stop
 Dolgan,m:,mː,nasal
-Dolgan,t:S,tːʃ,affricate
-Dolgan,r_j,rʲ,liquid
-Dolgan,ie,ie,diphthong
-Dolgan,o:,oː,non-high monophthong
-Dolgan,y:,yː,high monophthong
-Dolgan,S,ʃ,fricative
-Dolgan,n,n,nasal
-Dolgan,l,l,liquid
-Dolgan,g,ɡ,stop
-Dolgan,G,ɣ,fricative
+Dolgan,t:,tː,stop
+Dolgan,p,p,stop
+Dolgan,k,k,stop
+Dolgan,m,m,nasal
+Dolgan,j,j,approximant
+Dolgan,y2,yø,diphthong
+Dolgan,1a,ɨa,diphthong
+Dolgan,e:,eː,non-high monophthong
+Dolgan,N,ŋ,nasal
 Dolgan,c,c,stop
 Dolgan,w,w,approximant
-Dolgan,1,ɨ,high monophthong
-Dolgan,2,ø,non-high monophthong
-Dolgan,s_j,sʲ,fricative
-Dolgan,k:,kː,stop
-Dolgan,m_j,mʲ,nasal
-Dolgan,m,m,nasal
-Dolgan,J,ɲ,nasal
-Dolgan,f,f,fricative
-Dolgan,J\,ɟ,stop
-Dolgan,1:,ɨː,high monophthong
-Dolgan,g_j,ɡʲ,stop
 Dolgan,h\,ɦ,fricative
-Dolgan,d,d,stop
-Dolgan,i:,iː,high monophthong
-Dolgan,a:,aː,non-high monophthong
-Dolgan,l:,lː,liquid
-Dolgan,y,y,high monophthong
-Dolgan,r,r,liquid
-Dolgan,e:,eː,non-high monophthong
-Dolgan,2:,øː,non-high monophthong
-Dolgan,t:,tː,stop
-Dolgan,v_j,vʲ,fricative
-Dolgan,X,χ,fricative
-Dolgan,i,i,high monophthong
-Dolgan,o,o,non-high monophthong
-Dolgan,h,h,fricative
-Dolgan,n:,nː,nasal
-Dolgan,l_j,lʲ,liquid
-Dolgan,e,e,non-high monophthong
-Dolgan,s,s,fricative
-Dolgan,N,ŋ,nasal
+Dolgan,t,t,stop
+Dolgan,1:,ɨː,high monophthong
+Dolgan,t:S,tːʃ,affricate
+Dolgan,f_j,fʲ,fricative
+Dolgan,z_j,zʲ,fricative
+Dolgan,n,n,nasal
+Dolgan,r_j,rʲ,liquid
+Dolgan,J,ɲ,nasal
+Dolgan,J\,ɟ,stop
 Dolgan,k_j,kʲ,stop
+Dolgan,b,b,stop
+Dolgan,o:,oː,non-high monophthong
 Dolgan,ts,ts,affricate
-Dolgan,uo,uo,diphthong
+Dolgan,x,x,fricative
+Dolgan,X,χ,fricative
+Dolgan,e,e,non-high monophthong
+Dolgan,h,h,fricative
+Dolgan,S,ʃ,fricative
+Dolgan,m_j,mʲ,nasal
+Dolgan,l,l,liquid
+Dolgan,f,f,fricative
+Dolgan,g_j,ɡʲ,stop
 Dolgan,u,u,high monophthong
-Dolgan,N:,ŋː,nasal
-Dolgan,p,p,stop
+Dolgan,s_j,sʲ,fricative
+Dolgan,d,d,stop
+Dolgan,k:,kː,stop
+Dolgan,l_j,lʲ,liquid
+Dolgan,o,o,non-high monophthong
+Dolgan,uo,uo,diphthong
+Dolgan,p_j,pʲ,stop
+Dolgan,l:,lː,liquid
+Dolgan,S_j,ʃʲ,fricative
+Dolgan,tS_j,tʃʲ,affricate
+Dolgan,y:,yː,high monophthong
+Dolgan,g,ɡ,stop
 Dolgan,z,z,fricative
+Dolgan,2:,øː,non-high monophthong
+Dolgan,N:,ŋː,nasal
+Dolgan,v_j,vʲ,fricative
+Dolgan,a,a,non-high monophthong
+Dolgan,y,y,high monophthong
+Dolgan,p:,pː,stop
+Dolgan,a:,aː,non-high monophthong
+Dolgan,n:,nː,nasal
+Dolgan,2,ø,non-high monophthong
+Dolgan,ie,ie,diphthong
+Dolgan,s,s,fricative
+Dolgan,r,r,liquid
+Dolgan,i:,iː,high monophthong
+Dolgan,tS,tʃ,affricate
+Dolgan,G,ɣ,fricative
+Dolgan,i,i,high monophthong
+Dolgan,1,ɨ,high monophthong
+Evenki,u:,uː,high monophthong
+Evenki,p,p,stop
+Evenki,k,k,stop
+Evenki,m,m,nasal
+Evenki,d_j,dʲ,stop
+Evenki,v,v,fricative
+Evenki,j,j,approximant
+Evenki,@,ə,non-high monophthong
+Evenki,t_j,tʲ,stop
+Evenki,N,ŋ,nasal
+Evenki,e:,eː,non-high monophthong
+Evenki,w,w,approximant
+Evenki,t,t,stop
+Evenki,},ʉ,high monophthong
+Evenki,n,n,nasal
+Evenki,b,b,stop
+Evenki,o:,oː,non-high monophthong
+Evenki,e,e,non-high monophthong
+Evenki,h,h,fricative
+Evenki,S,ʃ,fricative
+Evenki,f,f,fricative
+Evenki,l,l,liquid
+Evenki,u,u,high monophthong
+Evenki,s_j,sʲ,fricative
+Evenki,d,d,stop
+Evenki,Z,ʒ,fricative
+Evenki,l_j,lʲ,liquid
+Evenki,o,o,non-high monophthong
 Evenki,@:,əː,non-high monophthong
 Evenki,S_j,ʃʲ,fricative
-Evenki,k,k,stop
-Evenki,b,b,stop
-Evenki,j,j,approximant
-Evenki,a,a,non-high monophthong
-Evenki,u:,uː,high monophthong
-Evenki,tS,tʃ,affricate
-Evenki,t,t,stop
-Evenki,t_j,tʲ,stop
-Evenki,d_j,dʲ,stop
-Evenki,o:,oː,non-high monophthong
-Evenki,n_j,nʲ,nasal
-Evenki,S,ʃ,fricative
-Evenki,n,n,nasal
-Evenki,l,l,liquid
 Evenki,g,ɡ,stop
-Evenki,G,ɣ,fricative
-Evenki,w,w,approximant
-Evenki,@,ə,non-high monophthong
-Evenki,s_j,sʲ,fricative
-Evenki,m,m,nasal
-Evenki,f,f,fricative
-Evenki,Z,ʒ,fricative
-Evenki,i:,iː,high monophthong
-Evenki,d,d,stop
-Evenki,a:,aː,non-high monophthong
-Evenki,v,v,fricative
-Evenki,e:,eː,non-high monophthong
-Evenki,r,r,liquid
-Evenki,i,i,high monophthong
-Evenki,o,o,non-high monophthong
-Evenki,h,h,fricative
-Evenki,},ʉ,high monophthong
-Evenki,l_j,lʲ,liquid
-Evenki,N,ŋ,nasal
-Evenki,s,s,fricative
-Evenki,e,e,non-high monophthong
-Evenki,u,u,high monophthong
-Evenki,p,p,stop
 Evenki,z,z,fricative
-Gurindji,aI,aɪ,diphthong
+Evenki,a,a,non-high monophthong
+Evenki,a:,aː,non-high monophthong
+Evenki,s,s,fricative
+Evenki,i:,iː,high monophthong
+Evenki,r,r,liquid
+Evenki,tS,tʃ,affricate
+Evenki,G,ɣ,fricative
+Evenki,i,i,high monophthong
+Evenki,n_j,nʲ,nasal
+Gurindji,u:,uː,high monophthong
+Gurindji,n`,ɳ,nasal
+Gurindji,p,p,stop
 Gurindji,E,ɛ,non-high monophthong
 Gurindji,k,k,stop
-Gurindji,eI,eɪ,diphthong
-Gurindji,oI,oɪ,diphthong
-Gurindji,O,ɔ,non-high monophthong
-Gurindji,I,ɪ,high monophthong
+Gurindji,m,m,nasal
 Gurindji,j,j,approximant
-Gurindji,b,b,stop
-Gurindji,6I,ɐɪ,diphthong
-Gurindji,u:,uː,high monophthong
-Gurindji,tS,tʃ,affricate
-Gurindji,6,ɐ,non-high monophthong
-Gurindji,t,t,stop
-Gurindji,o:,oː,non-high monophthong
-Gurindji,l`,ɭ,liquid
-Gurindji,t`,ʈ,stop
-Gurindji,n,n,nasal
-Gurindji,l,l,liquid
-Gurindji,n`,ɳ,nasal
-Gurindji,g,ɡ,stop
+Gurindji,N,ŋ,nasal
+Gurindji,6U,ɐʊ,diphthong
 Gurindji,c,c,stop
 Gurindji,w,w,approximant
+Gurindji,t,t,stop
+Gurindji,O,ɔ,non-high monophthong
 Gurindji,r\,ɹ,approximant
-Gurindji,6U,ɐʊ,diphthong
-Gurindji,m,m,nasal
-Gurindji,J,ɲ,nasal
-Gurindji,f,f,fricative
-Gurindji,d,d,stop
-Gurindji,i:,iː,high monophthong
-Gurindji,a:,aː,non-high monophthong
-Gurindji,y,y,high monophthong
-Gurindji,r,r,liquid
-Gurindji,ei,ei,diphthong
-Gurindji,h,h,fricative
-Gurindji,N,ŋ,nasal
 Gurindji,U,ʊ,high monophthong
-Gurindji,s,s,fricative
-Gurindji,p,p,stop
+Gurindji,J,ɲ,nasal
+Gurindji,n,n,nasal
+Gurindji,eI,eɪ,diphthong
+Gurindji,oI,oɪ,diphthong
+Gurindji,b,b,stop
+Gurindji,o:,oː,non-high monophthong
+Gurindji,I,ɪ,high monophthong
+Gurindji,t`,ʈ,stop
+Gurindji,h,h,fricative
+Gurindji,6I,ɐɪ,diphthong
+Gurindji,l,l,liquid
+Gurindji,f,f,fricative
 Gurindji,4,ɾ,liquid
+Gurindji,d,d,stop
+Gurindji,ei,ei,diphthong
+Gurindji,g,ɡ,stop
+Gurindji,y,y,high monophthong
+Gurindji,a:,aː,non-high monophthong
+Gurindji,s,s,fricative
+Gurindji,r,r,liquid
+Gurindji,i:,iː,high monophthong
+Gurindji,tS,tʃ,affricate
+Gurindji,6,ɐ,non-high monophthong
+Gurindji,l`,ɭ,liquid
+Gurindji,aI,aɪ,diphthong
+Jejuan,m:,mː,nasal
+Jejuan,s_h,sʰ,fricative
+Jejuan,t:,tː,stop
+Jejuan,p,p,stop
+Jejuan,ts\_h,tɕʰ,affricate
 Jejuan,E,ɛ,non-high monophthong
 Jejuan,k,k,stop
-Jejuan,j,j,approximant
-Jejuan,p:,pː,stop
-Jejuan,a,a,non-high monophthong
-Jejuan,k_h,kʰ,stop
-Jejuan,m:,mː,nasal
-Jejuan,t,t,stop
-Jejuan,s:,sː,fricative
-Jejuan,n,n,nasal
-Jejuan,l,l,liquid
-Jejuan,w,w,approximant
-Jejuan,1,ɨ,high monophthong
-Jejuan,@,ə,non-high monophthong
-Jejuan,k:,kː,stop
-Jejuan,ts\:,tɕː,affricate
 Jejuan,m,m,nasal
-Jejuan,J,ɲ,nasal
-Jejuan,p_h,pʰ,stop
-Jejuan,l:,lː,liquid
-Jejuan,s\:,ɕː,fricative
-Jejuan,t:,tː,stop
-Jejuan,i,i,high monophthong
-Jejuan,o,o,non-high monophthong
-Jejuan,s_h,sʰ,fricative
-Jejuan,h,h,fricative
-Jejuan,n:,nː,nasal
-Jejuan,t_h,tʰ,stop
-Jejuan,e,e,non-high monophthong
-Jejuan,ts\,tɕ,affricate
-Jejuan,N,ŋ,nasal
 Jejuan,Q,ɒ,non-high monophthong
-Jejuan,ts\_h,tɕʰ,affricate
-Jejuan,u,u,high monophthong
-Jejuan,p,p,stop
-Jejuan,4,ɾ,liquid
 Jejuan,s\_h,ɕʰ,fricative
-Kamas,tS_j,tʃʲ,affricate
-Kamas,z_j,zʲ,fricative
-Kamas,k,k,stop
-Kamas,?,ʔ,stop
-Kamas,b,b,stop
-Kamas,j,j,approximant
-Kamas,I,ɪ,high monophthong
-Kamas,p_j,pʲ,stop
-Kamas,f_j,fʲ,fricative
-Kamas,a,a,non-high monophthong
-Kamas,dZ_j,dʒʲ,affricate
-Kamas,tS,tʃ,affricate
-Kamas,t,t,stop
-Kamas,6,ɐ,non-high monophthong
-Kamas,S:,ʃː,fricative
-Kamas,s:,sː,fricative
-Kamas,n_jn,nːʲ,nasal
-Kamas,j:,jː,approximant
-Kamas,r_j,rʲ,liquid
-Kamas,o:,oː,non-high monophthong
-Kamas,n_j,nʲ,nasal
-Kamas,S,ʃ,fricative
-Kamas,n,n,nasal
-Kamas,l,l,liquid
-Kamas,g,ɡ,stop
-Kamas,w,w,approximant
-Kamas,t:_j,tːʲ,stop
-Kamas,1,ɨ,high monophthong
-Kamas,@,ə,non-high monophthong
-Kamas,s_j,sʲ,fricative
-Kamas,m_j,mʲ,nasal
-Kamas,m,m,nasal
-Kamas,f,f,fricative
-Kamas,Z,ʒ,fricative
-Kamas,d,d,stop
-Kamas,a:,aː,non-high monophthong
-Kamas,l:,lː,liquid
-Kamas,r,r,liquid
-Kamas,v_j,vʲ,fricative
+Jejuan,j,j,approximant
+Jejuan,@,ə,non-high monophthong
+Jejuan,p_h,pʰ,stop
+Jejuan,N,ŋ,nasal
+Jejuan,w,w,approximant
+Jejuan,t,t,stop
+Jejuan,J,ɲ,nasal
+Jejuan,n,n,nasal
+Jejuan,ts\,tɕ,affricate
+Jejuan,ts\:,tɕː,affricate
+Jejuan,e,e,non-high monophthong
+Jejuan,h,h,fricative
+Jejuan,s:,sː,fricative
+Jejuan,l,l,liquid
+Jejuan,u,u,high monophthong
+Jejuan,4,ɾ,liquid
+Jejuan,k:,kː,stop
+Jejuan,o,o,non-high monophthong
+Jejuan,l:,lː,liquid
+Jejuan,t_h,tʰ,stop
+Jejuan,a,a,non-high monophthong
+Jejuan,p:,pː,stop
+Jejuan,n:,nː,nasal
+Jejuan,s\:,ɕː,fricative
+Jejuan,i,i,high monophthong
+Jejuan,1,ɨ,high monophthong
+Jejuan,k_h,kʰ,stop
 Kamas,t:,tː,stop
-Kamas,i,i,high monophthong
-Kamas,o,o,non-high monophthong
-Kamas,h,h,fricative
-Kamas,n:,nː,nasal
-Kamas,l_j,lʲ,liquid
-Kamas,e,e,non-high monophthong
-Kamas,s,s,fricative
-Kamas,N,ŋ,nasal
+Kamas,p,p,stop
+Kamas,S:,ʃː,fricative
+Kamas,k,k,stop
+Kamas,m,m,nasal
 Kamas,b_j,bʲ,stop
+Kamas,j,j,approximant
+Kamas,@,ə,non-high monophthong
+Kamas,j:,jː,approximant
+Kamas,n_jn,nːʲ,nasal
+Kamas,1,ɨ,high monophthong
+Kamas,N,ŋ,nasal
+Kamas,w,w,approximant
+Kamas,t,t,stop
+Kamas,f_j,fʲ,fricative
+Kamas,z_j,zʲ,fricative
+Kamas,n,n,nasal
+Kamas,?,ʔ,stop
+Kamas,r_j,rʲ,liquid
 Kamas,ts,ts,affricate
 Kamas,k_j,kʲ,stop
+Kamas,b,b,stop
+Kamas,o:,oː,non-high monophthong
+Kamas,I,ɪ,high monophthong
+Kamas,t:_j,tːʲ,stop
+Kamas,e,e,non-high monophthong
+Kamas,S,ʃ,fricative
+Kamas,h,h,fricative
+Kamas,s:,sː,fricative
+Kamas,m_j,mʲ,nasal
+Kamas,l,l,liquid
+Kamas,f,f,fricative
 Kamas,u,u,high monophthong
+Kamas,s_j,sʲ,fricative
+Kamas,d,d,stop
+Kamas,Z,ʒ,fricative
+Kamas,l_j,lʲ,liquid
+Kamas,o,o,non-high monophthong
+Kamas,p_j,pʲ,stop
+Kamas,l:,lː,liquid
+Kamas,tS_j,tʃʲ,affricate
 Kamas,N:,ŋː,nasal
-Kamas,p,p,stop
+Kamas,g,ɡ,stop
 Kamas,z,z,fricative
-Lower_Sorbian,E,ɛ,non-high monophthong
-Lower_Sorbian,x,x,fricative
-Lower_Sorbian,k,k,stop
-Lower_Sorbian,O,ɔ,non-high monophthong
-Lower_Sorbian,I,ɪ,high monophthong
-Lower_Sorbian,j,j,approximant
-Lower_Sorbian,b,b,stop
-Lower_Sorbian,p_j,pʲ,stop
-Lower_Sorbian,ts`,ʈʂ,affricate
-Lower_Sorbian,f_j,fʲ,fricative
-Lower_Sorbian,a,a,non-high monophthong
-Lower_Sorbian,R,ʁ,liquid
-Lower_Sorbian,dz,dz,affricate
-Lower_Sorbian,t_j,tʲ,stop
-Lower_Sorbian,t,t,stop
-Lower_Sorbian,r_j,rʲ,liquid
-Lower_Sorbian,s`,ʂ,fricative
-Lower_Sorbian,R_j,ʁʲ,liquid
-Lower_Sorbian,n,n,nasal
-Lower_Sorbian,l,l,liquid
-Lower_Sorbian,g,ɡ,stop
-Lower_Sorbian,w,w,approximant
-Lower_Sorbian,1,ɨ,high monophthong
-Lower_Sorbian,w_j,wʲ,approximant
-Lower_Sorbian,m_j,mʲ,nasal
-Lower_Sorbian,m,m,nasal
-Lower_Sorbian,J,ɲ,nasal
-Lower_Sorbian,f,f,fricative
-Lower_Sorbian,ks,ks,affricate
-Lower_Sorbian,g_j,ɡʲ,stop
-Lower_Sorbian,d,d,stop
-Lower_Sorbian,z\,ʑ,fricative
-Lower_Sorbian,v,v,fricative
-Lower_Sorbian,r,r,liquid
-Lower_Sorbian,v_j,vʲ,fricative
-Lower_Sorbian,i,i,high monophthong
-Lower_Sorbian,o,o,non-high monophthong
-Lower_Sorbian,l_j,lʲ,liquid
-Lower_Sorbian,z`,ʐ,fricative
-Lower_Sorbian,s,s,fricative
-Lower_Sorbian,k_j,kʲ,stop
-Lower_Sorbian,ts\,tɕ,affricate
-Lower_Sorbian,ts,ts,affricate
-Lower_Sorbian,b_j,bʲ,stop
-Lower_Sorbian,u,u,high monophthong
-Lower_Sorbian,dz\,dʑ,affricate
+Kamas,v_j,vʲ,fricative
+Kamas,a,a,non-high monophthong
+Kamas,a:,aː,non-high monophthong
+Kamas,n:,nː,nasal
+Kamas,dZ_j,dʒʲ,affricate
+Kamas,s,s,fricative
+Kamas,r,r,liquid
+Kamas,tS,tʃ,affricate
+Kamas,i,i,high monophthong
+Kamas,6,ɐ,non-high monophthong
+Kamas,n_j,nʲ,nasal
 Lower_Sorbian,p,p,stop
+Lower_Sorbian,E,ɛ,non-high monophthong
+Lower_Sorbian,k,k,stop
+Lower_Sorbian,m,m,nasal
+Lower_Sorbian,b_j,bʲ,stop
+Lower_Sorbian,v,v,fricative
+Lower_Sorbian,ts`,ʈʂ,affricate
+Lower_Sorbian,j,j,approximant
+Lower_Sorbian,R,ʁ,liquid
+Lower_Sorbian,t_j,tʲ,stop
+Lower_Sorbian,w,w,approximant
+Lower_Sorbian,t,t,stop
+Lower_Sorbian,O,ɔ,non-high monophthong
+Lower_Sorbian,ks,ks,affricate
+Lower_Sorbian,f_j,fʲ,fricative
+Lower_Sorbian,J,ɲ,nasal
+Lower_Sorbian,n,n,nasal
+Lower_Sorbian,r_j,rʲ,liquid
+Lower_Sorbian,ts,ts,affricate
+Lower_Sorbian,k_j,kʲ,stop
+Lower_Sorbian,b,b,stop
+Lower_Sorbian,ts\,tɕ,affricate
+Lower_Sorbian,I,ɪ,high monophthong
+Lower_Sorbian,x,x,fricative
+Lower_Sorbian,R_j,ʁʲ,liquid
+Lower_Sorbian,m_j,mʲ,nasal
+Lower_Sorbian,s`,ʂ,fricative
+Lower_Sorbian,l,l,liquid
+Lower_Sorbian,g_j,ɡʲ,stop
+Lower_Sorbian,z\,ʑ,fricative
+Lower_Sorbian,f,f,fricative
+Lower_Sorbian,u,u,high monophthong
+Lower_Sorbian,d,d,stop
+Lower_Sorbian,l_j,lʲ,liquid
+Lower_Sorbian,o,o,non-high monophthong
+Lower_Sorbian,p_j,pʲ,stop
+Lower_Sorbian,i,i,high monophthong
+Lower_Sorbian,g,ɡ,stop
+Lower_Sorbian,v_j,vʲ,fricative
+Lower_Sorbian,a,a,non-high monophthong
+Lower_Sorbian,z`,ʐ,fricative
 Lower_Sorbian,s\,ɕ,fricative
+Lower_Sorbian,dz,dz,affricate
+Lower_Sorbian,w_j,wʲ,approximant
+Lower_Sorbian,dz\,dʑ,affricate
+Lower_Sorbian,s,s,fricative
+Lower_Sorbian,r,r,liquid
 Lower_Sorbian,z,z,fricative
-Movima,E,ɛ,non-high monophthong
-Movima,b_<,ɓ,stop
-Movima,k,k,stop
-Movima,?,ʔ,stop
-Movima,O,ɔ,non-high monophthong
-Movima,j,j,approximant
-Movima,a,a,non-high monophthong
+Lower_Sorbian,1,ɨ,high monophthong
 Movima,u:,uː,high monophthong
-Movima,O:,ɔː,non-high monophthong
-Movima,m_p,mp,nasal
-Movima,tS,tʃ,affricate
-Movima,t,t,stop
+Movima,d_<,ɗ,implosive
 Movima,E:,ɛː,non-high monophthong
-Movima,n,n,nasal
-Movima,l,l,liquid
-Movima,g,ɡ,stop
-Movima,n_p,np,nasal
-Movima,w,w,approximant
-Movima,m,m,nasal
-Movima,f,f,fricative
-Movima,u,u,high monophthong
-Movima,i:,iː,high monophthong
-Movima,a:,aː,non-high monophthong
-Movima,i,i,high monophthong
-Movima,K,ɬ,fricative
-Movima,h,h,fricative
-Movima,B,β,fricative
-Movima,k_w,kʷ,stop
-Movima,s,s,fricative
-Movima,d_<,ɗ,stop
+Movima,E,ɛ,non-high monophthong
 Movima,p,p,stop
+Movima,k,k,stop
+Movima,m,m,nasal
+Movima,b_<,ɓ,implosive
+Movima,B,β,fricative
+Movima,j,j,approximant
+Movima,w,w,approximant
+Movima,t,t,stop
+Movima,O,ɔ,non-high monophthong
+Movima,m_p,mp,nasal
+Movima,n,n,nasal
+Movima,?,ʔ,stop
+Movima,h,h,fricative
+Movima,l,l,liquid
+Movima,f,f,fricative
+Movima,k_w,kʷ,stop
+Movima,u,u,high monophthong
+Movima,O:,ɔː,non-high monophthong
 Movima,4,ɾ,liquid
-Dalabon,t:`,tː,stop
-Dalabon,k,k,stop
-Dalabon,?,ʔ,stop
-Dalabon,j,j,approximant
-Dalabon,p:,pː,stop
-Dalabon,a,a,non-high monophthong
-Dalabon,t,t,stop
-Dalabon,m_0,m̥,nasal
-Dalabon,l`,ɭ,liquid
-Dalabon,t`,ʈ,stop
-Dalabon,n,n,nasal
-Dalabon,l,l,liquid
+Movima,n_p,np,nasal
+Movima,g,ɡ,stop
+Movima,a,a,non-high monophthong
+Movima,a:,aː,non-high monophthong
+Movima,K,ɬ,fricative
+Movima,s,s,fricative
+Movima,tS,tʃ,affricate
+Movima,i:,iː,high monophthong
+Movima,i,i,high monophthong
 Dalabon,n`,ɳ,nasal
+Dalabon,m_0,m̥,nasal
+Dalabon,p,p,stop
+Dalabon,t:,tː,stop
+Dalabon,k,k,stop
+Dalabon,m,m,nasal
+Dalabon,t:`,tː,stop
+Dalabon,j,j,approximant
+Dalabon,N_0,ŋ̥,nasal
+Dalabon,N,ŋ,nasal
 Dalabon,c,c,stop
 Dalabon,w,w,approximant
-Dalabon,1,ɨ,high monophthong
-Dalabon,k:,kː,stop
-Dalabon,m,m,nasal
+Dalabon,t,t,stop
 Dalabon,J,ɲ,nasal
-Dalabon,N_0,ŋ̥,nasal
-Dalabon,r,r,liquid
-Dalabon,t:,tː,stop
-Dalabon,i,i,high monophthong
-Dalabon,n_0,n̥,nasal
-Dalabon,o,o,non-high monophthong
-Dalabon,h,h,fricative
+Dalabon,n,n,nasal
+Dalabon,?,ʔ,stop
+Dalabon,t`,ʈ,stop
 Dalabon,e,e,non-high monophthong
-Dalabon,r\`,ɻ,approximant
-Dalabon,N,ŋ,nasal
-Dalabon,c:,cː,stop
+Dalabon,h,h,fricative
+Dalabon,l,l,liquid
 Dalabon,u,u,high monophthong
-Dalabon,p,p,stop
+Dalabon,k:,kː,stop
+Dalabon,o,o,non-high monophthong
+Dalabon,n_0,n̥,nasal
+Dalabon,a,a,non-high monophthong
+Dalabon,p:,pː,stop
+Dalabon,r\`,ɻ,approximant
+Dalabon,r,r,liquid
+Dalabon,c:,cː,stop
+Dalabon,i,i,high monophthong
+Dalabon,1,ɨ,high monophthong
+Dalabon,l`,ɭ,liquid
+Nuu,!\q_h,ǃqʰ,click
+Nuu,cx,cx,affricate
+Nuu,!\_>,ǃʼ,click
+Nuu,|\|\q_h,ǁqʰ,click
+Nuu,m,m,nasal
+Nuu,v,v,fricative
+Nuu,|\X,ǀχ,click
+Nuu,=\q_h,ǂqʰ,click
+Nuu,c_h,cʰ,stop
+Nuu,|\_>,ǀʼ,click
+Nuu,|\~_h,ǀ̃ʰ,click
+Nuu,c,c,stop
+Nuu,O\X,ʘχ,click
+Nuu,J,ɲ,nasal
+Nuu,=\_v,ǂ̬,click
+Nuu,J\,ɟ,stop
+Nuu,b,b,stop
+Nuu,|\|\_v,ǁ̬,click
+Nuu,4,ɾ,liquid
+Nuu,!\_h,ǃʰ,click
+Nuu,i~,ĩ,high monophthong
+Nuu,o~,õ,non-high monophthong
+Nuu,=\qX_>,ǂqχʼ,click
+Nuu,=\X,ǂχ,click
+Nuu,tS,tʃ,affricate
+Nuu,i,i,high monophthong
+Nuu,a~_?\,ãˤ,non-high monophthong
+Nuu,|\,ǀ,click
+Nuu,=\q,ǂq,click
+Nuu,|\|\~,ǁ̃,click
+Nuu,?,ʔ,stop
+Nuu,!\X,ǃχ,click
+Nuu,f,f,fricative
+Nuu,!\,ǃ,click
+Nuu,o_?\,oˤ,non-high monophthong
+Nuu,=\_>,ǂʼ,click
+Nuu,O\_>,ʘʼ,click
+Nuu,|\|\,ǁ,click
+Nuu,s,s,fricative
+Nuu,|\qX_>,ǀqχʼ,click
+Nuu,o~_?\,õˤ,non-high monophthong
+Nuu,z,z,fricative
+Nuu,a_?\,aˤ,non-high monophthong
+Nuu,!\~,ǃ̃,click
+Nuu,k_h,kʰ,stop
+Nuu,u~,ũ,high monophthong
+Nuu,p,p,stop
+Nuu,|\|\_h,ǁʰ,click
+Nuu,k,k,stop
+Nuu,|\_v,ǀ̬,click
+Nuu,|\_h,ǀʰ,click
+Nuu,e~,ẽ,non-high monophthong
+Nuu,ts_>,tsʼ,affricate
+Nuu,t,t,stop
 Nuu,=\~_h,ǂ̃ʰ,click
+Nuu,e,e,non-high monophthong
+Nuu,l,l,liquid
+Nuu,u,u,high monophthong
+Nuu,d,d,stop
+Nuu,g,ɡ,stop
+Nuu,a,a,non-high monophthong
 Nuu,a~,ã,non-high monophthong
 Nuu,|\q_h,ǀqʰ,click
-Nuu,|\|\q_h,ǁqʰ,click
-Nuu,!\~_h,ǃ̃ʰ,click
-Nuu,o~,õ,non-high monophthong
-Nuu,|\~_h,ǀ̃ʰ,click
-Nuu,t,t,stop
-Nuu,|\|\_>,ǁʼ,click
-Nuu,=\_v,ǂ̬,click
-Nuu,kx_>,kxʼ,affricate
-Nuu,O\X,ʘχ,click
-Nuu,|\X,ǀχ,click
-Nuu,|\|\q,ǁq,click
-Nuu,h\,ɦ,fricative
-Nuu,=\X,ǂχ,click
-Nuu,=\~,ǂ̃,click
-Nuu,e,e,non-high monophthong
-Nuu,ts_>,tsʼ,affricate
-Nuu,u,u,high monophthong
-Nuu,=\,ǂ,click
-Nuu,c_h,cʰ,stop
-Nuu,k,k,stop
-Nuu,?,ʔ,stop
-Nuu,b,b,stop
-Nuu,e~,ẽ,non-high monophthong
-Nuu,l,l,liquid
-Nuu,cx,cx,affricate
-Nuu,i~,ĩ,high monophthong
-Nuu,|\,ǀ,click
-Nuu,J,ɲ,nasal
-Nuu,J\,ɟ,stop
-Nuu,v,v,fricative
-Nuu,a~_?\,ãˤ,non-high monophthong
-Nuu,!\,ǃ,click
-Nuu,|\|\qX_>,ǁqχʼ,click
-Nuu,=\q,ǂq,click
-Nuu,N,ŋ,nasal
-Nuu,s,s,fricative
-Nuu,ts,ts,affricate
-Nuu,z,z,fricative
-Nuu,|\|\_h,ǁʰ,click
-Nuu,a,a,non-high monophthong
-Nuu,k_h,kʰ,stop
-Nuu,o~_?\,õˤ,non-high monophthong
-Nuu,tS,tʃ,affricate
-Nuu,!\X,ǃχ,click
-Nuu,a_?\,aˤ,non-high monophthong
-Nuu,|\_>,ǀʼ,click
-Nuu,!\q,ǃq,click
-Nuu,!\qX_>,ǃqχʼ,click
-Nuu,!\q_h,ǃqʰ,click
-Nuu,g,ɡ,stop
-Nuu,c,c,stop
-Nuu,!\_v,ǃ̬,click
-Nuu,=\_h,ǂʰ,click
-Nuu,e_?\,eˤ,non-high monophthong
-Nuu,f,f,fricative
-Nuu,|\|\X,ǁχ,click
-Nuu,!\_h,ǃʰ,click
-Nuu,X,χ,fricative
-Nuu,i,i,high monophthong
-Nuu,|\~,ǀ̃,click
-Nuu,O\,ʘ,click
-Nuu,|\_h,ǀʰ,click
-Nuu,|\_v,ǀ̬,click
-Nuu,=\qX_>,ǂqχʼ,click
-Nuu,=\_>,ǂʼ,click
-Nuu,=\q_h,ǂqʰ,click
 Nuu,O\~,ʘ̃,click
-Nuu,u~,ũ,high monophthong
-Nuu,n,n,nasal
-Nuu,|\q,ǀq,click
-Nuu,|\qX_>,ǀqχʼ,click
-Nuu,O\_>,ʘʼ,click
-Nuu,m,m,nasal
-Nuu,d,d,stop
-Nuu,|\|\_v,ǁ̬,click
-Nuu,|\|\~,ǁ̃,click
-Nuu,o,o,non-high monophthong
-Nuu,!\~,ǃ̃,click
-Nuu,!\_>,ǃʼ,click
-Nuu,|\|\,ǁ,click
-Nuu,o_?\,oˤ,non-high monophthong
+Nuu,|\|\_>,ǁʼ,click
+Nuu,|\|\q,ǁq,click
+Nuu,=\~,ǂ̃,click
+Nuu,e_?\,eˤ,non-high monophthong
+Nuu,!\q,ǃq,click
+Nuu,N,ŋ,nasal
+Nuu,h\,ɦ,fricative
 Nuu,O\q,ʘq,click
-Nuu,p,p,stop
-Nuu,4,ɾ,liquid
-Fanbyak,E,ɛ,non-high monophthong
-Fanbyak,f_w,fʷ,fricative
-Fanbyak,k,k,stop
-Fanbyak,O,ɔ,non-high monophthong
-Fanbyak,b,b,stop
-Fanbyak,j,j,approximant
-Fanbyak,f_j,fʲ,fricative
-Fanbyak,a,a,non-high monophthong
+Nuu,!\~_h,ǃ̃ʰ,click
+Nuu,n,n,nasal
+Nuu,ts,ts,affricate
+Nuu,|\q,ǀq,click
+Nuu,X,χ,fricative
+Nuu,O\,ʘ,click
+Nuu,!\qX_>,ǃqχʼ,click
+Nuu,|\~,ǀ̃,click
+Nuu,=\_h,ǂʰ,click
+Nuu,o,o,non-high monophthong
+Nuu,|\|\X,ǁχ,click
+Nuu,kx_>,kxʼ,affricate
+Nuu,!\_v,ǃ̬,click
+Nuu,|\|\qX_>,ǁqχʼ,click
+Nuu,=\,ǂ,click
 Fanbyak,u:,uː,high monophthong
-Fanbyak,O:,ɔː,non-high monophthong
-Fanbyak,t,t,stop
 Fanbyak,E:,ɛː,non-high monophthong
-Fanbyak,b_w,bʷ,stop
-Fanbyak,o:,oː,non-high monophthong
-Fanbyak,n,n,nasal
-Fanbyak,l,l,liquid
-Fanbyak,G,ɣ,fricative
-Fanbyak,w,w,approximant
-Fanbyak,m_j,mʲ,nasal
-Fanbyak,m,m,nasal
-Fanbyak,f,f,fricative
-Fanbyak,i:,iː,high monophthong
-Fanbyak,d,d,stop
-Fanbyak,a:,aː,non-high monophthong
-Fanbyak,B_j,βʲ,fricative
-Fanbyak,e:,eː,non-high monophthong
-Fanbyak,r,r,liquid
-Fanbyak,m_w,mʷ,nasal
-Fanbyak,i,i,high monophthong
-Fanbyak,o,o,non-high monophthong
-Fanbyak,h,h,fricative
-Fanbyak,B,β,fricative
-Fanbyak,dZ,dʒ,affricate
-Fanbyak,N,ŋ,nasal
-Fanbyak,s,s,fricative
-Fanbyak,e,e,non-high monophthong
-Fanbyak,b_j,bʲ,stop
-Fanbyak,u,u,high monophthong
 Fanbyak,p,p,stop
-Resigaro,k,k,stop
-Resigaro,?,ʔ,stop
-Resigaro,b,b,stop
-Resigaro,j,j,approximant
-Resigaro,J_0,ɲ̥,nasal
-Resigaro,a,a,non-high monophthong
-Resigaro,k_h,kʰ,stop
-Resigaro,M:,ɯː,high monophthong
-Resigaro,p\,ɸ,fricative
-Resigaro,tS,tʃ,affricate
-Resigaro,t,t,stop
+Fanbyak,E,ɛ,non-high monophthong
+Fanbyak,k,k,stop
+Fanbyak,m,m,nasal
+Fanbyak,f_w,fʷ,fricative
+Fanbyak,B,β,fricative
+Fanbyak,b_j,bʲ,stop
+Fanbyak,j,j,approximant
+Fanbyak,N,ŋ,nasal
+Fanbyak,e:,eː,non-high monophthong
+Fanbyak,w,w,approximant
+Fanbyak,t,t,stop
+Fanbyak,O,ɔ,non-high monophthong
+Fanbyak,f_j,fʲ,fricative
+Fanbyak,n,n,nasal
+Fanbyak,b,b,stop
+Fanbyak,o:,oː,non-high monophthong
+Fanbyak,B_j,βʲ,fricative
+Fanbyak,e,e,non-high monophthong
+Fanbyak,h,h,fricative
+Fanbyak,m_j,mʲ,nasal
+Fanbyak,dZ,dʒ,affricate
+Fanbyak,l,l,liquid
+Fanbyak,f,f,fricative
+Fanbyak,u,u,high monophthong
+Fanbyak,O:,ɔː,non-high monophthong
+Fanbyak,d,d,stop
+Fanbyak,m_w,mʷ,nasal
+Fanbyak,o,o,non-high monophthong
+Fanbyak,a,a,non-high monophthong
+Fanbyak,b_w,bʷ,stop
+Fanbyak,a:,aː,non-high monophthong
+Fanbyak,s,s,fricative
+Fanbyak,r,r,liquid
+Fanbyak,i:,iː,high monophthong
+Fanbyak,G,ɣ,fricative
+Fanbyak,i,i,high monophthong
 Resigaro,m_0,m̥,nasal
-Resigaro,o:,oː,non-high monophthong
-Resigaro,S,ʃ,fricative
-Resigaro,n,n,nasal
-Resigaro,ts_h,tsʰ,affricate
-Resigaro,g,ɡ,stop
-Resigaro,m,m,nasal
-Resigaro,J,ɲ,nasal
-Resigaro,i:,iː,high monophthong
-Resigaro,p_h,pʰ,stop
-Resigaro,a:,aː,non-high monophthong
-Resigaro,d,d,stop
-Resigaro,e:,eː,non-high monophthong
-Resigaro,i,i,high monophthong
-Resigaro,n_0,n̥,nasal
-Resigaro,o,o,non-high monophthong
-Resigaro,h,h,fricative
-Resigaro,B,β,fricative
-Resigaro,dZ,dʒ,affricate
-Resigaro,M,ɯ,high monophthong
-Resigaro,t_h,tʰ,stop
-Resigaro,e,e,non-high monophthong
-Resigaro,s,s,fricative
-Resigaro,ts,ts,affricate
 Resigaro,p,p,stop
+Resigaro,k,k,stop
+Resigaro,m,m,nasal
+Resigaro,B,β,fricative
+Resigaro,j,j,approximant
+Resigaro,p\,ɸ,fricative
+Resigaro,p_h,pʰ,stop
+Resigaro,e:,eː,non-high monophthong
+Resigaro,ts_h,tsʰ,affricate
+Resigaro,t,t,stop
+Resigaro,J,ɲ,nasal
+Resigaro,n,n,nasal
+Resigaro,?,ʔ,stop
+Resigaro,ts,ts,affricate
+Resigaro,o:,oː,non-high monophthong
+Resigaro,b,b,stop
+Resigaro,e,e,non-high monophthong
+Resigaro,S,ʃ,fricative
+Resigaro,h,h,fricative
+Resigaro,dZ,dʒ,affricate
 Resigaro,4,ɾ,liquid
-Ruuli,k,k,stop
-Ruuli,b,b,stop
-Ruuli,j,j,approximant
-Ruuli,a,a,non-high monophthong
+Resigaro,M:,ɯː,high monophthong
+Resigaro,d,d,stop
+Resigaro,o,o,non-high monophthong
+Resigaro,M,ɯ,high monophthong
+Resigaro,g,ɡ,stop
+Resigaro,n_0,n̥,nasal
+Resigaro,t_h,tʰ,stop
+Resigaro,a,a,non-high monophthong
+Resigaro,J_0,ɲ̥,nasal
+Resigaro,a:,aː,non-high monophthong
+Resigaro,s,s,fricative
+Resigaro,i:,iː,high monophthong
+Resigaro,tS,tʃ,affricate
+Resigaro,i,i,high monophthong
+Resigaro,k_h,kʰ,stop
 Ruuli,u:,uː,high monophthong
-Ruuli,ai,ai,diphthong
-Ruuli,t,t,stop
-Ruuli,o:,oː,non-high monophthong
-Ruuli,n,n,nasal
-Ruuli,l,l,liquid
-Ruuli,g,ɡ,stop
+Ruuli,p,p,stop
+Ruuli,k,k,stop
+Ruuli,m,m,nasal
+Ruuli,B,β,fricative
+Ruuli,v,v,fricative
+Ruuli,j,j,approximant
 Ruuli,oi,oi,diphthong
+Ruuli,e:,eː,non-high monophthong
+Ruuli,N,ŋ,nasal
 Ruuli,c,c,stop
 Ruuli,w,w,approximant
-Ruuli,m,m,nasal
+Ruuli,t,t,stop
+Ruuli,ai,ai,diphthong
 Ruuli,J,ɲ,nasal
-Ruuli,f,f,fricative
+Ruuli,n,n,nasal
 Ruuli,J\,ɟ,stop
-Ruuli,d,d,stop
-Ruuli,i:,iː,high monophthong
-Ruuli,a:,aː,non-high monophthong
-Ruuli,v,v,fricative
-Ruuli,e:,eː,non-high monophthong
-Ruuli,r,r,liquid
-Ruuli,ei,ei,diphthong
-Ruuli,i,i,high monophthong
-Ruuli,o,o,non-high monophthong
-Ruuli,B,β,fricative
+Ruuli,b,b,stop
+Ruuli,o:,oː,non-high monophthong
 Ruuli,e,e,non-high monophthong
-Ruuli,s,s,fricative
-Ruuli,N,ŋ,nasal
+Ruuli,f,f,fricative
+Ruuli,l,l,liquid
 Ruuli,u,u,high monophthong
-Ruuli,p,p,stop
+Ruuli,d,d,stop
+Ruuli,o,o,non-high monophthong
+Ruuli,ei,ei,diphthong
+Ruuli,g,ɡ,stop
 Ruuli,z,z,fricative
+Ruuli,a,a,non-high monophthong
+Ruuli,a:,aː,non-high monophthong
+Ruuli,s,s,fricative
+Ruuli,r,r,liquid
+Ruuli,i:,iː,high monophthong
+Ruuli,i,i,high monophthong
+Sadu,p,p,stop
+Sadu,ts\_h,tɕʰ,affricate
 Sadu,E,ɛ,non-high monophthong
-Sadu,p_j_h,pʲʰ,stop
-Sadu,x,x,fricative
 Sadu,k,k,stop
-Sadu,O,ɔ,non-high monophthong
-Sadu,b,b,stop
-Sadu,a,a,non-high monophthong
-Sadu,k_h,kʰ,stop
-Sadu,dz,dz,affricate
-Sadu,t_j,tʲ,stop
-Sadu,t,t,stop
-Sadu,@`,ə˞,non-high monophthong
-Sadu,d_j,dʲ,stop
-Sadu,t_j_h,tʲʰ,stop
-Sadu,z=,z̩,syllabic C
-Sadu,n,n,nasal
-Sadu,ts_h,tsʰ,affricate
-Sadu,l,l,liquid
-Sadu,g,ɡ,stop
-Sadu,ua,ua,diphthong
-Sadu,G,ɣ,fricative
-Sadu,w,w,approximant
-Sadu,@,ə,non-high monophthong
-Sadu,ui,ui,diphthong
-Sadu,m_j,mʲ,nasal
 Sadu,m,m,nasal
-Sadu,f,f,fricative
-Sadu,J_+,ɲ̟,nasal
-Sadu,z\,ʑ,fricative
-Sadu,p_h,pʰ,stop
-Sadu,d,d,stop
+Sadu,d_j,dʲ,stop
 Sadu,v,v,fricative
-Sadu,i,i,high monophthong
+Sadu,b_j,bʲ,stop
+Sadu,@,ə,non-high monophthong
+Sadu,p_j_h,pʲʰ,stop
+Sadu,z=,z̩,syllabic C
+Sadu,t_j,tʲ,stop
+Sadu,ua,ua,diphthong
+Sadu,t_j_h,tʲʰ,stop
+Sadu,p_h,pʰ,stop
+Sadu,N,ŋ,nasal
+Sadu,ts_h,tsʰ,affricate
+Sadu,w,w,approximant
+Sadu,t,t,stop
+Sadu,O,ɔ,non-high monophthong
+Sadu,n,n,nasal
+Sadu,ts,ts,affricate
+Sadu,ts\,tɕ,affricate
+Sadu,k_j,kʲ,stop
+Sadu,b,b,stop
+Sadu,x,x,fricative
+Sadu,e,e,non-high monophthong
+Sadu,m_j,mʲ,nasal
+Sadu,l,l,liquid
+Sadu,f,f,fricative
+Sadu,z\,ʑ,fricative
+Sadu,u,u,high monophthong
+Sadu,d,d,stop
+Sadu,l_j,lʲ,liquid
 Sadu,o,o,non-high monophthong
 Sadu,M,ɯ,high monophthong
-Sadu,t_h,tʰ,stop
-Sadu,l_j,lʲ,liquid
-Sadu,e,e,non-high monophthong
-Sadu,s,s,fricative
-Sadu,ts\,tɕ,affricate
-Sadu,N,ŋ,nasal
-Sadu,ts,ts,affricate
-Sadu,k_j,kʲ,stop
-Sadu,b_j,bʲ,stop
-Sadu,ts\_h,tɕʰ,affricate
-Sadu,u,u,high monophthong
-Sadu,p,p,stop
-Sadu,s\,ɕ,fricative
+Sadu,g,ɡ,stop
 Sadu,z,z,fricative
-Sanzhi_Dargwa,k,k,stop
-Sanzhi_Dargwa,x,x,fricative
-Sanzhi_Dargwa,?,ʔ,stop
-Sanzhi_Dargwa,b,b,stop
-Sanzhi_Dargwa,q_>,qʼ,stop
-Sanzhi_Dargwa,j,j,approximant
-Sanzhi_Dargwa,a,a,non-high monophthong
-Sanzhi_Dargwa,R,ʁ,liquid
-Sanzhi_Dargwa,X:,χː,fricative
-Sanzhi_Dargwa,tS,tʃ,affricate
-Sanzhi_Dargwa,t,t,stop
-Sanzhi_Dargwa,S:,ʃː,fricative
-Sanzhi_Dargwa,t:S,tːʃ,affricate
-Sanzhi_Dargwa,s:,sː,fricative
-Sanzhi_Dargwa,a_?\,aˤ,non-high monophthong
-Sanzhi_Dargwa,tS_>,tʃʼ,affricate
-Sanzhi_Dargwa,S,ʃ,fricative
-Sanzhi_Dargwa,n,n,nasal
+Sadu,@`,ə˞,non-high monophthong
+Sadu,t_h,tʰ,stop
+Sadu,a,a,non-high monophthong
+Sadu,dz,dz,affricate
+Sadu,J_+,ɲ̟,nasal
+Sadu,s\,ɕ,fricative
+Sadu,ui,ui,diphthong
+Sadu,s,s,fricative
+Sadu,G,ɣ,fricative
+Sadu,i,i,high monophthong
+Sadu,k_h,kʰ,stop
 Sanzhi_Dargwa,d:,dː,stop
-Sanzhi_Dargwa,l,l,liquid
-Sanzhi_Dargwa,g,ɡ,stop
-Sanzhi_Dargwa,w,w,approximant
-Sanzhi_Dargwa,q,q,stop
-Sanzhi_Dargwa,k_>,kʼ,stop
-Sanzhi_Dargwa,k_w_>,kʷʼ,stop
-Sanzhi_Dargwa,x:,xː,fricative
-Sanzhi_Dargwa,k:,kː,stop
-Sanzhi_Dargwa,t_>,tʼ,stop
-Sanzhi_Dargwa,m,m,nasal
-Sanzhi_Dargwa,q:,qː,stop
-Sanzhi_Dargwa,f,f,fricative
-Sanzhi_Dargwa,X\,ħ,fricative
-Sanzhi_Dargwa,Z,ʒ,fricative
-Sanzhi_Dargwa,d,d,stop
-Sanzhi_Dargwa,l:,lː,liquid
-Sanzhi_Dargwa,r,r,liquid
-Sanzhi_Dargwa,>\,q,stop
 Sanzhi_Dargwa,t:,tː,stop
-Sanzhi_Dargwa,X,χ,fricative
+Sanzhi_Dargwa,p,p,stop
+Sanzhi_Dargwa,S:,ʃː,fricative
+Sanzhi_Dargwa,k,k,stop
+Sanzhi_Dargwa,m,m,nasal
+Sanzhi_Dargwa,k:_w,kːʷ,stop
+Sanzhi_Dargwa,j,j,approximant
+Sanzhi_Dargwa,R,ʁ,liquid
+Sanzhi_Dargwa,X\,ħ,fricative
 Sanzhi_Dargwa,t:s,tːs,affricate
-Sanzhi_Dargwa,X:_w,χːʷ,fricative
-Sanzhi_Dargwa,i,i,high monophthong
-Sanzhi_Dargwa,h,h,fricative
+Sanzhi_Dargwa,ts_>,tsʼ,affricate
+Sanzhi_Dargwa,w,w,approximant
+Sanzhi_Dargwa,t,t,stop
+Sanzhi_Dargwa,t:S,tːʃ,affricate
+Sanzhi_Dargwa,n,n,nasal
+Sanzhi_Dargwa,>\,q,stop
+Sanzhi_Dargwa,?,ʔ,stop
+Sanzhi_Dargwa,ts,ts,affricate
+Sanzhi_Dargwa,b,b,stop
+Sanzhi_Dargwa,x,x,fricative
 Sanzhi_Dargwa,X_w,χʷ,fricative
+Sanzhi_Dargwa,X,χ,fricative
+Sanzhi_Dargwa,e,e,non-high monophthong
+Sanzhi_Dargwa,h,h,fricative
+Sanzhi_Dargwa,s:,sː,fricative
+Sanzhi_Dargwa,S,ʃ,fricative
+Sanzhi_Dargwa,l,l,liquid
+Sanzhi_Dargwa,k_w_>,kʷʼ,ejective
+Sanzhi_Dargwa,f,f,fricative
+Sanzhi_Dargwa,u,u,high monophthong
+Sanzhi_Dargwa,k_w,kʷ,stop
+Sanzhi_Dargwa,k:,kː,stop
+Sanzhi_Dargwa,d,d,stop
+Sanzhi_Dargwa,Z,ʒ,fricative
+Sanzhi_Dargwa,q:,qː,stop
+Sanzhi_Dargwa,X:,χː,fricative
+Sanzhi_Dargwa,l:,lː,liquid
+Sanzhi_Dargwa,g,ɡ,stop
+Sanzhi_Dargwa,z,z,fricative
+Sanzhi_Dargwa,a,a,non-high monophthong
+Sanzhi_Dargwa,t_>,tʼ,ejective
+Sanzhi_Dargwa,q_>,qʼ,ejective
+Sanzhi_Dargwa,X:_w,χːʷ,fricative
+Sanzhi_Dargwa,k_>,kʼ,ejective
 Sanzhi_Dargwa,n:,nː,nasal
 Sanzhi_Dargwa,u_?\,uˤ,high monophthong
-Sanzhi_Dargwa,k:_w,kːʷ,stop
-Sanzhi_Dargwa,k_w,kʷ,stop
-Sanzhi_Dargwa,e,e,non-high monophthong
+Sanzhi_Dargwa,q,q,stop
 Sanzhi_Dargwa,s,s,fricative
-Sanzhi_Dargwa,ts_>,tsʼ,affricate
-Sanzhi_Dargwa,ts,ts,affricate
-Sanzhi_Dargwa,u,u,high monophthong
-Sanzhi_Dargwa,p_>,pʼ,stop
-Sanzhi_Dargwa,p,p,stop
-Sanzhi_Dargwa,z,z,fricative
-English,aI,aɪ,diphthong
-English,k,k,stop
-English,eI,eɪ,diphthong
-English,V,ʌ,non-high monophthong
-English,I,ɪ,high monophthong
-English,b,b,stop
-English,3:,ɜː,non-high monophthong
-English,j,j,approximant
-English,U@,ʊə,diphthong
+Sanzhi_Dargwa,p_>,pʼ,ejective
+Sanzhi_Dargwa,r,r,liquid
+Sanzhi_Dargwa,tS,tʃ,affricate
+Sanzhi_Dargwa,i,i,high monophthong
+Sanzhi_Dargwa,a_?\,aˤ,non-high monophthong
+Sanzhi_Dargwa,tS_>,tʃʼ,affricate
+Sanzhi_Dargwa,x:,xː,fricative
 English,u:,uː,high monophthong
-English,O:,ɔː,non-high monophthong
-English,@U,əʊ,diphthong
-English,t,t,stop
-English,tS,tʃ,affricate
-English,aU,aʊ,diphthong
-English,S,ʃ,fricative
-English,n,n,nasal
-English,OI,ɔɪ,diphthong
-English,D,ð,fricative
-English,l,l,liquid
-English,g,ɡ,stop
-English,w,w,approximant
-English,r\,ɹ,approximant
-English,e@,eə,diphthong
-English,A:,ɑː,non-high monophthong
-English,@,ə,non-high monophthong
-English,m,m,nasal
-English,f,f,fricative
-English,Z,ʒ,fricative
-English,i:,iː,high monophthong
-English,v,v,fricative
-English,d,d,stop
-English,I@,ɪə,diphthong
-English,r,r,liquid
-English,{,æ,non-high monophthong
-English,T,θ,fricative
-English,h,h,fricative
-English,dZ,dʒ,affricate
-English,e,e,non-high monophthong
-English,s,s,fricative
-English,N,ŋ,nasal
-English,U,ʊ,high monophthong
-English,Q,ɒ,non-high monophthong
 English,p,p,stop
+English,k,k,stop
+English,m,m,nasal
+English,Q,ɒ,non-high monophthong
+English,I@,ɪə,diphthong
+English,v,v,fricative
+English,j,j,approximant
+English,@,ə,non-high monophthong
+English,OI,ɔɪ,diphthong
+English,U@,ʊə,diphthong
+English,N,ŋ,nasal
+English,aU,aʊ,diphthong
+English,T,θ,fricative
+English,w,w,approximant
+English,t,t,stop
+English,3:,ɜː,non-high monophthong
+English,e@,eə,diphthong
+English,U,ʊ,high monophthong
+English,n,n,nasal
+English,D,ð,fricative
+English,eI,eɪ,diphthong
+English,b,b,stop
+English,I,ɪ,high monophthong
+English,e,e,non-high monophthong
+English,h,h,fricative
+English,S,ʃ,fricative
+English,dZ,dʒ,affricate
+English,{,æ,non-high monophthong
+English,f,f,fricative
+English,l,l,liquid
+English,O:,ɔː,non-high monophthong
+English,d,d,stop
+English,Z,ʒ,fricative
+English,g,ɡ,stop
 English,z,z,fricative
-Svan,@:,əː,non-high monophthong
-Svan,q_>,qʼ,stop
-Svan,j,j,approximant
-Svan,b,b,stop
-Svan,q_h,qʰ,stop
-Svan,a,a,non-high monophthong
-Svan,k_h,kʰ,stop
+English,s,s,fricative
+English,i:,iː,high monophthong
+English,tS,tʃ,affricate
+English,r,r,liquid
+English,@U,əʊ,diphthong
+English,A:,ɑː,non-high monophthong
+English,V,ʌ,non-high monophthong
+English,r\,ɹ,approximant
+English,aI,aɪ,diphthong
 Svan,u:,uː,high monophthong
-Svan,R,ʁ,liquid
-Svan,dz,dz,affricate
-Svan,tS,tʃ,affricate
-Svan,tS_>,tʃʼ,affricate
-Svan,o:,oː,non-high monophthong
-Svan,S,ʃ,fricative
-Svan,n,n,nasal
-Svan,l,l,liquid
-Svan,g,ɡ,stop
-Svan,k_>,kʼ,stop
-Svan,w,w,approximant
-Svan,@,ə,non-high monophthong
-Svan,t_>,tʼ,stop
 Svan,m,m,nasal
-Svan,Z,ʒ,fricative
-Svan,d,d,stop
-Svan,i:,iː,high monophthong
-Svan,a:,aː,non-high monophthong
+Svan,j,j,approximant
+Svan,@,ə,non-high monophthong
+Svan,R,ʁ,liquid
 Svan,p_h,pʰ,stop
 Svan,e:,eː,non-high monophthong
-Svan,r,r,liquid
-Svan,{:,æː,non-high monophthong
-Svan,{,æ,non-high monophthong
-Svan,X,χ,fricative
-Svan,i,i,high monophthong
-Svan,o,o,non-high monophthong
-Svan,h,h,fricative
-Svan,dZ,dʒ,affricate
-Svan,t_h,tʰ,stop
-Svan,e,e,non-high monophthong
-Svan,s,s,fricative
 Svan,ts_>,tsʼ,affricate
+Svan,w,w,approximant
+Svan,q_h,qʰ,stop
+Svan,n,n,nasal
 Svan,ts,ts,affricate
+Svan,b,b,stop
+Svan,o:,oː,non-high monophthong
+Svan,S,ʃ,fricative
+Svan,e,e,non-high monophthong
+Svan,X,χ,fricative
+Svan,dZ,dʒ,affricate
+Svan,{,æ,non-high monophthong
+Svan,h,h,fricative
+Svan,l,l,liquid
+Svan,{:,æː,non-high monophthong
 Svan,u,u,high monophthong
-Svan,p_>,pʼ,stop
+Svan,d,d,stop
+Svan,Z,ʒ,fricative
+Svan,o,o,non-high monophthong
+Svan,@:,əː,non-high monophthong
+Svan,g,ɡ,stop
 Svan,z,z,fricative
-Mojeno_Trinitario,k,k,stop
-Mojeno_Trinitario,?,ʔ,stop
-Mojeno_Trinitario,j,j,approximant
-Mojeno_Trinitario,@e,əe,diphthong
+Svan,t_h,tʰ,stop
+Svan,a,a,non-high monophthong
+Svan,t_>,tʼ,ejective
+Svan,dz,dz,affricate
+Svan,q_>,qʼ,ejective
+Svan,a:,aː,non-high monophthong
+Svan,k_>,kʼ,ejective
+Svan,p_>,pʼ,ejective
+Svan,s,s,fricative
+Svan,r,r,liquid
+Svan,i:,iː,high monophthong
+Svan,tS,tʃ,affricate
+Svan,i,i,high monophthong
+Svan,tS_>,tʃʼ,affricate
+Svan,k_h,kʰ,stop
 Mojeno_Trinitario,u:,uː,high monophthong
-Mojeno_Trinitario,a,a,non-high monophthong
-Mojeno_Trinitario,tS,tʃ,affricate
-Mojeno_Trinitario,t,t,stop
-Mojeno_Trinitario,o:,oː,non-high monophthong
-Mojeno_Trinitario,n,n,nasal
-Mojeno_Trinitario,l,l,liquid
+Mojeno_Trinitario,p,p,stop
+Mojeno_Trinitario,k,k,stop
+Mojeno_Trinitario,m,m,nasal
+Mojeno_Trinitario,B,β,fricative
+Mojeno_Trinitario,j,j,approximant
+Mojeno_Trinitario,e:,eː,non-high monophthong
+Mojeno_Trinitario,C,ç,fricative
 Mojeno_Trinitario,c,c,stop
 Mojeno_Trinitario,w,w,approximant
-Mojeno_Trinitario,m,m,nasal
+Mojeno_Trinitario,t,t,stop
 Mojeno_Trinitario,J,ɲ,nasal
+Mojeno_Trinitario,n,n,nasal
+Mojeno_Trinitario,?,ʔ,stop
+Mojeno_Trinitario,ts,ts,affricate
+Mojeno_Trinitario,o:,oː,non-high monophthong
+Mojeno_Trinitario,e,e,non-high monophthong
+Mojeno_Trinitario,h,h,fricative
+Mojeno_Trinitario,l,l,liquid
 Mojeno_Trinitario,f,f,fricative
-Mojeno_Trinitario,C,ç,fricative
-Mojeno_Trinitario,i:,iː,high monophthong
+Mojeno_Trinitario,u,u,high monophthong
 Mojeno_Trinitario,d,d,stop
-Mojeno_Trinitario,a:,aː,non-high monophthong
-Mojeno_Trinitario,e:,eː,non-high monophthong
-Mojeno_Trinitario,r,r,liquid
-Mojeno_Trinitario,i,i,high monophthong
 Mojeno_Trinitario,@:e,əːe,diphthong
 Mojeno_Trinitario,o,o,non-high monophthong
-Mojeno_Trinitario,h,h,fricative
-Mojeno_Trinitario,B,β,fricative
-Mojeno_Trinitario,e,e,non-high monophthong
+Mojeno_Trinitario,a,a,non-high monophthong
+Mojeno_Trinitario,a:,aː,non-high monophthong
 Mojeno_Trinitario,s,s,fricative
-Mojeno_Trinitario,ts,ts,affricate
-Mojeno_Trinitario,u,u,high monophthong
-Mojeno_Trinitario,p,p,stop
-Urum,5,ɫ,liquid
-Urum,9,œ,non-high monophthong
-Urum,k,k,stop
-Urum,x,x,fricative
-Urum,b,b,stop
-Urum,j,j,approximant
-Urum,a,a,non-high monophthong
-Urum,tS,tʃ,affricate
-Urum,t,t,stop
+Mojeno_Trinitario,@e,əe,diphthong
+Mojeno_Trinitario,r,r,liquid
+Mojeno_Trinitario,i:,iː,high monophthong
+Mojeno_Trinitario,tS,tʃ,affricate
+Mojeno_Trinitario,i,i,high monophthong
 Urum,m:,mː,nasal
-Urum,s:,sː,fricative
-Urum,S,ʃ,fricative
-Urum,n,n,nasal
 Urum,d:,dː,stop
-Urum,l,l,liquid
-Urum,g,ɡ,stop
-Urum,G,ɣ,fricative
-Urum,c,c,stop
-Urum,m,m,nasal
-Urum,f,f,fricative
-Urum,J\,ɟ,stop
-Urum,Z,ʒ,fricative
-Urum,d,d,stop
-Urum,v,v,fricative
-Urum,l:,lː,liquid
-Urum,y,y,high monophthong
-Urum,{,æ,non-high monophthong
 Urum,t:,tː,stop
-Urum,i,i,high monophthong
-Urum,o,o,non-high monophthong
-Urum,dZ,dʒ,affricate
-Urum,M,ɯ,high monophthong
-Urum,r\_r,ɹ̝,approximant
-Urum,e,e,non-high monophthong
-Urum,s,s,fricative
-Urum,u,u,high monophthong
 Urum,p,p,stop
+Urum,k,k,stop
+Urum,m,m,nasal
+Urum,v,v,fricative
+Urum,j,j,approximant
+Urum,c,c,stop
+Urum,5,ɫ,liquid
+Urum,t,t,stop
+Urum,n,n,nasal
+Urum,J\,ɟ,stop
+Urum,b,b,stop
+Urum,x,x,fricative
+Urum,e,e,non-high monophthong
+Urum,S,ʃ,fricative
+Urum,s:,sː,fricative
+Urum,dZ,dʒ,affricate
+Urum,{,æ,non-high monophthong
+Urum,l,l,liquid
+Urum,f,f,fricative
+Urum,u,u,high monophthong
 Urum,4,ɾ,liquid
+Urum,d,d,stop
+Urum,Z,ʒ,fricative
+Urum,M,ɯ,high monophthong
+Urum,o,o,non-high monophthong
+Urum,l:,lː,liquid
+Urum,i,i,high monophthong
+Urum,g,ɡ,stop
+Urum,a,a,non-high monophthong
+Urum,y,y,high monophthong
+Urum,9,œ,non-high monophthong
+Urum,s,s,fricative
+Urum,tS,tʃ,affricate
+Urum,G,ɣ,fricative
 Urum,z,z,fricative
+Urum,r\_r,ɹ̝,approximant
 Veraa,E,ɛ,non-high monophthong
 Veraa,k,k,stop
-Veraa,Nm,ŋm,nasal
-Veraa,?,ʔ,stop
-Veraa,O,ɔ,non-high monophthong
-Veraa,b,b,stop
-Veraa,e_r,e̝,non-high monophthong
-Veraa,a,a,non-high monophthong
-Veraa,t,t,stop
-Veraa,n,n,nasal
-Veraa,l,l,liquid
-Veraa,G,ɣ,fricative
-Veraa,w,w,approximant
-Veraa,kp,kp,stop
-Veraa,o_r,o̝,non-high monophthong
 Veraa,m,m,nasal
 Veraa,v,v,fricative
-Veraa,d,d,stop
-Veraa,r,r,liquid
-Veraa,i,i,high monophthong
 Veraa,N,ŋ,nasal
-Veraa,s,s,fricative
+Veraa,kp,kp,stop
+Veraa,w,w,approximant
+Veraa,t,t,stop
+Veraa,O,ɔ,non-high monophthong
+Veraa,o_r,o̝,non-high monophthong
+Veraa,n,n,nasal
+Veraa,?,ʔ,stop
+Veraa,b,b,stop
+Veraa,l,l,liquid
 Veraa,u,u,high monophthong
-Yongning_Na,k,k,stop
-Yongning_Na,b,b,stop
-Yongning_Na,j,j,approximant
-Yongning_Na,v=~,ṽ̩,syllabic C
-Yongning_Na,ts`,ʈʂ,affricate
-Yongning_Na,q_h,qʰ,stop
-Yongning_Na,k_h,kʰ,stop
-Yongning_Na,R,ʁ,liquid
-Yongning_Na,dz,dz,affricate
-Yongning_Na,t,t,stop
-Yongning_Na,o~,õ,non-high monophthong
-Yongning_Na,w~,w̃,approximant
-Yongning_Na,s`,ʂ,fricative
-Yongning_Na,l`,ɭ,liquid
-Yongning_Na,v=,v̩,syllabic C
-Yongning_Na,t`,ʈ,stop
-Yongning_Na,n,n,nasal
-Yongning_Na,ts_h,tsʰ,affricate
-Yongning_Na,l,l,liquid
-Yongning_Na,g,ɡ,stop
-Yongning_Na,ts`_h,ʈʂʰ,affricate
-Yongning_Na,G,ɣ,fricative
-Yongning_Na,w,w,approximant
-Yongning_Na,q,q,stop
-Yongning_Na,@,ə,non-high monophthong
-Yongning_Na,i~,ĩ,high monophthong
-Yongning_Na,{~,æ̃,non-high monophthong
-Yongning_Na,dz`,dʐ,affricate
-Yongning_Na,A~,ɑ̃,non-high monophthong
-Yongning_Na,m,m,nasal
-Yongning_Na,J,ɲ,nasal
-Yongning_Na,j\,ʝ,fricative
-Yongning_Na,f,f,fricative
-Yongning_Na,r\=`,ɹ̩,syllabic C
-Yongning_Na,d,d,stop
-Yongning_Na,p_h,pʰ,stop
-Yongning_Na,z\,ʑ,fricative
-Yongning_Na,{,æ,non-high monophthong
+Veraa,d,d,stop
+Veraa,a,a,non-high monophthong
+Veraa,s,s,fricative
+Veraa,r,r,liquid
+Veraa,G,ɣ,fricative
+Veraa,i,i,high monophthong
+Veraa,Nm,ŋm,nasal
+Veraa,e_r,e̝,non-high monophthong
 Yongning_Na,d`,ɖ,stop
-Yongning_Na,i,i,high monophthong
-Yongning_Na,K,ɬ,fricative
-Yongning_Na,o,o,non-high monophthong
-Yongning_Na,7,ɤ,non-high monophthong
-Yongning_Na,h,h,fricative
-Yongning_Na,M,ɯ,high monophthong
-Yongning_Na,t_h,tʰ,stop
-Yongning_Na,z`,ʐ,fricative
-Yongning_Na,e,e,non-high monophthong
-Yongning_Na,s,s,fricative
-Yongning_Na,ts\,tɕ,affricate
-Yongning_Na,N,ŋ,nasal
-Yongning_Na,ts,ts,affricate
-Yongning_Na,r\`,ɻ,approximant
-Yongning_Na,t`_h,ʈʰ,stop
-Yongning_Na,ts\_h,tɕʰ,affricate
-Yongning_Na,s\,ɕ,fricative
-Yongning_Na,dz\,dʑ,affricate
 Yongning_Na,p,p,stop
+Yongning_Na,ts\_h,tɕʰ,affricate
+Yongning_Na,t`_h,ʈʰ,stop
+Yongning_Na,k,k,stop
+Yongning_Na,m,m,nasal
+Yongning_Na,ts`,ʈʂ,affricate
+Yongning_Na,j,j,approximant
+Yongning_Na,@,ə,non-high monophthong
+Yongning_Na,R,ʁ,liquid
+Yongning_Na,p_h,pʰ,stop
+Yongning_Na,N,ŋ,nasal
+Yongning_Na,ts_h,tsʰ,affricate
+Yongning_Na,w,w,approximant
+Yongning_Na,q_h,qʰ,stop
+Yongning_Na,j\,ʝ,fricative
+Yongning_Na,t,t,stop
+Yongning_Na,v=,v̩,syllabic C
+Yongning_Na,ts`_h,ʈʂʰ,affricate
+Yongning_Na,n,n,nasal
+Yongning_Na,J,ɲ,nasal
+Yongning_Na,{~,æ̃,non-high monophthong
+Yongning_Na,ts,ts,affricate
+Yongning_Na,ts\,tɕ,affricate
+Yongning_Na,b,b,stop
+Yongning_Na,t`,ʈ,stop
+Yongning_Na,e,e,non-high monophthong
+Yongning_Na,h,h,fricative
+Yongning_Na,dz`,dʐ,affricate
+Yongning_Na,s`,ʂ,fricative
+Yongning_Na,{,æ,non-high monophthong
+Yongning_Na,w~,w̃,approximant
+Yongning_Na,l,l,liquid
+Yongning_Na,f,f,fricative
+Yongning_Na,z\,ʑ,fricative
+Yongning_Na,d,d,stop
 Yongning_Na,A,ɑ,non-high monophthong
+Yongning_Na,o,o,non-high monophthong
+Yongning_Na,M,ɯ,high monophthong
+Yongning_Na,g,ɡ,stop
 Yongning_Na,z,z,fricative
+Yongning_Na,t_h,tʰ,stop
+Yongning_Na,A~,ɑ̃,non-high monophthong
+Yongning_Na,z`,ʐ,fricative
+Yongning_Na,dz,dz,affricate
+Yongning_Na,s\,ɕ,fricative
+Yongning_Na,r\`,ɻ,approximant
+Yongning_Na,i~,ĩ,high monophthong
+Yongning_Na,o~,õ,non-high monophthong
+Yongning_Na,dz\,dʑ,affricate
+Yongning_Na,K,ɬ,fricative
+Yongning_Na,s,s,fricative
+Yongning_Na,q,q,stop
+Yongning_Na,7,ɤ,non-high monophthong
+Yongning_Na,v=~,ṽ̩,syllabic C
+Yongning_Na,G,ɣ,fricative
+Yongning_Na,i,i,high monophthong
+Yongning_Na,r\=`,ɹ̩,syllabic C
+Yongning_Na,l`,ɭ,liquid
+Yongning_Na,k_h,kʰ,stop

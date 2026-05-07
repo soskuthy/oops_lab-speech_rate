@@ -15,20 +15,20 @@ MAPPING = {
     'i': 'high monophthong', 'ie': 'diphthong', 'iː': 'high monophthong', 'ĩ': 'high monophthong',
     'j': 'approximant', 'jː': 'approximant',
     'k': 'stop', 'kp': 'stop', 'ks': 'affricate', 'kxʼ': 'affricate', 'kʰ': 'stop', 'kʲ': 'stop', 'kʲʰ': 'stop',
-    'kʷ': 'stop', 'kʷʼ': 'stop', 'kʼ': 'stop', 'kː': 'stop', 'kːʷ': 'stop',
+    'kʷ': 'stop', 'kʷʼ': 'ejective', 'kʼ': 'ejective', 'kː': 'stop', 'kːʷ': 'stop',
     'l': 'liquid', 'lʲ': 'liquid', 'lː': 'liquid',
     'm': 'nasal', 'mp': 'nasal', 'mʲ': 'nasal', 'mʷ': 'nasal', 'mː': 'nasal', 'm̥': 'nasal',
     'n': 'nasal', 'np': 'nasal', 'nʲ': 'nasal', 'nː': 'nasal', 'nːʲ': 'nasal', 'n̥': 'nasal',
     'o': 'non-high monophthong', 'oi': 'diphthong', 'oɪ': 'diphthong', 'oʉ': 'diphthong', 'oʉː': 'diphthong',
     'oː': 'non-high monophthong', 'oˤ': 'non-high monophthong', 'õ': 'non-high monophthong', 'õˤ': 'non-high monophthong',
     'o̝': 'non-high monophthong',
-    'p': 'stop', 'pʰ': 'stop', 'pʲ': 'stop', 'pʲʰ': 'stop', 'pʼ': 'stop', 'pː': 'stop',
-    'q': 'stop', 'qʰ': 'stop', 'qʼ': 'stop', 'qː': 'stop',
+    'p': 'stop', 'pʰ': 'stop', 'pʲ': 'stop', 'pʲʰ': 'stop', 'pʼ': 'ejective', 'pː': 'stop',
+    'q': 'stop', 'qʰ': 'stop', 'qʼ': 'ejective', 'qː': 'stop',
     'r': 'liquid', 'rʲ': 'liquid', 'rː': 'liquid',
     's': 'fricative', 'sʰ': 'fricative', 'sʲ': 'fricative', 'sː': 'fricative',
     't': 'stop', 'ts': 'affricate', 'tsʰ': 'affricate', 'tsʼ': 'affricate', 'tɕ': 'affricate', 'tɕʰ': 'affricate',
     'tɕː': 'affricate', 'tʃ': 'affricate', 'tʃʰ': 'affricate', 'tʃʲ': 'affricate', 'tʃʼ': 'affricate', 'tʰ': 'stop',
-    'tʲ': 'stop', 'tʲʰ': 'stop', 'tʼ': 'stop', 'tː': 'stop', 'tːs': 'affricate', 'tːʃ': 'affricate', 'tːʲ': 'stop',
+    'tʲ': 'stop', 'tʲʰ': 'stop', 'tʼ': 'ejective', 'tː': 'stop', 'tːs': 'affricate', 'tːʃ': 'affricate', 'tːʲ': 'stop',
     'u': 'high monophthong', 'ua': 'diphthong', 'ui': 'diphthong', 'uo': 'diphthong', 'uː': 'high monophthong',
     'uˤ': 'high monophthong', 'ũ': 'high monophthong',
     'v': 'fricative', 'vʲ': 'fricative', 'v̩': 'syllabic C', 'ṽ̩': 'syllabic C',
@@ -51,9 +51,9 @@ MAPPING = {
     'ɐ': 'non-high monophthong', 'ɐɪ': 'diphthong', 'ɐʊ': 'diphthong',
     'ɑ': 'non-high monophthong', 'ɑi': 'diphthong', 'ɑiː': 'diphthong', 'ɑː': 'non-high monophthong',
     'ɑ̃': 'non-high monophthong', 'ɒ': 'non-high monophthong',
-    'ɓ': 'stop',
+    'ɓ': 'implosive',
     'ɔ': 'non-high monophthong', 'ɔɪ': 'diphthong', 'ɔː': 'non-high monophthong',
-    'ɕ': 'fricative', 'ɕʰ': 'fricative', 'ɕː': 'fricative', 'ɖ': 'stop', 'ɗ': 'stop',
+    'ɕ': 'fricative', 'ɕʰ': 'fricative', 'ɕː': 'fricative', 'ɖ': 'stop', 'ɗ': 'implosive',
     'ə': 'non-high monophthong', 'əe': 'diphthong', 'əʊ': 'diphthong', 'əː': 'non-high monophthong',
     'əːe': 'diphthong', 'ə˞': 'non-high monophthong', 'ɛ': 'non-high monophthong', 'ɛː': 'non-high monophthong',
     'ɜː': 'non-high monophthong',
@@ -78,7 +78,7 @@ MAPPING = {
     'χː': 'fricative', 'χːʷ': 'fricative'
 }
 
-df = pd.read_csv('../doreco_data/DoReCo.csv')
+df = pd.read_csv('../../data/DoReCo.csv')
 lang_dict = defaultdict(set)
 
 for index, row in df.iterrows():
@@ -91,4 +91,4 @@ for lang, phones in lang_dict.items():
         records.append({'lang': lang, 'phone': phone[0], 'phone_ipa': phone[1], 'c_type': MAPPING[phone[1]] if pd.notnull(phone[1]) else None})
 
 df = pd.DataFrame.from_records(records)
-df.to_csv('../doreco_data/phone_mapping.csv', index=False)
+df.to_csv('../../data/phone_mapping.csv', index=False)

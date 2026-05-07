@@ -299,6 +299,7 @@ d <- d %>%
         phone %in% c("a", "e", "o") ~ "non-high monophthong",
       language == "Taiwan Mandarin" & 
         phone %in% c("ai", "ao", "ei", "ou") ~ "diphthong",
+      
       ## Korean
       language == "Seoul Korean" & 
         phone %in% c("B", "Ph", "BB", "p", "D", "Th", "DD", "t", "G", "Kh", "GG", "k") ~ "stop",
@@ -316,6 +317,7 @@ d <- d %>%
         phone %in% c("A", "E", "O") ~ "non-high monophthong",
       language == "Seoul Korean" & 
         phone %in% c("AE", "EO", "EU", "OE", "UE", "euI", "iA", "iE", "iEO", "iO", "iU", "oA", "uEO") ~ "diphthong",
+      
       ## Kapampangan
       language == "Kapampangan" & 
         phone %in% c("b", "p", "d", "t", "ɡ", "k", "ʔ", "q", "c") ~ "stop",
@@ -333,6 +335,7 @@ d <- d %>%
         phone %in% c("i", "ɪ", "u", "ʊ") ~ "high monophthong",
       language == "Kapampangan" & 
         phone %in% c("e", "o", "a") ~ "non-high monophthong",
+      
       ## American English
       language == "American English" &
         phone %in% c("p", "b", "t", "d", "k", "g", "dx", "q", "tq") ~ "stop",
@@ -357,9 +360,12 @@ d <- d %>%
         ) ~ "non-high monophthong",
       language == "American English" & 
         phone %in% c("ay", "ayn", "aw", "awn", "oy", "oyn", "ow", "own", "ey", "eyn") ~ "diphthong",
+      
       ## Vietnamese
       language == "Vietnamese" &
-        phone %in% c("p", "t", "c", "k", "tʰ", "ɓ", "ɗ", "ʔ") ~ "stop",
+        phone %in% c("p", "t", "c", "k", "tʰ", "ʔ") ~ "stop",
+      language == "Vietnamese" &
+        phone %in% c("ɓ", "ɗ") ~ "implosive",
       language == "Vietnamese" &
         phone %in% c("m", "n", "ɲ", "ŋ") ~ "nasal",
       language == "Vietnamese" &
@@ -376,9 +382,12 @@ d <- d %>%
         phone %in% (unique(filter(v, segment_type == "vowel")$phone) %>% str_subset("^[iɨu][^ə]")) ~ "high monophthong",
       language == "Vietnamese" & 
         phone %in% (unique(filter(v, segment_type == "vowel")$phone) %>% str_subset("^[^iɨu][^ə]")) ~ "non-high monophthong",
+      
       ## Swahili
       language == "Swahili" &
-        phone %in% c('b', 'd', 'k', 'p', 't', 'ɓ', 'ɗ', 'ɠ', 'ɡ', 'ʄ') ~ "stop",
+        phone %in% c('b', 'd', 'k', 'p', 't', 'ɡ') ~ "stop",
+      language == "Swahili" &
+        phone %in% c('ɓ', 'ɗ', 'ɠ', 'ʄ') ~ "implosive",
       language == "Swahili" &
         phone %in% c('m', 'n', 'ŋ', 'ɱ', 'ɲ') ~ "nasal",
       language == "Swahili" &
@@ -393,6 +402,7 @@ d <- d %>%
         phone %in% c("i","u","iː","uː") ~ "high monophthong",
       language == "Swahili" & 
         phone %in% c("ɑ","ɑː", "ɔ", "ɔː", "ɛ", "ɛː") ~ "non-high monophthong",
+      
       ## Turkish
       language == "Turkish" &
         phone %in% c('b', 'bː', 'c', 'cː', 'd̪', 'd̪ː','k', 'kː', 'p','t̪', 't̪ː', 'ɟ', 'ɡ') ~ "stop",
@@ -410,9 +420,12 @@ d <- d %>%
         phone %in% c("i","ɯ","u","y","iː","ɯː","uː","yː","ɨ","ʏ", "ɪ", "ʊ") ~ "high monophthong",
       language == "Turkish" & 
         phone %in% c("a", "aː", "e", "eː", "o", "oː", "ø", "øː", "ɛ") ~ "non-high monophthong",
+      
       ## Georgian
       language == "Georgian" &
-        phone %in% c('b', 'd', 'kʰ', 'kʼ', 'pʰ', 'pʼ', 'qʼ', 'tʰ', 'tʼ', 'ɡ') ~ "stop",
+        phone %in% c('b', 'd', 'kʰ', 'pʰ', 'tʰ', 'ɡ') ~ "stop",
+      language == "Georgian" &
+        phone %in% c('kʼ', 'pʼ', 'qʼ', 'tʼ') ~ "ejective",
       language == "Georgian" &
         phone %in% c('m', 'n') ~ "nasal",
       language == "Georgian" &
@@ -425,9 +438,12 @@ d <- d %>%
         phone %in% c("i", 'u') ~ "high monophthong",
       language == "Georgian" &
         phone %in% c("ɑ", "ɔ", "ɛ") ~ "non-high monophthong",
+      
       ## Amharic
       language == "Amharic" &
         phone %in% c('p', 'pʷ', 'pʼ', 'pʷʼ', 'b', 'pʷ', 't', 'tʷ', 'tʼ', 'tʷʼ', 'd', 'dʷ', 'k', 'kʷ', 'kʼ', 'kʷʼ', 'ɡ', 'ɡʷ', 'ʔ') ~ "stop",
+      language == "Amharic" &
+        phone %in% c('pʼ', 'pʷʼ', 'tʼ', 'tʷʼ', 'kʼ', 'kʷʼ') ~ "ejective",
       language == "Amharic" &
         phone %in% c('m', 'mʷ', 'n', 'nʷ', 'ɲ', 'ɲʷ') ~ "nasal",
       language == "Amharic" &
