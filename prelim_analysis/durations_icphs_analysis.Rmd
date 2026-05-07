@@ -14,6 +14,8 @@ library(ggbeeswarm)
 library(ggpubr)
 library(geomtextpath)
 library(ggthemes)
+
+`%ni%` <- Negate(`%in%`)
 ```
 
 Read in data
@@ -25,46 +27,54 @@ twm <- read_csv("../data/taiwanese_mandarin_durations.csv") %>%
   select(-sex, -age) %>%
   mutate(language="Taiwan Mandarin",
          folder="taiwanese_mandarin")
+
 k <- read_csv("../data/korean_durations.csv") %>%
   arrange(speaker, file, phone_start) %>%
   select(-sex, -age) %>%
   mutate(language="Seoul Korean",
          folder="korean")
+
 p <- read_csv("../data/kapampangan_durations.csv") %>%
   arrange(speaker, file, phone_start) %>%
   select(-sex, -age) %>%
   mutate(language="Kapampangan",
          folder="kapampangan")
+
 v <- read_csv("../data/vietnamese_durations.csv") %>%
   arrange(speaker, file, phone_start) %>%
   #select(-sex, -age) %>%
   mutate(language="Vietnamese",
          speaker=as.character(speaker),
          folder="vietnamese")
+
 s <- read_csv("../data/swahili_durations.csv") %>%
   arrange(speaker, file, phone_start) %>%
   #select(-sex, -age) %>%
   mutate(language="Swahili",
          speaker=as.character(speaker),
          folder="swahili")
+
 tu <- read_csv("../data/turkish_durations.csv") %>%
   arrange(speaker, file, phone_start) %>%
   #select(-sex, -age) %>%
   mutate(language="Turkish",
          speaker=as.character(speaker),
          folder="turkish")
+
 a <- read_csv("../data/amharic_durations.csv") %>%
   arrange(speaker, file, phone_start) %>%
   #select(-sex, -age) %>%
   mutate(language="Amharic",
          speaker=as.character(speaker),
          folder="amharic")
+
 g <- read_csv("../data/georgian_durations.csv") %>%
   arrange(speaker, file, phone_start) %>%
   #select(-sex, -age) %>%
   mutate(language="Georgian",
          speaker=as.character(speaker),
          folder="georgian")
+
 b <- readRDS("../data/buckeye_durations.rds") %>%
   arrange(speaker, file, phone_start) %>%
   mutate(language="American English",
@@ -78,6 +88,181 @@ b <- readRDS("../data/buckeye_durations.rds") %>%
 d <- bind_rows(twm, k, p, b, v, s, tu, a, g)
 ```
 
+
+```{r}
+apah <- read_csv(
+    "../doreco_data/doreco_apah1238_durations.csv",
+    col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")
+  ) %>%
+  mutate(language="Yali") %>%
+  arrange(speaker, discourse, phone_start)
+
+arap <- read_csv(
+    "../doreco_data/doreco_arap1274_durations.csv",
+    col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")
+  ) %>%
+  mutate(language="Arapaho") %>%
+  arrange(speaker, discourse, phone_start)
+
+bain <- read_csv(
+    "../doreco_data/doreco_bain1259_durations.csv",
+    col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")
+  ) %>%
+  mutate(language="Gubeeher") %>%
+  arrange(speaker, discourse, phone_start)
+
+beja <- read_csv(
+    "../doreco_data/doreco_beja1238_durations.csv",
+    col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")
+  ) %>%
+  mutate(language="Beja") %>%
+  arrange(speaker, discourse, phone_start)
+
+bora <- read_csv(
+    "../doreco_data/doreco_bora1263_durations.csv",
+    col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")
+  ) %>%
+  mutate(language="Bora") %>%
+  arrange(speaker, discourse, phone_start)
+
+dolg <- read_csv("../doreco_data/doreco_dolg1241_durations.csv",
+                 col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+  mutate(language="Dolgan") %>%
+  arrange(speaker, discourse, phone_start)
+
+even <- read_csv("../doreco_data/doreco_even1259_durations.csv",
+                 col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+  mutate(language="Evenki") %>%
+  arrange(speaker, discourse, phone_start)
+
+guri <- read_csv("../doreco_data/doreco_guri1247_durations.csv",
+                 col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+  mutate(language="Gurindji") %>%
+  arrange(speaker, discourse, phone_start)
+
+jeju <- read_csv("../doreco_data/doreco_jeju1234_durations.csv",
+                 col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+  mutate(language="Jejuan") %>%
+  arrange(speaker, discourse, phone_start)
+
+kama <- read_csv("../doreco_data/doreco_kama1351_durations.csv",
+                 col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+  mutate(language="Kamas") %>%
+  arrange(speaker, discourse, phone_start)
+
+lowe <- read_csv("../doreco_data/doreco_lowe1385_durations.csv",
+                 col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+  mutate(language="Lower_Sorbian") %>%
+  arrange(speaker, discourse, phone_start)
+
+movi <- read_csv("../doreco_data/doreco_movi1243_durations.csv",
+                 col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+  mutate(language="Movima") %>%
+  arrange(speaker, discourse, phone_start)
+
+ngal <- read_csv("../doreco_data/doreco_ngal1292_durations.csv",
+                 col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+  mutate(language="Dalabon") %>%
+  arrange(speaker, discourse, phone_start)
+
+nngg <- read_csv("../doreco_data/doreco_nngg1234_durations.csv",
+                 col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+  mutate(language="Nuu") %>%
+  arrange(speaker, discourse, phone_start)
+
+orko <- read_csv("../doreco_data/doreco_orko1234_durations.csv",
+                 col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+  mutate(language="Fanbyak") %>%
+  arrange(speaker, discourse, phone_start)
+
+resi <- read_csv("../doreco_data/doreco_resi1247_durations.csv",
+                 col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+  mutate(language="Resigaro") %>%
+  arrange(speaker, discourse, phone_start)
+
+ruul <- read_csv("../doreco_data/doreco_ruul1235_durations.csv",
+                 col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+  mutate(language="Ruuli") %>%
+  arrange(speaker, discourse, phone_start)
+
+sadu <- read_csv("../doreco_data/doreco_sadu1234_durations.csv",
+                 col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+  mutate(language="Sadu") %>%
+  arrange(speaker, discourse, phone_start)
+
+sanz <- read_csv("../doreco_data/doreco_sanz1248_durations.csv",
+                col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+ mutate(language="Sanzhi_Dargwa") %>%
+ arrange(speaker, discourse, phone_start)
+
+sout <- read_csv("../doreco_data/doreco_sout3282_durations.csv",
+                 col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+  mutate(language="English") %>%
+  arrange(speaker, discourse, phone_start)
+
+svan <- read_csv("../doreco_data/doreco_svan1243_durations.csv",
+                 col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+  mutate(language="Svan") %>%
+  arrange(speaker, discourse, phone_start)
+
+trin <- read_csv("../doreco_data/doreco_trin1278_durations.csv",
+                col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+ mutate(language="Mojeno_Trinitario") %>%
+ arrange(speaker, discourse, phone_start)
+
+urum <- read_csv("../doreco_data/doreco_urum1249_durations.csv",
+                 col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+  mutate(language="Urum") %>%
+  arrange(speaker, discourse, phone_start)
+
+vera <- read_csv("../doreco_data/doreco_vera1241_durations.csv",
+                 col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+  mutate(language="Veraa") %>%
+  arrange(speaker, discourse, phone_start)
+
+yong <- read_csv("../doreco_data/doreco_yong1270_durations.csv",
+                 col_types = cols(.default = "?", speaker = "c", sex = "c", all_speakers = "c")) %>%
+  mutate(language="Yongning_Na") %>%
+  arrange(speaker, discourse, phone_start)
+
+d_drc <- bind_rows(
+  apah,
+  arap,
+  bain,
+  beja,
+  bora,
+  dolg,
+  even,
+  guri,
+  jeju,
+  kama,
+  lowe,
+  movi,
+  ngal,
+  nngg,
+  orko,
+  resi,
+  ruul,
+  sadu,
+  sanz,
+  sout,
+  svan,
+  trin,
+  urum,
+  vera,
+  yong
+)
+
+d_drc %>% write_csv("../doreco_data/DoReCo.csv")
+
+d_drc_unique_phones <- d_drc %>%
+  group_by(language) %>%
+  reframe(
+    phone_unique <- unique(phone),
+    ipa_unique <- unique(phone_ipa)
+  )
+  
+```
 Coding consonant type.
 
 ```{r}
@@ -98,7 +283,11 @@ d <- d %>%
       language == "Taiwan Mandarin" & 
         phone %in% c("l", "r") ~ "liquid",
       language == "Taiwan Mandarin" & 
-        phone %in% c("i","ii","v","u") ~ "high vowel",
+        phone %in% c("i", "ii", "v", "u") ~ "high monophthong",
+      language == "Taiwan Mandarin" & 
+        phone %in% c("a", "e", "o") ~ "non-high monophthong",
+      language == "Taiwan Mandarin" & 
+        phone %in% c("ai", "ao", "ei", "ou") ~ "diphthong",
       ## Korean
       language == "Seoul Korean" & 
         phone %in% c("B", "Ph", "BB", "p", "D", "Th", "DD", "t", "G", "Kh", "GG", "k") ~ "stop",
@@ -111,7 +300,11 @@ d <- d %>%
       language == "Seoul Korean" & 
         phone %in% c("L", "R") ~ "liquid",
       language == "Seoul Korean" & 
-        phone %in% c("I","U","EU","UE","iU","euI") ~ "high vowel",
+        phone %in% c("I","U") ~ "high monophthong",
+      language == "Seoul Korean" & 
+        phone %in% c("A", "E", "O") ~ "non-high monophthong",
+      language == "Seoul Korean" & 
+        phone %in% c("AE", "EO", "EU", "OE", "UE", "euI", "iA", "iE", "iEO", "iO", "iU", "oA", "uEO") ~ "diphthong",
       ## Kapampangan
       language == "Kapampangan" & 
         phone %in% c("b", "p", "d", "t", "ɡ", "k", "ʔ", "q", "c") ~ "stop",
@@ -126,7 +319,9 @@ d <- d %>%
       language == "Kapampangan" & 
         phone %in% c("l", "r") ~ "liquid",
       language == "Kapampangan" & 
-        phone %in% c("i", "ɪ", "u", "ʊ") ~ "high vowel",
+        phone %in% c("i", "ɪ", "u", "ʊ") ~ "high monophthong",
+      language == "Kapampangan" & 
+        phone %in% c("e", "o", "a") ~ "non-high monophthong",
       ## American English
       language == "American English" &
         phone %in% c("p", "b", "t", "d", "k", "g", "dx", "q", "tq") ~ "stop",
@@ -143,7 +338,14 @@ d <- d %>%
       language == "American English" &
         phone %in% c("em", "en", "el", "eng") ~ "syllabic C",
       language == "American English" & 
-        phone %in% c("ih", "iy", "uw", "ihn", "uhn", "iyn", "uwn") ~ "high vowel",
+        phone %in% c("i", "ih", "ih l", "ihn", "iy", "uw", "uw ix", "ihn", "uh", "uhn", "iyn", "uwn") ~ "high monophthong",
+      language == "American English" & 
+        phone %in% c(
+          "a", "aa", "aan", "ae", "aen", "ah", "ah ix", "ah l", "ah n", "ah r", "ahn", "an", "ao", "aon",
+          "e", "eh", "ehn", "er", "ern"
+        ) ~ "non-high monophthong",
+      language == "American English" & 
+        phone %in% c("ay", "ayn", "aw", "awn", "oy", "oyn", "ow", "own", "ey", "eyn") ~ "diphthong",
       ## Vietnamese
       language == "Vietnamese" &
         phone %in% c("p", "t", "c", "k", "tʰ", "ɓ", "ɗ", "ʔ") ~ "stop",
@@ -158,7 +360,11 @@ d <- d %>%
       language == "Vietnamese" &
         phone %in% c("w", "j") ~ "approximant",
       language == "Vietnamese" & 
-        phone %in% (unique(filter(v, segment_type=="vowel")$phone) %>% str_subset("^[iɨu][^ə]")) ~ "high vowel",
+        phone %in% (unique(filter(v, segment_type == "vowel")$phone) %>% str_subset("^.ə")) ~ "diphthong",
+      language == "Vietnamese" & 
+        phone %in% (unique(filter(v, segment_type == "vowel")$phone) %>% str_subset("^[iɨu][^ə]")) ~ "high monophthong",
+      language == "Vietnamese" & 
+        phone %in% (unique(filter(v, segment_type == "vowel")$phone) %>% str_subset("^[^iɨu][^ə]")) ~ "non-high monophthong",
       ## Swahili
       language == "Swahili" &
         phone %in% c('b', 'd', 'k', 'p', 't', 'ɓ', 'ɗ', 'ɠ', 'ɡ', 'ʄ') ~ "stop",
@@ -173,7 +379,9 @@ d <- d %>%
       language == "Swahili" &
         phone %in% c("w", "j") ~ "approximant",
       language == "Swahili" & 
-        phone %in% c("i","u","iː","uː") ~ "high vowel",
+        phone %in% c("i","u","iː","uː") ~ "high monophthong",
+      language == "Swahili" & 
+        phone %in% c("ɑ","ɑː", "ɔ", "ɔː", "ɛ", "ɛː") ~ "non-high monophthong",
       ## Turkish
       language == "Turkish" &
         phone %in% c('b', 'bː', 'c', 'cː', 'd̪', 'd̪ː','k', 'kː', 'p','t̪', 't̪ː', 'ɟ', 'ɡ') ~ "stop",
@@ -188,7 +396,9 @@ d <- d %>%
       language == "Turkish" &
         phone %in% c("j") ~ "approximant",
       language == "Turkish" & 
-        phone %in% c("i","ɯ","u","y","iː","ɯː","uː","yː","ɨ","ʏ") ~ "high vowel",
+        phone %in% c("i","ɯ","u","y","iː","ɯː","uː","yː","ɨ","ʏ", "ɪ", "ʊ") ~ "high monophthong",
+      language == "Turkish" & 
+        phone %in% c("a", "aː", "e", "eː", "o", "oː", "ø", "øː", "ɛ") ~ "non-high monophthong",
       ## Georgian
       language == "Georgian" &
         phone %in% c('b', 'd', 'kʰ', 'kʼ', 'pʰ', 'pʼ', 'qʼ', 'tʰ', 'tʼ', 'ɡ') ~ "stop",
@@ -201,7 +411,9 @@ d <- d %>%
       language == "Georgian" &
         phone %in% c('ɾ', 'l') ~ "liquid",
       language == "Georgian" &
-        phone %in% c('i', 'u') ~ "high vowel",
+        phone %in% c("i", 'u') ~ "high monophthong",
+      language == "Georgian" &
+        phone %in% c("ɑ", "ɔ", "ɛ") ~ "non-high monophthong",
       ## Amharic
       language == "Amharic" &
         phone %in% c('p', 'pʷ', 'pʼ', 'pʷʼ', 'b', 'pʷ', 't', 'tʷ', 'tʼ', 'tʷʼ', 'd', 'dʷ', 'k', 'kʷ', 'kʼ', 'kʷʼ', 'ɡ', 'ɡʷ', 'ʔ') ~ "stop",
@@ -216,12 +428,32 @@ d <- d %>%
       language == "Amharic" &
         phone %in% c('w', 'j') ~ "approximant",
       language == "Amharic" &
-        phone %in% c('i', 'u', "ɨ") ~ "high vowel"#,
+        phone %in% c('i', 'u', "ɨ") ~ "high monophthong",
+      language == "Amharic" &
+        phone %in% c("a", "e", "o", "ə") ~ "non-high monophthong"
       #segment_type == "vowel" &  ~ "vowel"
     ),
     c_type = ifelse(is.na(c_type), "NA", c_type),
-    c_type = ifelse(segment_type == "vowel" & (c_type != "high vowel"),  "non-high vowel", c_type)
+    c_type = ifelse(segment_type == "vowel" & c_type %ni% c("high monophthong", "diphthong"),  "non-high monophthong", c_type)
   )
+
+d %>%
+  group_by(language, phone, c_type) %>%
+  summarize(
+    N = n()
+  ) %>%
+  write_csv("../data/phone_mapping.csv")
+
+unique(d$c_type)
+
+d %>%
+  filter(language == "Vietnamese", segment_type == "vowel") %>%
+  pull(phone) %>%
+  unique() %>%
+  str_subset("^.ə")
+  #str_subset("^[iɨu][^ə]")
+  
+unique(df.raw.drc$category)
 ```
 
 Grouping by utterance, creating predictors.
@@ -231,7 +463,7 @@ Grouping by utterance, creating predictors.
 d_seg <- d %>%
   filter(segment_type %in% c("consonant", "vowel"),
          phone_dur > 0,
-         c_type!="syllabic C") %>%
+         c_type != "syllabic C") %>%
   group_by(
     language,
     speaker,
@@ -251,10 +483,26 @@ d_seg <- d %>%
 Filtering
 
 ```{r}
+
+threshold_sylls_min <- 5
+
+threshold_uttr_min <- 0.04 # 40 ms
+threshold_uttr_max <- 0.2 # 200 ms vs. [v] 250 ms
+
+threshold_individual_min <- 0.03  # changed from 0.02
+threshold_individual_max <- 0.5  # changed from 0.4
+
+threshold_z_uttr_dur <- 3
+threshold_z_phone_dur <- 3
+
+threshold_num_phones_uttr <- 10
+threshold_num_phones_removed <- 5
+threshold_prop_phones_removed <- 0.1
+
 # visualization to decide on proper threshold
 d_seg %>%
   ggplot(aes(x = phone_dur)) +
-  facet_wrap(~language) +
+  facet_wrap(~ language) +
   geom_density(bw = 0.04) +
   scale_x_log10()
 
@@ -266,8 +514,9 @@ d_seg %>%
 
 d_seg <- d_seg %>% 
   filter(num_syllables_uttr > 5) %>%
-  filter(segment_dur_uttr < 0.25) %>%
+  filter(segment_dur_uttr < 0.25) %>%  # we only keep utterances where avg seg dur > 0.04 and < 0.25
   filter(segment_dur_uttr > 0.04) %>%
+  # change the following to by-language basis
   filter(
     log(segment_dur_uttr) > 
       mean(log(segment_dur_uttr)) - 
@@ -276,7 +525,7 @@ d_seg <- d_seg %>%
       mean(log(segment_dur_uttr)) +
       3*sd(log(segment_dur_uttr))
   ) %>%
-  filter(phone_dur > 0.02,
+  filter(phone_dur > 0.03,  #raw phone duration
          phone_dur < 0.4)
 
 # recreating speech rate measures / getting rid of
@@ -299,6 +548,7 @@ d_seg %>%
   `<`(10) %>%
   sum()
 
+# remove utterances with too little data left
 d_seg <- d_seg %>%
   group_by(language, speaker, uttr_id) %>%
   mutate(
@@ -353,9 +603,9 @@ d_uttr <- d_seg %>%
 Looking at Olivia's checking results
 
 ```{r}
-#df_check_k <- read_csv("../data/spot_checking_kapampangan_2.csv")
+df_check_k <- read_csv("../data/spot_checking_kapampangan_2.csv")
 df_check <- read_csv("../data/spot_checking.csv") %>% rename_with(tolower)
-#df_check <- bind_rows(df_check, df_check_k)
+df_check <- bind_rows(df_check, df_check_k)
 
 df_check <- df_check %>%
   group_by(language, speaker) %>%
@@ -494,7 +744,7 @@ cv_mod_baseline <- bam(phone_dur ~
 )
 saveRDS(cv_mod_baseline, "cv_mod_baseline.rds")
 cv_mod_baseline <- readRDS("cv_mod_baseline.rds")
-#summary(cv_mod_baseline)
+summary(cv_mod_baseline)
 
 # model 2: weighted regression based on olivia's ratings
 
@@ -530,7 +780,8 @@ cv_mod_full <- bam(phone_dur ~
   nthreads = 8
 )
 #saveRDS(cv_mod_full, "cv_mod_full.rds")
-cv_mod_full <- readRDS("cv_mod_full_with_k.rds")
+cv_mod_full <- readRDS("cv_mod_full.rds")
+summary(cv_mod_full)
 #summary(cv_mod_full)
 ```
 
@@ -562,6 +813,71 @@ d_uttr_plot <- d_seg %>%
 ```
 
 Make C/V duration plots.
+
+```{r}
+newdat_cv <- expand.grid(
+  segment_dur_uttr = seq(
+    min(d_seg$segment_dur_uttr),
+    max(d_seg$segment_dur_uttr),
+    length.out = 100
+  ),
+  c_type_f = d_seg$c_type_f[1],
+  speakerSegtype = d_seg$speakerSegtype[1],
+  languageSegtype = d_seg$languageSegtype[1],
+  segment_type_o = unique(d_seg$segment_type_o)
+)
+
+newdat_cv$segment_type_o <- as.ordered(newdat_cv$segment_type_o)
+contrasts(newdat_cv$segment_type_o) <- "contr.treatment"
+
+preds_full <- predict(cv_mod_full, newdat_cv,
+  exclude = c(
+    "s(segment_dur_uttr,c_type_f)",
+    "s(segment_dur_uttr,speakerSegtype)",
+    "s(segment_dur_uttr,languageSegtype)"
+  ),
+  se.fit = TRUE
+)
+
+newdat_cv$dur <- preds_full$fit
+newdat_cv$ul <- preds_full$fit + preds_full$se.fit * 1.96
+newdat_cv$ll <- preds_full$fit - preds_full$se.fit * 1.96
+
+p <- newdat_cv %>%
+  ggplot(aes(x = segment_dur_uttr, y = dur, color = segment_type_o)) +
+    geom_ribbon(aes(ymin = ll, ymax = ul, group = segment_type_o), color = NA, fill = "grey", alpha = 0.25) +
+    geom_textline(aes(label = segment_type_o), size = 10, linewidth = 2.5, hjust = 0.75) +
+    scale_x_log10(breaks = c(0.05, 0.07, 0.1, 0.14), labels = c(".05", ".07", ".10", ".14")) +
+    scale_y_log10(breaks = c(0.03, 0.04, 0.05, 0.07, 0.1, 0.14), labels = c(".03", ".04", ".05", ".07", ".10", ".14")) +
+    scale_color_manual(values=c("#56B4E9", "#e69f00"), guide="none") +
+    xlab("Average segment dur. in s (inverse speech rate)") +
+    ylab("Average duration in s") +
+    theme(
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank(),
+      plot.background = element_rect(fill = "transparent", color = NA),
+      panel.background = element_rect(fill = "transparent", color = NA),
+      legend.position = "none"
+    )
+p
+ggsave2(filename = "./graphs/pop_lang_talk.svg", plot = p, width = 9.42, height = 9, bg = "transparent")
+
+library(latex2exp)
+p <- newdat_cv %>%
+  ggplot(aes(x = segment_dur_uttr, y = dur, color = segment_type_o)) +
+    geom_line(aes(color = segment_type_o), size = 2.5) +
+    scale_color_manual(values=c("#56B4E9", "#e69f00"), guide = "none") +
+    xlab(TeX("faster $\\leftarrow$ Avg. seg. dur. (1/rate) $\\rightarrow$ slower")) +
+    ylab(TeX("shorter $\\leftarrow$ Avg. C/V dur. $\\rightarrow$ longer")) +
+    theme(
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank(),
+      plot.background = element_rect(fill = "transparent", color = NA),
+      panel.background = element_rect(fill = "transparent", color = NA),
+      legend.position = "none"
+    )
+ggsave2(filename = "./graphs/explain_talk.svg", plot = p, width = 9.42, height = 9, bg = "transparent")
+```
 
 ```{r}
 # model predictions
@@ -1059,7 +1375,7 @@ p <- df_check %>%
     legend.box.background = element_rect(fill = "transparent", color = NA),
     legend.key = element_rect(fill = "transparent", color = NA)
   )
-
+p
 p %>%
   ggsave(plot = ., filename = "./graphs_icphs/check_slide.png", width = 3, height = 3,
          bg = "transparent")
@@ -1234,7 +1550,7 @@ p <- d_uttr_plot %>%
     plot.margin = margin(),
     panel.grid.minor=element_blank()
   )
-
+p
 p %>%
   ggsave(plot = ., filename = "./graphs_icphs/all_CV_slide.png", width = 4, height = 4, bg = "transparent")
 
@@ -1390,4 +1706,87 @@ p <- d_uttr_plot %>%
 p %>%
   ggsave(plot = ., filename = "./graphs_icphs/amharic_slide.png", width = 6, height = 2.5,
          bg = "transparent")#, device = cairo_pdf)
+```
+
+
+```{r}
+theme_set(
+  theme_bw() +
+    theme(
+      text = element_text(size = 28, color = "white"),
+      plot.background = element_rect(fill = "transparent", color = NA),
+      plot.tag = element_text(face = "bold"),
+      panel.background = element_rect(fill = "transparent"),
+      panel.grid = element_blank(),
+      panel.border = element_rect(color = "white"),
+      legend.position = "bottom",
+      legend.text = element_text(margin = margin()),
+      legend.box.margin = margin(),
+      legend.margin = margin(),
+      axis.title = element_text(color = "white"),
+      axis.ticks = element_line(color = "gray75"),
+      axis.text = element_text(color = "gray75")
+    )
+)
+
+newdat_cv_full_plot <- newdat_cv_full %>%
+  filter(model == "cv_mod_full") %>%
+  mutate(
+    language = recode(language, "Taiwan Mandarin" = "Mandarin", "Seoul Korean" = "Korean", "American English" = "English"),
+    language = factor(language, levels = c(
+      "Kapampangan", "Korean", "Mandarin", "Amharic", "Georgian", "Swahili", "Turkish", "Vietnamese", "English"
+      )
+    )
+  )
+
+set.seed(42)
+(p <- d_uttr_plot %>%
+    group_by(language, measure) %>%
+    sample_n(size = 500) %>%
+    ungroup() %>%
+  mutate(
+    language = recode(language, "Taiwan Mandarin" = "Mandarin", "Seoul Korean" = "Korean", "American English" = "English"),
+    # manually order the language factor to reflect effect size; should change to a more elegant way later
+    language = factor(language, levels = c(
+      "Mandarin", "Georgian", "Vietnamese", "Swahili", "Korean", "English", "Amharic", "Kapampangan", "Turkish"
+      )
+    )
+  ) %>%
+  ggplot(data = ., aes(x = segment_dur_uttr, y = value, col = measure)) +
+    #coord_equal(ylim = c(0.03, 0.19)) +
+    facet_wrap(. ~ language, ncol = 3) +
+    #geom_ribbon(data = newdat_cv_full_plot, aes(x = segment_dur_uttr, y = dur, ymin = ll, ymax = ul, group = segment_type_o), color = NA, fill = "grey", alpha = 0.25) +
+    geom_point(alpha = 0.2, pch = 16) +
+    geom_textline(data = filter(newdat_cv_full_plot, segment_type_o == "vowel"),
+                  aes(y = dur), label = "V", size = 7.5, hjust = 0.8, col = "#e69f00", linewidth = 1) +
+  geom_textline(data = filter(newdat_cv_full_plot, segment_type_o == "consonant"),
+                  aes(y = dur), label = "C", size = 7.5, hjust = 0.8, col = "#56B4E9", linewidth = 1) +
+  #coord_cartesian(ylim = c(0.03, 0.19)) +
+  scale_x_log10(breaks = c(0.05, 0.07, 0.1, 0.14),
+                labels = c(".05", ".07", ".10", ".14")) +
+  scale_y_log10(breaks = c(0.05, 0.07, 0.1, 0.14),
+                labels = c(".05", ".07", ".10", ".14")) +
+  scale_colour_manual(values = c("#177ab2", "#b37c00"), guide = "none") +
+  #scale_colour_manual(values = c("purple", "orange"), guide = "none") +
+  geom_text(
+    data = eff_sizes_df %>%
+      filter(model == "cv_mod_full") %>%
+      mutate(
+    language = recode(language, "Taiwan Mandarin" = "Mandarin", "Seoul Korean" = "Korean", "American English" = "English"),
+    language = fct_reorder(language, eff_size),
+    model = recode(model, "cv_mod_baseline" = "baseline", "cv_mod_weighted" = "alignment", "cv_mod_full" = "alignment + segment")),
+    aes(label = paste0("Δβ = ", round(eff_size, 2)), x = 0.05, y = 0.13), color = "white", size = 7.5, inherit.aes = F) +
+    #aes(label = paste0("Δβ = ", round(eff_size, 2)), x = 0.05, y = 0.13), color = "black", size = 2, inherit.aes = F) +
+  xlab("Average segment dur. in s (inverse speech rate)") +
+  labs(y = "Average duration in s") +
+  theme(
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank(),
+      plot.background = element_rect(fill = "transparent", color = NA),
+      panel.background = element_rect(fill = "transparent", color = NA),
+      legend.position = "none"
+    ))
+
+ggsave2(filename = "./graphs/indiv_lang_talk.svg", plot = p, width = 9.42, height = 9, bg = "transparent")
+
 ```
