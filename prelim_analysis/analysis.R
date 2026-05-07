@@ -551,7 +551,7 @@ cv_mod_baseline <- bam(phone_dur ~
                        nthreads = 8
 )
 saveRDS(cv_mod_baseline, "../model/cv_mod_baseline.rds")
-cv_mod_baseline <- readRDS("../model/cv_mod_baseline.rds")
+baseline <- readRDS("../model/cv_mod_baseline.rds")
 summary(cv_mod_baseline)
 
 cv_mod_type <- bam(phone_dur ~
@@ -566,7 +566,7 @@ cv_mod_type <- bam(phone_dur ~
   nthreads = 8
 )
 saveRDS(cv_mod_type, "../model/cv_mod_type.rds")
-cv_mod_type <- readRDS("../model/cv_mod_type.rds")
+type <- readRDS("../model/cv_mod_type.rds")
 summary(cv_mod_type)
 
 
@@ -684,7 +684,7 @@ newdat_cv_baseline$dur <- preds_baseline$fit
 newdat_cv_baseline$ul <- preds_baseline$fit + preds_baseline$se.fit * 1.96
 newdat_cv_baseline$ll <- preds_baseline$fit - preds_baseline$se.fit * 1.96
 
-newdat_cv_baseline$model <- "cv_mod_baseline"
+newdat_cv_baseline$model <- "baseline"
 
 # full
 
@@ -694,7 +694,7 @@ newdat_cv_full$dur <- preds_full$fit
 newdat_cv_full$ul <- preds_full$fit + preds_full$se.fit * 1.96
 newdat_cv_full$ll <- preds_full$fit - preds_full$se.fit * 1.96
 
-newdat_cv_full$model <- "cv_mod_type"
+newdat_cv_full$model <- "type"
 
 newdat_all <- bind_rows(
   newdat_cv_baseline,
@@ -745,7 +745,6 @@ eff_sizes <- list()
 newdat_deriv <- expand.grid(
   speakerSegtype = d_seg$speakerSegtype[1],
   languageSegtype = unique(d_seg$languageSegtype),
-  measure_type = "dur",
   c_type_f = d_seg$c_type_f[1]
 )
 
@@ -777,7 +776,7 @@ newdat_deriv_1 <- newdat_deriv %>%
 newdat_deriv_2 <- newdat_deriv %>%
   mutate(segment_dur_uttr = exp(log(segment_dur_uttr) + (eps/2)))
 
-mods <- c("cv_mod_baseline", "cv_mod_type")
+mods <- c("baseline", "type")
 for (m in mods) {
 X0 <- predict(get(m), 
               newdat_deriv_1,
@@ -870,4 +869,272 @@ for (m in mods) {
         strip.placement = "outside",
         strip.text=element_text(size=18, face="bold"))
   ggsave(paste0("graphs/", m, ".png"), width=9, height=9, dpi=300)
+}
+
+
+# -------------------------------------------------------------------------
+# Shared settings
+# -------------------------------------------------------------------------
+
+mods_cv <- c(baseline = "cv_mod_baseline", type = "cv_mod_type")
+
+exclude_terms <- c(
+  "s(segment_dur_uttr,speakerSegtype)",
+  "s(segment_dur_uttr,speaker_f)",
+  "s(segment_dur_uttr,c_type_f)"
+)
+
+eps <- 0.001
+
+# -------------------------------------------------------------------------
+# Prediction grid
+# -------------------------------------------------------------------------
+
+newdat_cv_deriv_curve <- expand.grid(
+  segment_dur_uttr = seq(
+    min(d_seg$segment_dur_uttr),
+    max(d_seg$segment_dur_uttr),
+    length.out = 100
+  ),
+  c_type_f = d_seg$c_type_f[1],
+  speakerSegtype = d_seg$speakerSegtype[1],
+  languageSegtype = unique(d_seg$languageSegtype)
+) %>%
+  mutate(
+    segment_type = str_extract(languageSegtype, "[^.]*$"),
+    segment_type_o = as.ordered(segment_type),
+    language = str_extract(languageSegtype, "^[^.]*"),
+    language_f = as.factor(language),
+    speaker_f = as.factor(str_extract(speakerSegtype, "^[^.]*"))
+  )
+
+contrasts(newdat_cv_deriv_curve$segment_type_o) <- "contr.treatment"
+
+# -------------------------------------------------------------------------
+# Density estimates by language
+# -------------------------------------------------------------------------
+
+segment_dist_stats <- d_seg %>%
+  select(language, segment_dur_uttr) %>%
+  group_by(language) %>%
+  nest() %>%
+  mutate(
+    segment_dur_uttr_med = map_dbl(data, ~ median(.x$segment_dur_uttr)),
+    dens_data = map(
+      data,
+      ~ broom::tidy(
+        density(
+          .x$segment_dur_uttr,
+          n = 100,
+          from = min(d_seg$segment_dur_uttr),
+          to = max(d_seg$segment_dur_uttr)
+        )
+      )
+    )
+  ) %>%
+  unnest(dens_data) %>%
+  mutate(
+    segment_dur_uttr = x,
+    density = y / max(y)
+  ) %>%
+  ungroup() %>%
+  select(language, segment_dur_uttr_med, segment_dur_uttr, density)
+
+# -------------------------------------------------------------------------
+# Join density information onto prediction grid
+# -------------------------------------------------------------------------
+
+newdat_cv_deriv_curve <- newdat_cv_deriv_curve %>%
+  mutate(segment_dur_uttr = round(segment_dur_uttr, 15)) %>%
+  left_join(
+    segment_dist_stats %>%
+      mutate(segment_dur_uttr = round(segment_dur_uttr, 15)),
+    by = c("language", "segment_dur_uttr")
+  )
+
+# -------------------------------------------------------------------------
+# Finite difference datasets
+# -------------------------------------------------------------------------
+
+newdat_cv_deriv_curve_1 <- newdat_cv_deriv_curve %>%
+  mutate(segment_dur_uttr = exp(log(segment_dur_uttr) - eps / 2))
+
+newdat_cv_deriv_curve_2 <- newdat_cv_deriv_curve %>%
+  mutate(segment_dur_uttr = exp(log(segment_dur_uttr) + eps / 2))
+
+# -------------------------------------------------------------------------
+# Helper function
+# -------------------------------------------------------------------------
+
+predict_derivative_curve <- function(model, model_name) {
+  
+  x1 <- predict(
+    model,
+    newdata = newdat_cv_deriv_curve_1,
+    exclude = exclude_terms
+  ) %>% log()
+  
+  x2 <- predict(
+    model,
+    newdata = newdat_cv_deriv_curve_2,
+    exclude = exclude_terms
+  ) %>% log()
+  
+  x0 <- predict(
+    model,
+    newdata = newdat_cv_deriv_curve,
+    exclude = exclude_terms
+  )
+  
+  deriv_curve <- newdat_cv_deriv_curve %>%
+    mutate(
+      derivative = (x2 - x1) / eps,
+      phone_dur = x0,
+      model = model_name
+    )
+  
+  deriv_curve %>%
+    select(
+      language,
+      segment_type_o,
+      segment_dur_uttr_med,
+      segment_dur_uttr,
+      density,
+      phone_dur,
+      model,
+      derivative
+    ) %>%
+    group_by(
+      language,
+      segment_dur_uttr_med,
+      segment_dur_uttr,
+      density,
+      model
+    ) %>%
+    summarise(
+      derivative_c = derivative[segment_type_o == "consonant"],
+      derivative_v = derivative[segment_type_o == "vowel"],
+      delta_deriv = derivative_v - derivative_c,
+      phone_dur_v = phone_dur[segment_type_o == "vowel"],
+      phone_dur_c = phone_dur[segment_type_o == "consonant"],
+      .groups = "drop"
+    ) %>%
+    group_by(language) %>%
+    mutate(
+      derivative_v_w = derivative_v * density,
+      derivative_c_w = derivative_c * density,
+      delta_deriv_w = delta_deriv * density,
+      phone_dur_v_w = phone_dur_v * density,
+      phone_dur_c_w = phone_dur_c * density
+    ) %>%
+    ungroup()
+}
+
+# -------------------------------------------------------------------------
+# Compute effect curves
+# -------------------------------------------------------------------------
+
+eff_curves_cv <- imap(
+  mods_cv,
+  ~ predict_derivative_curve(
+    model = get(.x),
+    model_name = .y
+  )
+)
+
+# -------------------------------------------------------------------------
+# Compute density-weighted effect sizes
+# -------------------------------------------------------------------------
+
+eff_sizes_dw_cv <- imap(
+  eff_curves_cv,
+  ~ .x %>%
+    group_by(
+      language,
+      segment_dur_uttr_med,
+      model
+    ) %>%
+    summarise(
+      density_area = sum(density),
+      derivative_v_w_area = sum(derivative_v_w),
+      derivative_c_w_area = sum(derivative_c_w),
+      delta_deriv_w_area = sum(delta_deriv_w),
+      phone_dur_v_w_area = sum(phone_dur_v_w),
+      phone_dur_c_w_area = sum(phone_dur_c_w),
+      eff_size_dw = delta_deriv_w_area / density_area,
+      derivative_v_dw = derivative_v_w_area / density_area,
+      derivative_c_dw = derivative_c_w_area / density_area,
+      phone_dur_v_dw = phone_dur_v_w_area / density_area,
+      phone_dur_c_dw = phone_dur_c_w_area / density_area,
+      .groups = "drop"
+    ) %>%
+    left_join(
+      eff_sizes[[.y]],
+      by = "language"
+    ) %>%
+    arrange(desc(eff_size_dw))
+)
+
+# -------------------------------------------------------------------------
+# Export combined outputs
+# -------------------------------------------------------------------------
+
+eff_curves_cv_df <- bind_rows(eff_curves_cv)
+
+write_csv(
+  eff_curves_cv_df,
+  "eff_curves_cv_df.csv"
+)
+
+eff_sizes_dw_cv_df <- bind_rows(eff_sizes_dw_cv)
+
+write_csv(
+  eff_sizes_dw_cv_df,
+  "eff_sizes_dw_cv_df.csv"
+)
+
+for (m in mods) {
+  
+  eff_sizes_m <- eff_sizes_dw_cv[[m]]
+  eff_sizes_m$language <- factor(eff_sizes_m$language, levels = eff_sizes_m$language)
+  eff_sizes_m$segment_dur_uttr <- 0.05
+  eff_sizes_m$value <- 0.13
+  
+  newdat_m <- filter(newdat_all, model == m)
+  newdat_m$language <- factor(newdat_m$language, levels=eff_sizes_m$language)
+  
+  plot_dat <- d_uttr_plot
+  plot_dat$language <- factor(plot_dat$language, levels=eff_sizes_m$language)
+  
+  plot_dat %>%
+    ggplot(data = ., aes(x = segment_dur_uttr, y = value, col = measure)) +
+    facet_wrap(. ~ language) +
+    geom_point(alpha = 0.1, pch=16) +
+    geom_line(data = filter(newdat_m,
+                            segment_type_o == "vowel"),
+              aes(lty=model, y=dur),
+              col = "darkorange1", lwd = 1) +
+    geom_line(data = filter(newdat_m,
+                            segment_type_o == "consonant"),
+              aes(lty=model, y=dur),
+              col = "purple4", lwd = 1) +
+    geom_text(data=eff_sizes_m, 
+              aes(label=paste0("Δβ = ", round(eff_size,2))),
+              col="black", size=5) +
+    scale_x_log10(breaks = c(0.05, 0.07, 0.1, 0.14)) +
+    scale_y_log10(breaks = c(0.05, 0.07, 0.1, 0.14),
+                  limits = c(0.03, 0.19)) +
+    scale_colour_manual(values = c("purple", "orange"), guide = "none") +
+    xlab("Average segment duration in s (inverse speech rate)") +
+    labs(y = "Average C vs. V duration in s") +
+    theme_minimal() +
+    theme(panel.grid = element_blank(),
+          axis.line = element_line(size=0.8),
+          axis.ticks = element_line(size=0.8),
+          axis.text = element_text(size=16, colour="black"),
+          axis.title = element_text(size=18, face="bold"),
+          strip.background.y = element_blank(), 
+          strip.placement = "outside",
+          strip.text=element_text(size=18, face="bold"))
+  ggsave(paste0("graphs/", m, "_dw.png"), width=9, height=9, dpi=300)
 }
