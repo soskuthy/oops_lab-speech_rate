@@ -180,8 +180,9 @@ setwd("/home/roger/Documents/RA/oops_lab-speech_rate/prelim_analysis/")
 #   yong
 # )
 
-df.drc <- read_csv("../data/DoReCo.csv")
-saveRDS(df.drc, "../data/DoReCo.rds")
+#df.drc <- read_csv("../data/DoReCo.csv")
+#saveRDS(df.drc, "../data/DoReCo.rds")
+df.drc <- readRDS("../data/DoReCo.rds")
 df.mapping <- read_csv("../data/phone_mapping.csv")
 
 df.raw <- df.drc %>%
@@ -465,6 +466,7 @@ d <- d %>%
   )
   
 df <- bind_rows(d, df.raw.drc)
+#saveRDS(df, "../data/df.rds")
 d_seg <- df %>%
   filter(segment_type %in% c("consonant", "vowel", "syllabic"),
          phone_dur > 0,
@@ -583,8 +585,7 @@ cv_mod_type <- bam(phone_dur ~
 )
 saveRDS(cv_mod_type, "../model/cv_mod_type.rds")
 type <- readRDS("../model/cv_mod_type.rds")
-summary(cv_mod_type)
-
+summary(type)
 
 d_uttr_plot <- d_seg %>%
   group_by(language, speaker, uttr_id) %>%
