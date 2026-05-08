@@ -183,6 +183,7 @@ setwd("/home/roger/Documents/RA/oops_lab-speech_rate/prelim_analysis/")
 #df.drc <- read_csv("../data/DoReCo.csv")
 #saveRDS(df.drc, "../data/DoReCo.rds")
 df.drc <- readRDS("../data/DoReCo.rds")
+
 df.mapping <- read_csv("../data/phone_mapping.csv")
 
 df.raw <- df.drc %>%
@@ -465,8 +466,8 @@ d <- d %>%
     c_type = ifelse(segment_type == "vowel" & c_type %ni% c("high monophthong", "diphthong"),  "non-high monophthong", c_type)
   )
   
-df <- bind_rows(d, df.raw.drc)
-#saveRDS(df, "../data/df.rds")
+#df <- bind_rows(d, df.raw.drc)
+df <- readRDS("../data/df.rds")
 d_seg <- df %>%
   filter(segment_type %in% c("consonant", "vowel", "syllabic"),
          phone_dur > 0,
@@ -1155,3 +1156,74 @@ for (m in mods) {
           strip.text=element_text(size=18, face="bold"))
   ggsave(paste0("graphs/", m, "_dw.png"), width=9, height=9, dpi=300)
 }
+
+# c_type
+
+newdat_ctype <- expand.grid(
+  segment_dur_uttr = seq(
+    min(d_seg$segment_dur_uttr),
+    max(d_seg$segment_dur_uttr),
+    length.out = 100
+  ),
+  c_type_f=unique(d_seg$c_type_f),
+  speakerSegtype = d_seg$speakerSegtype[1], # will be set to 0
+  languageSegtype = unique(d_seg$languageSegtype) # will be set to 0
+) %>% filter(c_type_f != "syllabic C")
+
+newdat_ctype$segment_type_o <- ifelse(
+  newdat_ctype$c_type_f %in% c("non-high monophthong", "high monophthong", "diphthong"),
+  "vowel",
+  "consonant"
+)
+newdat_ctype$segment_type_o <- as.ordered(newdat_ctype$segment_type_o)
+contrasts(newdat_ctype$segment_type_o) <- "contr.treatment"
+
+preds_ctype <- predict(type, newdat_ctype,
+                       # the following is used when predicting without speakers
+                       exclude=c("s(segment_dur_uttr,speakerSegtype)",
+                                 "s(segment_dur_uttr,speaker_f)",
+                                 "s(segment_dur_uttr,speaker_f):segment_type_ovowel_dur_uttr",
+                                 "s(segment_dur_uttr,languageSegtype)"),
+                       se.fit = TRUE
+)
+
+newdat_ctype$dur <- preds_ctype$fit
+newdat_ctype$ul <- preds_ctype$fit + preds_ctype$se.fit * 1.96
+newdat_ctype$ll <- preds_ctype$fit - preds_ctype$se.fit * 1.96
+
+newdat_ctype$segment_type_broad <- 
+  case_when(
+    newdat_ctype$c_type_f %in% c("non-high monophthong", "high monophthong", "diphthong", "approximant") ~ "vocalic",
+    newdat_ctype$c_type_f %in% c("liquid", "nasal", "fricative") ~ "continuant + nasal",
+    newdat_ctype$c_type_f %in% c("affricate", "stop", "implosive", "ejective", "click") ~ "non-continuant",
+  )
+newdat_ctype$segment_type_broad <- 
+  factor(newdat_ctype$segment_type_broad,
+         levels=c("vocalic", "continuant + nasal", "non-continuant"))
+
+ggplot(newdat_ctype, aes(x=segment_dur_uttr, y=dur, col=c_type_f)) +
+  facet_wrap(~segment_type_broad) +
+  geom_ribbon(aes(ymin=ll,ymax=ul, group=c_type_f), col=NA, fill="grey",
+              alpha=0.3) +
+  geom_textline(aes(label = c_type_f), size = 5, vjust = 0.2,
+                linewidth = 1) +
+  scale_x_continuous(breaks=c(-3.5,-3,-2.5,-2),
+                     labels=round(exp(c(-3.5,-3,-2.5,-2)),2)) +
+  scale_y_continuous(breaks=c(-3.5,-3,-2.5,-2),
+                     labels=round(exp(c(-3.5,-3,-2.5,-2)),2)) +
+  scale_colour_brewer(palette = "Set1", guide='none') +
+  #scale_colour_manual(values=c("purple4", "darkorange2"), guide="none") +
+  xlab("Overall average segment duration in s (inverse speech rate)") +
+  labs(y=NULL) +
+  ylab("Average duration per segment type") +
+  # remove clutter
+  theme_minimal() +
+  # some specific formatting...
+  theme(panel.grid = element_blank(),
+        axis.line = element_line(size=0.8),
+        axis.ticks = element_line(size=0.8),
+        axis.text = element_text(size=14, colour="black"),
+        axis.title = element_text(size=16, face="bold"),
+        strip.background.y = element_blank(), 
+        strip.placement = "outside",
+        strip.text=element_text(size=16, face="bold"))
